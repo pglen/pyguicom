@@ -2,7 +2,7 @@
 
 ## Common routines (and classes) for python Gtk (pygobject) development.
 
- Just a  sampler of what is in there:
+ Just a sampler of what is in there (pasted from code):
 
 class CairoHelper():
 class   TextTable(Gtk.Table):
@@ -37,7 +37,9 @@ class ListBox(Gtk.TreeView):
     def __init__(self, textm = "", widget = None, tooltip=None, font = None):
 
  The defaults are set to a reasonable value, and the named argument can be
-set on one line. This makes the code look compact, maintainable.
+set on one line. This makes the code look compact and maintainable.
+
+ See descendent projects for examples. (pyedpro; pycal; pggui; ...)
 
 
 
