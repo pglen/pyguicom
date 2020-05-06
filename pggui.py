@@ -467,16 +467,6 @@ class Lights(Gtk.Frame):
         eventbox.modify_bg(Gtk.StateFlags.NORMAL, float2col(eventbox.color))
         return eventbox
 
-class WideButt(Gtk.Button):
-
-    def __init__(self, labelx, callme = None, space = 2):
-        #super().__init__(self)
-        GObject.GObject.__init__(self)
-        self.set_label(" " * space + labelx + " " * space)
-        self.set_use_underline (True)
-        if callme:
-            self.connect("clicked", callme)
-
 class ScrollListBox(Gtk.Frame):
 
     def __init__(self, limit = -1, colname = '', callme = None):
@@ -1043,6 +1033,7 @@ if __name__ == '__main__':
     print("This file was not meant to run as the main module")
 
 # EOF
+
 
 
 
