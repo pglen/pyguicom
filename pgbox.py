@@ -16,8 +16,6 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
 
-# ------------------------------------------------------------------------
-
 box_testmode = False
 
 # ------------------------------------------------------------------------
@@ -592,4 +590,5 @@ class   xHBox(Gtk.HBox):
 
 
 # EOF
+
 

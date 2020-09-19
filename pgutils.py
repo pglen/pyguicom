@@ -7,6 +7,10 @@ import os, sys, getopt, signal, string, fnmatch, math
 import random, time, subprocess, traceback, serial, glob
 import serial.tools.list_ports
 
+import inspect
+if inspect.isbuiltin(time.process_time):
+    time.clock = time.process_time
+
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
@@ -763,6 +767,107 @@ def  readfile(strx, sep = None):
     #text2 = []
 
     return text
+
+# ------------------------------------------------------------------------
+# Handle command line. Interpret optarray and decorate the class
+# This allows a lot of sub utils to have a common set of options.
+
+class Config:
+
+    def __init__(self, optarr):
+        self.optarr = optarr
+        self.verbose = False
+        self.debug = False
+
+    def comline(self, argv):
+        optletters = ""
+        for aa in self.optarr:
+            optletters += aa[0]
+        #print( optletters    )
+        # Create defaults:
+        err = 0
+        for bb in range(len(self.optarr)):
+            if self.optarr[bb][1]:
+                # Coerse type
+                if type(self.optarr[bb][2]) == type(0):
+                    self.__dict__[self.optarr[bb][1]] = int(self.optarr[bb][2])
+                if type(self.optarr[bb][2]) == type(""):
+                    self.__dict__[self.optarr[bb][1]] = str(self.optarr[bb][2])
+        try:
+            opts, args = getopt.getopt(argv, optletters)
+        #except getopt.GetoptError, err:
+        except:
+            print( "Invalid option(s) on command line:", err)
+            #support.put_exception("comline")
+            return ()
+
+        #print( "opts", opts, "args", args)
+        for aa in opts:
+            for bb in range(len(self.optarr)):
+                if aa[0][1] == self.optarr[bb][0][0]:
+                    #print( "match", aa, self.optarr[bb])
+                    if len(self.optarr[bb][0]) > 1:
+                        #print( "arg", self.optarr[bb][1], aa[1])
+                        if self.optarr[bb][2] != None:
+                            if type(self.optarr[bb][2]) == type(0):
+                                self.__dict__[self.optarr[bb][1]] = int(aa[1])
+                            if type(self.optarr[bb][2]) == type(""):
+                                self.__dict__[self.optarr[bb][1]] = str(aa[1])
+                    else:
+                        #print( "set", self.optarr[bb][1], self.optarr[bb][2])
+                        if self.optarr[bb][2] != None:
+                            self.__dict__[self.optarr[bb][1]] = 1
+                        #print( "call", self.optarr[bb][3])
+                        if self.optarr[bb][3] != None:
+                            self.optarr[bb][3]()
+        return args
+
+
+
+# It's totally optional to do this, you could just manually insert icons
+# and have them not be themeable, especially if you never expect people
+# to theme your app.
+
+def register_stock_icons():
+    ''' This function registers our custom toolbar icons, so they
+        can be themed.
+    '''
+    items = [('demo-gtk-logo', '_GTK!', 0, 0, '')]
+    # Register our stock items
+    #Gtk.stock_add(items)
+
+    # Add our custom icon factory to the list of defaults
+    factory = Gtk.IconFactory()
+    factory.add_default()
+
+    img_dir = os.path.join(os.path.dirname(__file__), 'images')
+    img_path = os.path.join(img_dir, 'gtk-logo-rgb.gif')
+
+    #print( img_path)
+    try:
+        #pixbuf = Gdk.pixbuf_new_from_file(img_path)
+        # Register icon to accompany stock item
+
+        # The gtk-logo-rgb icon has a white background, make it transparent
+        # the call is wrapped to (gboolean, guchar, guchar, guchar)
+        #transparent = pixbuf.add_alpha(True, chr(255), chr(255),chr(255))
+        #icon_set = Gtk.IconSet(transparent)
+        #factory.add('demo-gtk-logo', icon_set)
+        pass
+    except GObject.GError as error:
+        #print( 'failed to load GTK logo ... trying local')
+        try:
+            #img_path = os.path.join(img_dir, 'gtk-logo-rgb.gif')
+            xbuf = Gdk.pixbuf_new_from_file('gtk-logo-rgb.gif')
+            #Register icon to accompany stock item
+            #The gtk-logo-rgb icon has a white background, make it transparent
+            #the call is wrapped to (gboolean, guchar, guchar, guchar)
+            transparent = pixbuf.add_alpha(True, chr(255), chr(255),chr(255))
+            icon_set = Gtk.IconSet(transparent)
+            factory.add('demo-gtk-logo', icon_set)
+
+        except GObject.GError as error:
+            print('failed to load GTK logo for toolbar')
 
 # EOF
 

@@ -16,6 +16,8 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
 
+import pggui
+
 # ------------------------------------------------------------------------
 
 class   SimpleTree(Gtk.TreeView):
@@ -172,6 +174,13 @@ class   SimpleEdit(Gtk.TextView):
         endd = self.buffer.get_end_iter()
         return self.buffer.get_text(startt, endd, False)
 
+    def set_text(self, txt):
+        self.check_saved()
+        startt = self.buffer.get_start_iter()
+        endd = self.buffer.get_end_iter()
+        self.buffer.delete(startt, endd)
+        self.buffer.insert(startt, txt)
+        self.buffer.set_modified(True)
 
 # Select character by index
 
@@ -213,12 +222,67 @@ class   SimpleSel(Gtk.Label):
                 self.newtext = self.text[:idx] + self.text[idx].upper() + self.text[idx+1:]
                 self.set_text(self.newtext)
 
+            if self.callb:
+                self.callb(self.lastsel)
+
+        except:
+            print(sys.exc_info())
+
+# Give a proportional answer
+
+class   NumberSel(Gtk.Label):
+
+    def __init__(self, text = " ", callb = None):
+        self.text = text
+        self.callb = callb
+        self.axx = self.text.find("[All]")
+        Gtk.Label.__init__(self, text)
+        self.set_has_window(True)
+        self.set_events(Gdk.EventMask.ALL_EVENTS_MASK )
+        self.connect("button-press-event", self.area_button)
+        self.modify_font(Pango.FontDescription("Mono 13"))
+
+    def area_button(self, but, event):
+
+        #print("sss =", self.get_allocation().width)
+        #print("click", event.x, event.y)
+
+        prop = event.x / float(self.get_allocation().width)
+        idx = int(prop * len(self.text))
+
+        # Navigate to IDX
+        if self.text[idx] == " ":
+            idx += 1
+        else:
+            if self.text[idx-1] != " ":
+                idx -= 1
+        if idx >= len(self.text):
+            return
+
+        try:
+            # See of it is all
+            if self.axx >= 0:
+                if idx > self.axx:
+                    #print("all", idx, self.text[idx-5:idx+7])
+                    self.lastsel =  "All"
+                    self.newtext = self.text[:self.axx] + self.text[self.axx:].upper()
+                    self.set_text(self.newtext)
+                else:
+                    self.newtext = self.text[:self.axx] + self.text[self.axx:].lower()
+                    self.set_text(self.newtext)
+
+            else:
+                self.lastsel =  self.text[idx:idx+2]
+                print("lastsel", self.lastsel)
+                self.newtext = self.text[:idx] + self.text[idx].upper() + self.text[idx+1:]
+                self.set_text(self.newtext)
 
             if self.callb:
                 self.callb(self.lastsel)
 
         except:
             print(sys.exc_info())
+
 
 # ------------------------------------------------------------------------
 # Letter selection control
@@ -245,12 +309,56 @@ class   LetterSel(Gtk.VBox):
         hbox3b.pack_start(Gtk.Label(" "), 1, 1, 0)
 
         self.pack_start(hbox3a, 0, 0, False)
-        self.pack_start(xSpacer(4), 0, 0, False)
+        self.pack_start(pggui.xSpacer(4), 0, 0, False)
         self.pack_start(hbox3b, 0, 0, False)
 
     def  letter(self, letter):
         #print("LetterSel::letterx:", letter)
         if self.callb:
             self.callb(letter)
+
+class   HourSel(Gtk.VBox):
+
+    def __init__(self, callb = None):
+
+        Gtk.VBox.__init__(self)
+        self.callb = callb
+
+        strx = " 8 10 12 14 16 "
+        hbox3a = Gtk.HBox()
+        hbox3a.pack_start(Gtk.Label(" "), 1, 1, 0)
+        self.simsel = NumberSel(strx, self.letter)
+        hbox3a.pack_start(self.simsel, 0, 0, 0)
+        hbox3a.pack_start(Gtk.Label(" "), 1, 1, 0)
+
+        self.pack_start(hbox3a, 0, 0, False)
+
+    def  letter(self, letter):
+        #print("LetterSel::letterx:", letter)
+        if self.callb:
+            self.callb(letter)
+
+class   MinSel(Gtk.VBox):
+
+    def __init__(self, callb = None):
+
+        Gtk.VBox.__init__(self)
+        self.callb = callb
+
+        strx = " 0 10 20 30 40 50 "
+        hbox3a = Gtk.HBox()
+        hbox3a.pack_start(Gtk.Label(" "), 1, 1, 0)
+        self.simsel = NumberSel(strx, self.letter)
+        hbox3a.pack_start(self.simsel, 0, 0, 0)
+        hbox3a.pack_start(Gtk.Label(" "), 1, 1, 0)
+
+        self.pack_start(hbox3a, 0, 0, False)
+
+    def  letter(self, letter):
+        #print("LetterSel::letterx:", letter)
+        if self.callb:
+            self.callb(letter)
+
+
 
 
