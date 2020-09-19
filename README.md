@@ -5,6 +5,7 @@
  Just a sampler of what is in there (pasted from code):
 
 class CairoHelper():
+
 class TextTable(Gtk.Table):
 class TextRow(Gtk.HBox):
 class RadioGroup(Gtk.Frame):
@@ -28,7 +29,7 @@ class ListBox(Gtk.TreeView):
 
  There is a lot more ...
 
- These classes act a simplification of PyGtk classes.
+ These classes act a simplification of the PyGtk (PyGobject) classes.
 
  For instance the Label takes a constructor, and feeds the arguments as
  one would expect. Like this:
