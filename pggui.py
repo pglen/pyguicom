@@ -15,6 +15,17 @@ from gi.repository import Pango
 
 gui_testmode = 0
 
+def randcol():
+    return random.randint(0, 255)
+
+def randcolstr(start = 0, endd = 255):
+    rr =  random.randint(start, endd)
+    gg =  random.randint(start, endd)
+    bb =  random.randint(start, endd)
+    strx = "#%02x%02x%02x" % (rr, gg, bb)
+    return strx
+
+
 '''
 for a in (style.base, style.fg, style.bg,
       style.light, style.dark, style.mid,
@@ -425,86 +436,6 @@ class ScrollListBox(Gtk.Frame):
 
     def select(self, num):
         self.listbox.select(num)
-
-class   TextRow(Gtk.HBox):
-
-    def __init__(self, labelx, initval, main, align=20):
-
-        GObject.GObject.__init__(self)
-        #super().__init__(self)
-
-        self.set_homogeneous(False)
-        self.main = main
-        self.label = Gtk.Label()
-        self.label.set_text_with_mnemonic(labelx)
-        #self.label.set_xalign(1)
-
-        # Adjust for false character
-        lenx = len(labelx);
-        if "_" in labelx: lenx -= 1
-        #spp = int((align - lenx) * 1.8) # Space is smaller than avarage char
-        #self.pack_start(Spacer(spp), False, False, 0)
-
-        self.pack_start(Spacer(), False, False, 0)
-        self.pack_start(self.label, False, False, 0)
-        self.pack_start(Spacer(4), False, False, 0)
-        self.tbox = Gtk.Entry()
-        self.tbox.set_width_chars (8)
-        self.tbox.set_text(initval)
-        self.pack_start(self.tbox, False, False, 0)
-
-        self.label.set_mnemonic_widget(self.tbox)
-
-        self.tbox.connect("focus_out_event", self.edit_done)
-        self.tbox.connect("key-press-event", self.edit_key)
-        self.tbox.connect("key-release-event", self.edit_key_rel)
-
-    def edit_done(self, textbox, event):
-        #print(textbox.get_text())
-        pass
-
-    def edit_key_rel(self, textbox, event):
-        #print(textbox, event.string, event.keyval)
-        if event.string == "\t":
-            #print("Tab")
-            return None
-
-        if event.string == "\r":
-            #print("Newline", event.string)
-            # Switch to next control
-            '''
-            #ee = event.copy() #Gdk.Event(Gdk.EventType.KEY_PRESS)
-            #ee.keyval = Gdk.KEY_Tab
-            #ee.string = "\t"
-            #e.state = event.state
-            #super().emit("key-release-event", ee)
-            #super().foreach(self.callb)
-            '''
-
-    def callb(self, arg1):
-        #print ("callb arg1", arg1)
-        pass
-
-    def edit_key(self, textbox, event):
-        #print(textbox, event.string, event.keyval)
-        if event.string == "\t":
-            #print("Tab")
-            pass
-        if event.string == "\r":
-            #print("Newline")
-            # Switch to next control (any way you can)
-            arrx = (Gtk.DirectionType.TAB_FORWARD,  Gtk.DirectionType.RIGHT,
-            Gtk.DirectionType.LEFT, Gtk.DirectionType.UP)
-            for aa in arrx:
-                ret = self.main.child_focus(aa)
-                if ret:
-                    break
-
-    def get_text(self):
-        return self.tbox.get_text()
-
-    def set_text(self, txt):
-        return self.tbox.set_text(txt)
 
 # ------------------------------------------------------------------------
 
@@ -938,6 +869,90 @@ def set_gui_testmode(flag):
 
 # ------------------------------------------------------------------------
 
+class   SimpleTree(Gtk.TreeView):
+
+    def __init__(self, head = [], editx = [], skipedit = 0):
+
+        Gtk.TreeView.__init__(self)
+
+        self.callb = None
+        self.chcallb = None
+
+        # repair missing column
+        if len(head) == 0:
+            head.append("")
+
+        if len(editx) == 0:
+            editx.append("")
+
+        self.types = []
+        for aa in head:
+            self.types.append(str)
+
+        self.treestore = Gtk.TreeStore()
+        self.treestore.set_column_types(self.types)
+
+        cnt = 0
+        for aa in head:
+            # Create a CellRendererText to render the data
+            cell = Gtk.CellRendererText()
+            if cnt > skipedit:
+                cell.set_property("editable", True)
+                cell.connect("edited", self.text_edited, cnt)
+
+            tvcolumn = Gtk.TreeViewColumn(aa)
+            tvcolumn.pack_start(cell, True)
+            tvcolumn.add_attribute(cell, 'text', cnt)
+            self.append_column(tvcolumn)
+            cnt += 1
+
+        self.set_model(self.treestore)
+        self.connect("cursor-changed", self.selection)
+
+    def text_edited(self, widget, path, text, idx):
+        #print ("edited", widget, path, text, idx)
+        self.treestore[path][idx] = text
+        args = []
+        for aa in self.treestore[path]:
+            args.append(aa)
+        self.chcallb(args)
+
+    def selection(self, xtree):
+        #print("simple tree sel", xtree)
+        sel = xtree.get_selection()
+        xmodel, xiter = sel.get_selected()
+        if xiter:
+            self.args = []
+            for aa in range(len(self.types)):
+                xstr = xmodel.get_value(xiter, aa)
+                self.args.append(xstr)
+            #print("selection", self.args)
+            if self.callb:
+                self.callb(self.args)
+
+    def setcallb(self, callb):
+        self.callb = callb
+
+    def setCHcallb(self, callb):
+        self.chcallb = callb
+
+    def append(self, args):
+        piter = self.treestore.append(None, args)
+
+    def sel_last(self):
+        sel = self.get_selection()
+        xmodel, xiter = sel.get_selected()
+        iter = self.treestore.get_iter_first()
+        while True:
+            iter2 = self.treestore.iter_next(iter)
+            if not iter2:
+                break
+            iter = iter2
+        sel.select_iter(iter)
+
+    def clear(self):
+        self.treestore.clear()
+
 class   SimpleEdit(Gtk.TextView):
 
     def __init__(self, head = []):
@@ -1173,87 +1188,6 @@ class   xHBox(Gtk.HBox):
         if pad == 0:
             pad = self.pad
         self.pack_start(obj, expand, expand, pad)
-
-
-class   TextRow(Gtk.HBox):
-
-    def __init__(self, labelx, initval, main, align=20):
-
-        GObject.GObject.__init__(self)
-        #super().__init__(self)
-
-        self.set_homogeneous(False)
-        self.main = main
-        self.label = Gtk.Label()
-        self.label.set_text_with_mnemonic(labelx)
-        #self.label.set_xalign(1)
-
-        # Adjust for false character
-        lenx = len(labelx);
-        if "_" in labelx: lenx -= 1
-        #spp = int((align - lenx) * 1.8) # Space is smaller than avarage char
-        #self.pack_start(Spacer(spp), False, False, 0)
-
-        self.pack_start(Spacer(), False, False, 0)
-        self.pack_start(self.label, False, False, 0)
-        self.pack_start(Spacer(4), False, False, 0)
-        self.tbox = Gtk.Entry()
-        self.tbox.set_width_chars (8)
-        self.tbox.set_text(initval)
-        self.pack_start(self.tbox, False, False, 0)
-
-        self.label.set_mnemonic_widget(self.tbox)
-
-        self.tbox.connect("focus_out_event", self.edit_done)
-        self.tbox.connect("key-press-event", self.edit_key)
-        self.tbox.connect("key-release-event", self.edit_key_rel)
-
-    def edit_done(self, textbox, event):
-        #print(textbox.get_text())
-        pass
-
-    def edit_key_rel(self, textbox, event):
-        #print(textbox, event.string, event.keyval)
-        if event.string == "\t":
-            #print("Tab")
-            return None
-
-        if event.string == "\r":
-            #print("Newline", event.string)
-            # Switch to next control
-            '''
-            #ee = event.copy() #Gdk.Event(Gdk.EventType.KEY_PRESS)
-            #ee.keyval = Gdk.KEY_Tab
-            #ee.string = "\t"
-            #e.state = event.state
-            #super().emit("key-release-event", ee)
-            #super().foreach(self.callb)
-            '''
-
-    def callb(self, arg1):
-        #print ("callb arg1", arg1)
-        pass
-
-    def edit_key(self, textbox, event):
-        #print(textbox, event.string, event.keyval)
-        if event.string == "\t":
-            #print("Tab")
-            pass
-        if event.string == "\r":
-            #print("Newline")
-            # Switch to next control (any way you can)
-            arrx = (Gtk.DirectionType.TAB_FORWARD,  Gtk.DirectionType.RIGHT,
-            Gtk.DirectionType.LEFT, Gtk.DirectionType.UP)
-            for aa in arrx:
-                ret = self.main.child_focus(aa)
-                if ret:
-                    break
-
-    def get_text(self):
-        return self.tbox.get_text()
-
-    def set_text(self, txt):
-        return self.tbox.set_text(txt)
 
 # ------------------------------------------------------------------------
 
@@ -1811,6 +1745,180 @@ class   ComboBox(Gtk.ComboBox):
         model = self.get_model()
         iter = model.get_iter_first()
         self.set_active_iter(iter)
+
+class Rectangle():
+
+    # Accept rect, array, integers
+    def __init__(self, *rrr):
+        #Gdk.Rectangle.__init__(self)
+        if len(rrr) == 4:
+            idx = 0
+            for aa in rrr:
+                bb = int(aa)
+                if idx == 0:
+                    self.x = bb
+                elif idx == 1:
+                    self.y = bb
+                elif idx == 2:
+                    #self.width = bb
+                    self.w = bb
+                elif idx == 3:
+                    #self.height = bb
+                    self.h = bb
+                else:
+                    raise ValueError
+                idx += 1
+        else:
+            for aaa in rrr:
+                self.x = aaa[0]; self.y =  aaa[1]
+                self.w =  aaa[2];
+                #self.width =  aaa[2];
+                self.h =  aaa[3]
+                #self.height =  aaa[3]
+                break
+            pass
+
+    # Make it smaller
+    def resize(self, ww, hh = 0):
+        if hh == 0:
+            hh = ww
+
+        #if ww + self.w <= 0 or hh + self.h <= 0:
+        #    raise (ValuError, "Cannot have negative rect size")
+
+        self.x -= ww/2; self.w += ww
+        self.y -= hh/2; self.h += hh
+
+    def copy(self):
+        #print("rect to copy", str(self))
+        #print("rect to copy", dir(self))
+        nnn = Rectangle()                   # New Instance
+        '''
+        # Self
+        for aa in dir(self):
+            try:
+                #nnn.__setattr__(aa, self.__getattribute__(aa))
+                nnn.aa = self.__getattribute__(aa)
+                #print("cp:", aa, end = "")
+                #if type(self.__getattribute__(aa)) == int:
+                #    print(" -> ", self.__getattribute__(aa), end= " ")
+                #print(" --- ", end = "")
+            except:
+                #print(sys.exc_info())
+                print("no", aa)
+                pass
+        '''
+
+        # Assign explictly
+        nnn.x = self.x + 0
+        nnn.y = self.y + 0
+        nnn.w = self.w + 0
+        nnn.h = self.h + 0
+
+        #nnn.width = self.width + 1
+        #nnn.height = self.height + 1
+
+        #print("rect out", str(nnn))
+        #print("rect out", dir(nnn))
+        return nnn
+
+    # Normalize; Put the rect in positive space
+
+    def norm(self, rect):
+        rect3 = rect.copy()
+        if rect3.h < 0:
+            rect3.y -= abs(rect3.h)
+            rect3.h = abs(rect3.h)
+        if rect3.w < 0:
+            rect3.x -= abs(rect3.w)
+            rect3.w = abs(rect3.w)
+        return rect3
+
+    # I was too lazy to write it; Crappy Gdk rect kicked me to it
+
+    # ==========    self
+    # =        =
+    # =    ----=----
+    # ====|======   |  rect2
+    #     |         |
+    #      ---------
+
+    def intersect(self, rect2):
+
+        rect3 = self.norm(rect2);   rect4 = self.norm(self)
+
+        urx = rect4.x + rect4.w;    lry = rect4.y + rect4.h
+        urx2 = rect3.x + rect3.w;   lry2 = rect3.y + rect3.h
+        inter = 0
+
+        # X intersect
+        if rect3.x >= rect4.x and rect3.x <= urx:
+            inter += 1;
+        # Y intersect
+        if rect3.y >= rect4.y and rect3.y <= lry:
+            inter += 1;
+
+        # X intersect rev
+        if rect4.x >= rect3.x and rect4.x <= urx2:
+            inter += 1;
+        # Y intersect rev
+        if rect4.y >= rect3.y and rect4.y <= lry2:
+            inter += 1;
+
+        #print("inter", inter, str(self), "->", str(rect2))
+        return (inter >= 2, self.x)
+
+    # I was too lazy to write it; Crappy Gdt rect kicked me to it
+    def contain(self, rect2):
+        #self.dump()
+        #rect2.dump()
+        inter = 0
+        # X intersect
+        if rect2.x >= self.x and rect2.x + rect2.w <= self.x + self.w:
+            inter += 1;
+        # Y intersect
+        if rect2.y >= self.y and rect2.y + rect2.h <= self.y + self.h:
+            inter += 1;
+        #print("inter", inter)
+        return (inter == 2, self.x)
+
+    # Convert index to values
+    def __getitem__(self, key):
+        if key == 0:
+            return self.x
+        elif key == 1:
+            return self.y
+        elif key == 2:
+            return self.w
+        elif key == 3:
+            return self.h
+        else:
+            raise IndexError;
+
+    def dump(self):
+        return (self.x, self.y, self.w, self.h)
+
+    '''
+    # This was killed in favour of self implemented Rectangle class
+    def __getattr__(self, attr):
+        if attr == "w":
+            return self.width
+        elif attr == "h":
+            return self.height
+        else:
+            return super(Gdk.Rectangle, self).__getattr__(attr)
+
+    def __setattr__(self, attr, val):
+        if attr == "w":
+            self.width = val
+        elif attr == "h":
+            self.height = val
+        else:
+            super(Gdk.Rectangle, self).__setattr__(attr, val)
+    '''
+
+    def __str__(self):
+        return "R: x=%d y=%d w=%d h=%d" % (self.x, self.y, self.w, self.h)
 
 # ------------------------------------------------------------------------
 # Highlite test items
