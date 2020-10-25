@@ -76,7 +76,7 @@ def  usleep(msec):
 # -----------------------------------------------------------------------
 #
 
-def message(strx, title = "QCAN2", parent=None):
+def message(strx, title = "Dialog", parent=None):
 
         dialog = Gtk.MessageDialog()
 

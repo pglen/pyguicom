@@ -238,6 +238,7 @@ class MenuButt(Gtk.DrawingArea):
         self.set_events(Gdk.EventMask.ALL_EVENTS_MASK)
         self.set_tooltip_text(tooltip)
         self.set_can_focus(True)
+        self.pointer = self.get_pointer()
 
     def _create_menuitem(self, string, action, arg = None):
         rclick_menu = Gtk.MenuItem(string)
@@ -528,7 +529,7 @@ class Spinner(Gtk.SpinButton):
         GObject.GObject.__init__(self)
         self.cb_func = cb
 
-        adj2 = Gtk.Adjustment(startx, 1.0, endx, 1.0, 5.0, 0.0)
+        adj2 = Gtk.Adjustment(startx, startx, endx, 1.0, 5.0, 0.0)
         self.set_adjustment(adj2)
         self.set_value(defx)
         self.set_wrap(True)
@@ -538,7 +539,6 @@ class Spinner(Gtk.SpinButton):
         #print("spinned", spin)
         if self.cb_func:
             self.cb_func(self.get_value())
-
 
 # ------------------------------------------------------------------------
 # Highlite test items
@@ -952,16 +952,22 @@ class   SeparatorMenuItem(Gtk.SeparatorMenuItem):
 
 # ------------------------------------------------------------------------
 
+class coords():
+    pass
+
 class Menu():
 
     def __init__(self, menarr, callb, event, submenu = False):
 
         #GObject.GObject.__init__(self)
 
-        self.callb = callb
-        self.menarr = menarr
+        self.callb   = callb
+        self.menarr  = menarr
+        self.event   = coords()
+        self.event.x = int(event.x)
+        self.event.y = int(event.y)
+        self.title   = menarr[0]
         self.gtkmenu = Gtk.Menu()
-        self.title = menarr[0]
 
         cnt = 0
         for aa in self.menarr:
@@ -996,7 +1002,7 @@ class Menu():
         pass
 
     def _create_menuitem(self, string, action, arg = None):
-        rclick_menu = Gtk.MenuItem(string)
+        rclick_menu = Gtk.MenuItem(label=string)
         rclick_menu.connect("activate", action, string, arg);
         rclick_menu.show()
         return rclick_menu
@@ -1006,7 +1012,6 @@ class Menu():
         if self.callb:
             self.callb(menutext, arg)
         self.gtkmenu = None
-
 
 # ------------------------------------------------------------------------
 
