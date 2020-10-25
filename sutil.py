@@ -83,17 +83,26 @@ def message(strx, parent = None, title = None, icon = Gtk.MessageType.INFO):
     dialog.connect("response", lambda d, r: d.destroy())
     dialog.show()
 
+
 # -----------------------------------------------------------------------
 # Sleep just a little, but allow the system to breed
 
 def  usleep(msec):
 
-    got_clock = time.clock() + float(msec) / 1000
+    if sys.version_info[0] < 3 or \
+        (sys.version_info[0] == 3 and sys.version_info[1] < 3):
+        timefunc = time.clock
+    else:
+        timefunc = time.process_time
+
+    got_clock = timefunc() + float(msec) / 1000
     #print( got_clock)
     while True:
-        if time.clock() > got_clock:
+        if timefunc() > got_clock:
             break
+        #print ("Sleeping")
         Gtk.main_iteration_do(False)
+
 
 # ------------------------------------------------------------------------
 # Create temporary file, return name. Empty string ("") if error.

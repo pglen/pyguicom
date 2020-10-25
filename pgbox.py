@@ -4,8 +4,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import os, sys, getopt, signal, string, fnmatch, math
-import random, time, subprocess, traceback, serial, glob
-import serial.tools.list_ports
+import random, time, subprocess, traceback, glob
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -14,6 +13,9 @@ from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
+
+sys.path.append('..')
+import pycommon.pgutils
 
 box_testmode = False
 
@@ -188,89 +190,11 @@ class xSpacer(Gtk.HBox):
         GObject.GObject.__init__(self)
         #self.pack_start()
         if box_testmode:
-            col = randcolstr(100, 200)
+            col = pgutils.randcolstr(100, 200)
             self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(col))
         if sp == None:
             sp = 6
         self.set_size_request(sp, sp)
-
-# ------------------------------------------------------------------------
-# An N pixel spacer. Defaults to 1 char height / width
-
-class Spacer(Gtk.Label):
-
-    global box_testmode
-
-    def __init__(self, sp = 1, title=None, left=False, bottom=False, test=False):
-
-        GObject.GObject.__init__(self)
-
-        #sp *= 1000
-        #self.set_markup("<span  size=\"" + str(sp) + "\"> </span>")
-        #self.set_text(" " * sp)
-
-        if title:
-            self.set_text(title)
-        else:
-            self.set_text(" " * sp)
-
-        if left:
-            self.set_xalign(0)
-
-        if bottom:
-            self.set_yalign(1)
-
-        if test or box_testmode:
-            self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#888888"))
-
-        #self.set_property("angle", 15)
-        #attr = self.get_property("attributes")
-        #attr2 = Pango.AttrList()
-        #print ("attr", dir(attr))
-        #attr.
-        #self.set_property("attributes", attr)
-        #self.set_property("label", "wtf")
-        #self.set_property("background-set", True)
-
-# ------------------------------------------------------------------------
-# Added convenience methods
-
-class   xVBox(Gtk.VBox):
-
-    def __init__(self, col = None):
-        GObject.GObject.__init__(self)
-        self.pad = 0
-        if box_testmode:
-            if not col:
-                col = randcolstr(100, 200)
-            self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(col))
-
-    def set_padding(self, pad):
-        self.pad = pad
-
-    def pack(self, obj, expand = False, pad = 0):
-        if pad == 0:
-            pad = self.pad
-        self.pack_start(obj, expand, expand, pad)
-
-class   xHBox(Gtk.HBox):
-
-    def __init__(self, col = None):
-        GObject.GObject.__init__(self)
-        self.pad = 0
-        if box_testmode:
-            if not col:
-                col = randcolstr(100, 200)
-            self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(col))
-
-    def set_padding(self, pad):
-        self.pad = pad
-
-    def pack(self, obj, expand = False, pad = 0):
-        if pad == 0:
-            pad = self.pad
-        self.pack_start(obj, expand, expand, pad)
-
 
 # ------------------------------------------------------------------------
 # An N pixel spacer. Defaults to 1 char height / width
@@ -558,7 +482,7 @@ class   xVBox(Gtk.VBox):
         self.pad = 0
         if box_testmode:
             if not col:
-                col = randcolstr(100, 200)
+                col = pgutils.randcolstr(100, 200)
             self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(col))
 
     def set_padding(self, pad):
@@ -576,7 +500,7 @@ class   xHBox(Gtk.HBox):
         self.pad = 0
         if box_testmode:
             if not col:
-                col = randcolstr(100, 200)
+                col = pgutils.randcolstr(100, 200)
             self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(col))
 
     def set_padding(self, pad):

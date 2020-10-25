@@ -13,6 +13,11 @@ from gi.repository import Gdk
 from gi.repository import GObject
 from gi.repository import Pango
 
+sys.path.append('..')
+import pycommon.pgutils
+
+IDXERR = "Index is larger than the available number of controls."
+
 gui_testmode = 0
 
 def randcol():
@@ -24,7 +29,6 @@ def randcolstr(start = 0, endd = 255):
     bb =  random.randint(start, endd)
     strx = "#%02x%02x%02x" % (rr, gg, bb)
     return strx
-
 
 '''
 for a in (style.base, style.fg, style.bg,
@@ -204,7 +208,7 @@ class Led(Gtk.DrawingArea):
         #cr.scale(width / 2., height / 2.)
         #cr.restore()
 
-        ccc = str2float(self.color)
+        ccc = pgutils.str2float(self.color)
         cr.set_source_rgba(ccc[0] * 0.7, ccc[1] * 0.7, ccc[2] * 0.7)
         cr.arc(rect.width/2, rect.height/2., rect.width/2., 0., 2 * math.pi)
         cr.fill()
@@ -218,71 +222,7 @@ class Led(Gtk.DrawingArea):
         cr.arc(rect.width/2+1, rect.height/2, rect.width / 2. * .2, 0., 2 * math.pi)
         cr.fill()
 
-
-# Bug fix in Gtk
-
-class   SeparatorMenuItem(Gtk.SeparatorMenuItem):
-
-    def __init__(self):
-        Gtk.SeparatorMenuItem.__init__(self);
-        self.show()
-
 # ------------------------------------------------------------------------
-
-class Menu():
-
-    def __init__(self, menarr, callb, event, submenu = False):
-
-        #GObject.GObject.__init__(self)
-
-        self.callb = callb
-        self.menarr = menarr
-        self.gtkmenu = Gtk.Menu()
-        self.title = menarr[0]
-
-        cnt = 0
-        for aa in self.menarr:
-            #print("type aa", type(aa))
-            if type(aa) == str:
-                if aa == "-":
-                    mmm = SeparatorMenuItem()
-                else:
-                    mmm = self._create_menuitem(aa, self.menu_fired, cnt)
-
-                if not submenu:
-                    self.gtkmenu.append(mmm)
-                    if cnt == 0:
-                        mmm.set_sensitive(False)
-                        self.gtkmenu.append(SeparatorMenuItem())
-                else:
-                    if cnt != 0:
-                        self.gtkmenu.append(mmm)
-
-            elif type(aa) == Menu:
-                mmm = self._create_menuitem(aa.title, self.dummy, cnt)
-                mmm.set_submenu(aa.gtkmenu)
-                self.gtkmenu.append(mmm)
-            else:
-                raise ValueError("Menu needs text or submenu")
-            cnt = cnt + 1
-
-        if not submenu:
-            self.gtkmenu.popup(None, None, None, None, event.button, event.time)
-
-    def dummy(self, menu, menutext, arg):
-        pass
-
-    def _create_menuitem(self, string, action, arg = None):
-        rclick_menu = Gtk.MenuItem(string)
-        rclick_menu.connect("activate", action, string, arg);
-        rclick_menu.show()
-        return rclick_menu
-
-    def menu_fired(self, menu, menutext, arg):
-        #print ("menu item fired:", menutext, arg)
-        if self.callb:
-            self.callb(menutext, arg)
-        self.gtkmenu = None
 
 class MenuButt(Gtk.DrawingArea):
 
@@ -306,9 +246,9 @@ class MenuButt(Gtk.DrawingArea):
         return rclick_menu
 
         # Create the menubar and toolbar
-        action_group = Gtk.ActionGroup("DocWindowActions")
-        action_group.add_actions(entries)
-        return action_group
+        #action_group = Gtk.ActionGroup("DocWindowActions")
+        #action_group.add_actions(entries)
+        #return action_group
 
     def area_key(self, area, event):
         pass
@@ -354,213 +294,8 @@ class MenuButt(Gtk.DrawingArea):
         self._draw_line(cr, self.border, 3*rect.height/4,
                                 rect.width - self.border, 3*rect.height/4);
 
-# ------------------------------------------------------------------------
-
-class Lights(Gtk.Frame):
-
-    def __init__(self, col_arr, size = 6, call_me = None):
-
-        GObject.GObject.__init__(self)
-        self.box_arr = []
-        vboxs = Gtk.VBox()
-        vboxs.set_spacing(4);
-        vboxs.set_border_width(4)
-
-        for aa in col_arr:
-            box = self.colbox(str2float(aa), size)
-            vboxs.pack_start(box, False, False, False)
-            self.box_arr.append(box)
-
-        self.add(vboxs)
-
-    def set_color(self, idx, col):
-        if idx >= len(self.box_arr):
-            raise ValueError(IDXERR)
-        self.box_arr[idx].modify_bg(Gtk.StateFlags.NORMAL, str2col(col))
-
-    def set_colors(self, colarr):
-        for idx in range(len(self.box_arr)):
-            self.box_arr[idx].modify_bg(
-                        Gtk.StateFlags.NORMAL, str2col(colarr[idx]))
-
-    def set_tooltip(self, idx, strx):
-        if idx >= len(self.box_arr):
-            raise ValueError(IDXERR)
-        self.box_arr[idx].set_tooltip_text(strx)
-
-    def set_tooltips(self, strarr):
-        for idx in range(len(self.box_arr)):
-            self.box_arr[idx].set_tooltip_text(strarr[idx])
-
-    def get_size(self):
-        return len (self.box_arr)
-
-    def colbox(self, col, size):
-
-        lab1 = Gtk.Label("  " * size + "\n" * (size // 3))
-        lab1.set_lines(size)
-        eventbox = Gtk.EventBox()
-        frame = Gtk.Frame()
-        frame.add(lab1)
-        eventbox.add(frame)
-        eventbox.color =  col  # Gtk.gdk.Color(col)
-        eventbox.modify_bg(Gtk.StateFlags.NORMAL, float2col(eventbox.color))
-        return eventbox
-
-class ScrollListBox(Gtk.Frame):
-
-    def __init__(self, limit = -1, colname = '', callme = None):
-        Gtk.Frame.__init__(self)
-        self.listbox = ListBox(limit, colname)
-        if callme:
-            self.listbox.set_callback(callme)
-        self.listbox.scroll = Gtk.ScrolledWindow()
-        self.listbox.scroll.add_with_viewport(self.listbox)
-        self.add(self.listbox.scroll)
-        self.autoscroll = True
-
-    # Propagate needed ops to list control
-
-    def append_end(self, strx):
-        #print("ser str append", strx)
-        self.listbox.append(strx)
-
-        if self.autoscroll:
-            usleep(10)              # Wait for it to go to screen
-            sb = self.listbox.scroll.get_vscrollbar()
-            sb.set_value(2000000)
-        self.listbox.select(-1)
-
-    def clear(self):
-        self.listbox.clear()
-
-    def select(self, num):
-        self.listbox.select(num)
 
 # ------------------------------------------------------------------------
-
-class   RadioGroup(Gtk.Frame):
-
-    def __init__(self, rad_arr, call_me):
-
-        GObject.GObject.__init__(self)
-        self.buttons = []
-        self.callme = call_me
-        vbox6 = Gtk.VBox(); vbox6.set_spacing(4);
-        vbox6.set_border_width(6)
-
-        if gui_testmode:
-            self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#778888"))
-
-        self.radio = Gtk.RadioButton.new_with_mnemonic(None, "None")
-
-        for aa in range(len(rad_arr)):
-            #rad2 = Gtk.RadioButton.new_from_widget(self.radio)
-            #rad2.set_label(rad_arr[aa])
-            rad2 = Gtk.RadioButton.new_with_mnemonic_from_widget(self.radio, rad_arr[aa])
-            self.buttons.append(rad2)
-            rad2.connect("toggled", self.radio_toggle, aa)
-            vbox6.pack_start(rad2, False, False, False)
-
-        self.add(vbox6)
-
-    def radio_toggle(self, button, idx):
-        #print("RadioGroup", button.get_active(), "'" + str(idx) + "'")
-        if  button.get_active():
-            self.callme(button, self.buttons[idx].get_label())
-
-    def set_tooltip(self, idx, strx):
-        if idx >= len(self.buttons):
-            raise ValueError(IDXERR)
-        self.buttons[idx].set_tooltip_text(strx)
-
-    def set_entry(self, idx, strx):
-        if idx >= len(self.buttons):
-            raise ValueError(IDXERR)
-        self.buttons[idx].set_label(strx)
-
-    def set_sensitive(self, idx, valx):
-        if idx >= len(self.buttons):
-            raise ValueError(IDXERR)
-        self.buttons[idx].set_sensitive(valx)
-
-    def get_size(self):
-        return len (self.buttons)
-
-    def set_check(self, idx, valx):
-        if idx >= len(self.buttons):
-            raise ValueError(IDXERR)
-        self.buttons[idx].set_active(valx)
-        self.buttons[idx].toggled()
-
-    def get_check(self):
-        cnt = 0
-        for aa in (self.buttons):
-            if aa.get_active():
-                return cnt
-            cnt += 1
-        # Nothing selected ...
-        return -1
-
-    def get_text(self):
-        for aa in (self.buttons):
-            if aa.get_active():
-                return aa.get_label()
-        # Nothing selected ... empty str
-        return ""
-
-# ------------------------------------------------------------------------
-
-class Lights(Gtk.Frame):
-
-    def __init__(self, col_arr, size = 6, call_me = None):
-
-        GObject.GObject.__init__(self)
-        self.box_arr = []
-        vboxs = Gtk.VBox()
-        vboxs.set_spacing(4);
-        vboxs.set_border_width(4)
-
-        for aa in col_arr:
-            box = self.colbox(str2float(aa), size)
-            vboxs.pack_start(box, False, False, False)
-            self.box_arr.append(box)
-
-        self.add(vboxs)
-
-    def set_color(self, idx, col):
-        if idx >= len(self.box_arr):
-            raise ValueError(IDXERR)
-        self.box_arr[idx].modify_bg(Gtk.StateFlags.NORMAL, str2col(col))
-
-    def set_colors(self, colarr):
-        for idx in range(len(self.box_arr)):
-            self.box_arr[idx].modify_bg(
-                        Gtk.StateFlags.NORMAL, str2col(colarr[idx]))
-
-    def set_tooltip(self, idx, strx):
-        if idx >= len(self.box_arr):
-            raise ValueError(IDXERR)
-        self.box_arr[idx].set_tooltip_text(strx)
-
-    def set_tooltips(self, strarr):
-        for idx in range(len(self.box_arr)):
-            self.box_arr[idx].set_tooltip_text(strarr[idx])
-
-    def get_size(self):
-        return len (self.box_arr)
-
-    def colbox(self, col, size):
-
-        lab1 = Gtk.Label("  " * size + "\n" * (size // 3))
-        lab1.set_lines(size)
-        eventbox = Gtk.EventBox()
-        frame = Gtk.Frame()
-        frame.add(lab1)
-        eventbox.add(frame)
-        eventbox.color =  col  # Gtk.gdk.Color(col)
-        eventbox.modify_bg(Gtk.StateFlags.NORMAL, float2col(eventbox.color))
-        return eventbox
 
 class WideButt(Gtk.Button):
 
@@ -595,7 +330,7 @@ class FrameTextView(Gtk.TextView):
         buff = self.get_buffer()
         old = buff.get_text(buff.get_start_iter(), buff.get_end_iter(), False)
         buff.set_text(old + "\n" +  strx)
-        usleep(20)
+        pgutils.usleep(20)
         #mainwin.statb2.scroll_to_iter(buff.get_end_iter(), 1.0, True, 0.1, 0.1)
         sb = self.scroll.get_vscrollbar()
         sb.set_value(2000000)
@@ -609,7 +344,7 @@ class Label(Gtk.Label):
         if tooltip:
             self.set_tooltip_text(tooltip)
         if font:
-            self.modify_font(Pango.FontDescription(font))
+            self.override_font(Pango.FontDescription(font))
 
 class Logo(Gtk.VBox):
 
@@ -641,51 +376,6 @@ class Logo(Gtk.VBox):
     def hide(self):
         self.forall(self.forallcallb)
 
-# ------------------------------------------------------------------------
-# An N pixel horizontal spacer. Defaults to X pix
-
-class xSpacer(Gtk.HBox):
-
-    def __init__(self, sp = None):
-        GObject.GObject.__init__(self)
-        #self.pack_start()
-        if gui_testmode:
-            col = randcolstr(100, 200)
-            self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(col))
-        if sp == None:
-            sp = 6
-        self.set_size_request(sp, sp)
-
-
-class ScrollListBox(Gtk.Frame):
-
-    def __init__(self, limit = -1, colname = '', callme = None):
-        Gtk.Frame.__init__(self)
-        self.listbox = ListBox(limit, colname)
-        if callme:
-            self.listbox.set_callback(callme)
-        self.listbox.scroll = Gtk.ScrolledWindow()
-        self.listbox.scroll.add_with_viewport(self.listbox)
-        self.add(self.listbox.scroll)
-        self.autoscroll = True
-
-    # Propagate needed ops to list control
-
-    def append_end(self, strx):
-        #print("ser str append", strx)
-        self.listbox.append(strx)
-
-        if self.autoscroll:
-            usleep(10)              # Wait for it to go to screen
-            sb = self.listbox.scroll.get_vscrollbar()
-            sb.set_value(2000000)
-        self.listbox.select(-1)
-
-    def clear(self):
-        self.listbox.clear()
-
-    def select(self, num):
-        self.listbox.select(num)
 
 # ------------------------------------------------------------------------
 # This override covers / hides the complexity of the treeview and the
@@ -854,16 +544,6 @@ class Spinner(Gtk.SpinButton):
 # Highlite test items
 
 def set_testmode(flag):
-    global gui_testmode
-    gui_testmode = flag
-
-if __name__ == '__main__':
-    print("This file was not meant to run as the main module")
-
-# ------------------------------------------------------------------------
-# Highlite test items
-
-def set_gui_testmode(flag):
     global gui_testmode
     gui_testmode = flag
 
@@ -1327,93 +1007,6 @@ class Menu():
             self.callb(menutext, arg)
         self.gtkmenu = None
 
-class MenuButt(Gtk.DrawingArea):
-
-    def __init__(self, menarr, callb, tooltip = "Menu", size = 20, border = 2):
-        GObject.GObject.__init__(self)
-        self.border = border
-        self.callb = callb
-        self.menarr = menarr
-        self.set_size_request(size + border, size + border)
-        self.connect("draw", self.draw)
-        self.connect("button-press-event", self.area_button)
-        self.connect("key-press-event", self.area_key)
-        self.set_events(Gdk.EventMask.ALL_EVENTS_MASK)
-        self.set_tooltip_text(tooltip)
-        self.set_can_focus(True)
-
-    def _create_menuitem(self, string, action, arg = None):
-        rclick_menu = Gtk.MenuItem(string)
-        rclick_menu.connect("activate", action, string, arg);
-        rclick_menu.show()
-        return rclick_menu
-
-        # Create the menubar and toolbar
-        action_group = Gtk.ActionGroup("DocWindowActions")
-        action_group.add_actions(entries)
-        return action_group
-
-    def area_key(self, area, event):
-        print("keypess ", event.type, event.string);
-
-    def area_button(self, area, event):
-        #print("menu butt ", event.type, event.button);
-        if  event.type == Gdk.EventType.BUTTON_PRESS:
-            if event.button == 1:
-                #print( "Left Click at x=", event.x, "y=", event.y)
-                self.grab_focus()
-                self.menu3 = Gtk.Menu()
-                cnt = 0
-                for aa in self.menarr:
-                    self.menu3.append(self._create_menuitem(aa, self.menu_fired, cnt))
-                    cnt = cnt + 1
-
-                self.menu3.popup(None, None, None, None, event.button, event.time)
-
-    def menu_fired(self, menu, menutext, arg):
-        #print ("menu item fired:", menutext, arg)
-        if self.callb:
-            self.callb(menutext, arg)
-
-    def _draw_line(self, cr, xx, yy, xx2, yy2):
-        cr.move_to(xx, yy)
-        cr.line_to(xx2, yy2)
-        cr.stroke()
-
-    def draw(self, area, cr):
-        rect = self.get_allocation()
-        #print ("draw", rect)
-
-        if rect.height > 24:
-
-            if self.is_focus():
-                cr.set_line_width(4)
-            else:
-                cr.set_line_width(3)
-
-            self._draw_line(cr, self.border, 2*rect.height/6,
-                                    rect.width - self.border, 2*rect.height/6);
-
-            self._draw_line(cr, self.border, 3*rect.height/6,
-                                    rect.width - self.border, 3*rect.height/6);
-
-            self._draw_line(cr, self.border, 4 * rect.height/6,
-                                    rect.width - self.border, 4*rect.height/6);
-
-            self._draw_line(cr, self.border, 5*rect.height/6,
-                                    rect.width - self.border, 5*rect.height/6);
-        else:
-            if self.is_focus():
-                cr.set_line_width(3)
-            else:
-                cr.set_line_width(2)
-
-            self._draw_line(cr, self.border, rect.height/4,
-                                    rect.width - self.border, rect.height/4);
-            self._draw_line(cr, self.border, 2*rect.height/4,
-                                    rect.width - self.border, 2*rect.height/4);
-            self._draw_line(cr, self.border, 3*rect.height/4,
-                                    rect.width - self.border, 3*rect.height/4);
 
 # ------------------------------------------------------------------------
 
@@ -1428,7 +1021,7 @@ class Lights(Gtk.Frame):
         vboxs.set_border_width(4)
 
         for aa in col_arr:
-            box = self.colbox(str2float(aa), size)
+            box = self.colbox(pgutils.str2float(aa), size)
             vboxs.pack_start(box, False, False, False)
             self.box_arr.append(box)
 
@@ -1437,12 +1030,12 @@ class Lights(Gtk.Frame):
     def set_color(self, idx, col):
         if idx >= len(self.box_arr):
             raise ValueError(IDXERR)
-        self.box_arr[idx].modify_bg(Gtk.StateFlags.NORMAL, str2col(col))
+        self.box_arr[idx].modify_bg(Gtk.StateFlags.NORMAL, pgutils.str2col(col))
 
     def set_colors(self, colarr):
         for idx in range(len(self.box_arr)):
             self.box_arr[idx].modify_bg(
-                        Gtk.StateFlags.NORMAL, str2col(colarr[idx]))
+                        Gtk.StateFlags.NORMAL, pgutils.str2col(colarr[idx]))
 
     def set_tooltip(self, idx, strx):
         if idx >= len(self.box_arr):
@@ -1465,18 +1058,8 @@ class Lights(Gtk.Frame):
         frame.add(lab1)
         eventbox.add(frame)
         eventbox.color =  col  # Gtk.gdk.Color(col)
-        eventbox.modify_bg(Gtk.StateFlags.NORMAL, float2col(eventbox.color))
+        eventbox.modify_bg(Gtk.StateFlags.NORMAL, pgutils.float2col(eventbox.color))
         return eventbox
-
-class WideButt(Gtk.Button):
-
-    def __init__(self, labelx, callme = None, space = 2):
-        #super().__init__(self)
-        GObject.GObject.__init__(self)
-        self.set_label(" " * space + labelx + " " * space)
-        self.set_use_underline (True)
-        if callme:
-            self.connect("clicked", callme)
 
 class ScrollListBox(Gtk.Frame):
 
@@ -1497,7 +1080,7 @@ class ScrollListBox(Gtk.Frame):
         self.listbox.append(strx)
 
         if self.autoscroll:
-            usleep(10)              # Wait for it to go to screen
+            pgutils.usleep(10)              # Wait for it to go to screen
             sb = self.listbox.scroll.get_vscrollbar()
             sb.set_value(2000000)
         self.listbox.select(-1)
@@ -1507,150 +1090,6 @@ class ScrollListBox(Gtk.Frame):
 
     def select(self, num):
         self.listbox.select(num)
-
-# ------------------------------------------------------------------------
-# This override covers / hides the complexity of the treeview and the
-# textlisbox did not have the needed detail
-
-class ListBox(Gtk.TreeView):
-
-    def __init__(self, limit = -1, colname = ''):
-
-        self.limit = limit
-        self.treestore = Gtk.TreeStore(str)
-        Gtk.TreeView.__init__(self, self.treestore)
-
-        cell = Gtk.CellRendererText()
-        # create the TreeViewColumn to display the data
-        tvcolumn = Gtk.TreeViewColumn(colname)
-        # add the cell to the tvcolumn and allow it to expand
-        tvcolumn.pack_start(cell, True)
-
-        # set the cell "text" attribute to column 0 - retrieve text
-        tvcolumn.add_attribute(cell, 'text', 0)
-
-        # add tvcolumn to treeview
-        self.append_column(tvcolumn)
-        self.set_activate_on_single_click (True)
-
-        self.callb = None
-        self.connect("row-activated",  self.tree_sel)
-
-    def tree_sel(self, xtree, xiter, xpath):
-        #print("tree_sel", xtree, xiter, xpath)
-        sel = xtree.get_selection()
-        xmodel, xiter = sel.get_selected()
-        if xiter:
-            xstr = xmodel.get_value(xiter, 0)
-            #print("Selected", xstr)
-            if self.callb:
-                self.callb(xstr)
-        pass
-
-    def set_callback(self, funcx):
-        self.callb = funcx
-
-    # Delete previous contents
-    def clear(self):
-        try:
-            while True:
-                root = self.treestore.get_iter_first()
-                if not root:
-                    break
-                try:
-                    self.treestore.remove(root)
-                except:
-                    print("except: treestore remove")
-
-        except:
-            print("update_tree", sys.exc_info())
-            pass
-
-    # Select Item. -1 for select none; Rase Valuerror for wrong index.
-    def select(self, idx):
-        ts = self.get_selection()
-        if idx == -1:
-            ts.unselect_all()
-            return
-        iter = self.treestore.get_iter_first()
-        for aa in range(idx):
-            iter = self.treestore.iter_next(iter)
-            if not iter:
-                break
-        if not iter:
-            pass
-            #raise ValueError("Invalid selection index.")
-        ts.select_iter(iter)
-
-    # Return the number of list items
-    def get_size(self):
-        cnt = 0
-        iter = self.treestore.get_iter_first()
-        if not iter:
-            return cnt
-        cnt = 1
-        while True:
-            iter = self.treestore.iter_next(iter)
-            if not iter:
-                break
-            cnt += 1
-        return cnt
-
-    def get_item(self, idx):
-        cnt = 0; res = ""
-        iter = self.treestore.get_iter_first()
-        if not iter:
-            return ""
-        cnt = 1
-        while True:
-            iter = self.treestore.iter_next(iter)
-            if not iter:
-                break
-            if cnt == idx:
-                res = self.treestore.get_value(iter, 0)
-                break
-            cnt += 1
-        return res
-
-    def append(self, strx):
-        if self.limit != -1:
-            # count them
-            cnt = self.get_size()
-            #print("limiting cnt=", cnt, "limit=", self.limit)
-            for aa in range(cnt - self.limit):
-                iter = self.treestore.get_iter_first()
-                if not iter:
-                    break
-                try:
-                    self.treestore.remove(iter)
-                except:
-                    print("except: treestore remove lim")
-
-        last = self.treestore.append(None, [strx])
-        self.set_cursor_on_cell(self.treestore.get_path(last), None, None, False)
-
-    def get_text(self):
-        sel = self.get_selection()
-        xmodel, xiter = sel.get_selected()
-        if xiter:
-            return xmodel.get_value(xiter, 0)
-
-    # Get current IDX -1 for none
-    def get_curridx(self):
-        sel = self.get_selection()
-        xmodel, xiter = sel.get_selected()
-        if not xiter:
-            return -1
-
-        # Count back from match
-        cnt = 0
-        while True:
-            xiter = self.treestore.iter_previous(xiter)
-            if not xiter:
-                break
-            #print ("xiter:", xiter)
-            cnt += 1
-        return cnt
 
 # ------------------------------------------------------------------------
 

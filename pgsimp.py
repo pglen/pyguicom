@@ -1,12 +1,10 @@
-
 #!/usr/bin/python
 
 from __future__ import absolute_import
 from __future__ import print_function
 
 import os, sys, getopt, signal, string, fnmatch, math
-import random, time, subprocess, traceback, serial, glob
-import serial.tools.list_ports
+import random, time, subprocess, traceback, glob
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -15,8 +13,6 @@ from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
-
-import pggui
 
 # ------------------------------------------------------------------------
 
@@ -240,7 +236,7 @@ class   NumberSel(Gtk.Label):
         self.set_has_window(True)
         self.set_events(Gdk.EventMask.ALL_EVENTS_MASK )
         self.connect("button-press-event", self.area_button)
-        self.modify_font(Pango.FontDescription("Mono 13"))
+        self.override_font(Pango.FontDescription("Mono 13"))
 
     def area_button(self, but, event):
 
@@ -296,17 +292,17 @@ class   LetterSel(Gtk.VBox):
 
         strx = "abcdefghijklmnopqrstuvwxyz"
         hbox3a = Gtk.HBox()
-        hbox3a.pack_start(Gtk.Label(" "), 1, 1, 0)
+        hbox3a.pack_start(Gtk.Label(label=" "), 1, 1, 0)
         self.simsel = SimpleSel(strx, self.letter)
         hbox3a.pack_start(self.simsel, 0, 0, 0)
-        hbox3a.pack_start(Gtk.Label(" "), 1, 1, 0)
+        hbox3a.pack_start(Gtk.Label(label=" "), 1, 1, 0)
 
         strn = "1234567890!@#$^&*_+ [All]"
         hbox3b = Gtk.HBox()
-        hbox3b.pack_start(Gtk.Label(" "), 1, 1, 0)
+        hbox3b.pack_start(Gtk.Label(label=" "), 1, 1, 0)
         self.simsel2 = SimpleSel(strn, self.letter)
         hbox3b.pack_start(self.simsel2, 0, 0, 0)
-        hbox3b.pack_start(Gtk.Label(" "), 1, 1, 0)
+        hbox3b.pack_start(Gtk.Label(label=" "), 1, 1, 0)
 
         self.pack_start(hbox3a, 0, 0, False)
         self.pack_start(pggui.xSpacer(4), 0, 0, False)
@@ -326,10 +322,10 @@ class   HourSel(Gtk.VBox):
 
         strx = " 8 10 12 14 16 "
         hbox3a = Gtk.HBox()
-        hbox3a.pack_start(Gtk.Label(" "), 1, 1, 0)
+        hbox3a.pack_start(Gtk.Label(label=" "), 1, 1, 0)
         self.simsel = NumberSel(strx, self.letter)
         hbox3a.pack_start(self.simsel, 0, 0, 0)
-        hbox3a.pack_start(Gtk.Label(" "), 1, 1, 0)
+        hbox3a.pack_start(Gtk.Label(label=" "), 1, 1, 0)
 
         self.pack_start(hbox3a, 0, 0, False)
 
@@ -347,10 +343,10 @@ class   MinSel(Gtk.VBox):
 
         strx = " 0 10 20 30 40 50 "
         hbox3a = Gtk.HBox()
-        hbox3a.pack_start(Gtk.Label(" "), 1, 1, 0)
+        hbox3a.pack_start(Gtk.Label(label=" "), 1, 1, 0)
         self.simsel = NumberSel(strx, self.letter)
         hbox3a.pack_start(self.simsel, 0, 0, 0)
-        hbox3a.pack_start(Gtk.Label(" "), 1, 1, 0)
+        hbox3a.pack_start(Gtk.Label(label=" "), 1, 1, 0)
 
         self.pack_start(hbox3a, 0, 0, False)
 

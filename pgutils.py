@@ -4,8 +4,9 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import os, sys, getopt, signal, string, fnmatch, math
-import random, time, subprocess, traceback, serial, glob
-import serial.tools.list_ports
+import random, time, subprocess, traceback, glob, stat, syslog
+
+#import serial.tools.list_ports
 
 import inspect
 if inspect.isbuiltin(time.process_time):
@@ -18,8 +19,6 @@ from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
-
-IDXERR = "Index is larger than the available number of controls."
 
 # Add the new line twice for more balaced string
 
@@ -42,13 +41,33 @@ testmode = 0
 
 # -----------------------------------------------------------------------
 # Sleep just a little, but allow the system to breed
+#
+#def  usleep(msec):
+#
+#    got_clock = time.clock() + float(msec) / 1000
+#    #print( got_clock)
+#    while True:
+#        if time.clock() > got_clock:
+#            break
+#        #print ("Sleeping")
+#        Gtk.main_iteration_do(False)
+#
+
+# -----------------------------------------------------------------------
+# Sleep just a little, but allow the system to breed
 
 def  usleep(msec):
 
-    got_clock = time.clock() + float(msec) / 1000
+    if sys.version_info[0] < 3 or \
+        (sys.version_info[0] == 3 and sys.version_info[1] < 3):
+        timefunc = time.clock
+    else:
+        timefunc = time.process_time
+
+    got_clock = timefunc() + float(msec) / 1000
     #print( got_clock)
     while True:
-        if time.clock() > got_clock:
+        if timefunc() > got_clock:
             break
         #print ("Sleeping")
         Gtk.main_iteration_do(False)
@@ -84,7 +103,7 @@ def message(strx, title = "QCAN2", parent=None):
 def respath(fname):
 
     try:
-        ppp = string.split(os.environ['PATH'], os.pathsep)
+        ppp = str.split(os.environ['PATH'], os.pathsep)
         for aa in ppp:
             ttt = aa + os.sep + fname
             if os.path.isfile(str(ttt)):
@@ -98,13 +117,6 @@ def respath(fname):
 
 def randcol():
     return random.randint(0, 255)
-
-def randcolstr(start = 0, endd = 255):
-    rr =  random.randint(start, endd)
-    gg =  random.randint(start, endd)
-    bb =  random.randint(start, endd)
-    strx = "#%02x%02x%02x" % (rr, gg, bb)
-    return strx
 
 # ------------------------------------------------------------------------
 # Color conversions
@@ -185,25 +197,6 @@ def put_exception(xstr):
     put_debug(cumm)
     #syslog.syslog("%s %s %s" % (xstr, a, b))
 
-def put_exception2(xstr):
-
-    cumm = xstr + " "
-    a,b,c = sys.exc_info()
-    if a != None:
-        cumm += str(a) + " " + str(b) + "\n"
-        try:
-            #cumm += str(traceback.format_tb(c, 10))
-            ttt = traceback.extract_tb(c)
-            for aa in ttt:
-                cumm += "File: " + os.path.basename(aa[0]) + \
-                        " Line: " + str(aa[1]) + "\n" +  \
-                    "   Context: " + aa[2] + " -> " + aa[3] + "\n"
-        except:
-            print( "Could not print trace stack. ", sys.exc_info())
-
-    put_debug(cumm)
-    #syslog.syslog("%s %s %s" % (xstr, a, b))
-
 def decode_bits(numx):
     mask = 0x80
     retx = ""
@@ -217,10 +210,6 @@ def decode_bits(numx):
         mask >>= 1
 
     return retx
-
-
-def randcol():
-    return random.randint(0, 255)
 
 def randcolstr(start = 0, endd = 255):
     rr =  random.randint(start, endd)
@@ -285,6 +274,7 @@ def get_realtime():
 
 # Get a list of ports
 
+'''
 def serial_ports():
 
     """ Lists serial port names
@@ -323,6 +313,7 @@ def serial_ports():
             pass
     #print ("result", result)
     return result
+'''
 
 # ------------------------------------------------------------------------
 # Get random str
@@ -376,6 +367,10 @@ def oct2int(strx):
 def uni(xtab):
 
     #print str.format("{0:b}",  xtab[0])
+    try:
+        unichr
+    except NameError:
+        unichr = chr
 
     cc = 0
     try:
@@ -563,6 +558,8 @@ def isfile(fname):
         return True
     return False
 
+
+'''
 # Append to log
 def logentry(kind, startt, fname):
     logfname = "account.txt"
@@ -611,39 +608,7 @@ def timesheet(kind, startt, endd):
 
     print(file=fp)
     fp.close()
-
-def put_debug(xstr):
-
-    print( xstr)
-
-    '''try:
-        if os.isatty(sys.stdout.fileno()):
-            print( xstr)
-        else:
-            syslog.syslog(xstr)
-    except:
-        print( "Failed on debug output.")
-        print( sys.exc_info())
-    '''
-
-def put_exception(xstr):
-
-    cumm = xstr + " "
-    a,b,c = sys.exc_info()
-    if a != None:
-        cumm += str(a) + " " + str(b) + "\n"
-        try:
-            #cumm += str(traceback.format_tb(c, 10))
-            ttt = traceback.extract_tb(c)
-            for aa in ttt:
-                cumm += "File: " + os.path.basename(aa[0]) + \
-                        " Line: " + str(aa[1]) + "\n" +  \
-                    "   Context: " + aa[2] + " -> " + aa[3] + "\n"
-        except:
-            print( "Could not print trace stack. ", sys.exc_info())
-
-    put_debug(cumm)
-    #syslog.syslog("%s %s %s" % (xstr, a, b))
+'''
 
 def put_exception2(xstr):
 
@@ -713,6 +678,53 @@ def ampmstr(bb):
         dd = "PM"
 
     return "%02d %s" % (bb, dd)
+
+
+# It's totally optional to do this, you could just manually insert icons
+# and have them not be themeable, especially if you never expect people
+# to theme your app.
+
+def register_stock_icons():
+    ''' This function registers our custom toolbar icons, so they
+        can be themed.
+    '''
+    items = [('demo-gtk-logo', '_GTK!', 0, 0, '')]
+    # Register our stock items
+    #Gtk.stock_add(items)
+
+    # Add our custom icon factory to the list of defaults
+    factory = Gtk.IconFactory()
+    factory.add_default()
+
+    img_dir = os.path.join(os.path.dirname(__file__), 'images')
+    img_path = os.path.join(img_dir, 'gtk-logo-rgb.gif')
+
+    #print( img_path)
+    try:
+        #pixbuf = Gdk.pixbuf_new_from_file(img_path)
+        # Register icon to accompany stock item
+
+        # The gtk-logo-rgb icon has a white background, make it transparent
+        # the call is wrapped to (gboolean, guchar, guchar, guchar)
+        #transparent = pixbuf.add_alpha(True, chr(255), chr(255),chr(255))
+        #icon_set = Gtk.IconSet(transparent)
+        #factory.add('demo-gtk-logo', icon_set)
+        pass
+    except GObject.GError as error:
+        #print( 'failed to load GTK logo ... trying local')
+        try:
+            #img_path = os.path.join(img_dir, 'gtk-logo-rgb.gif')
+            xbuf = Gdk.pixbuf_new_from_file('gtk-logo-rgb.gif')
+            #Register icon to accompany stock item
+            #The gtk-logo-rgb icon has a white background, make it transparent
+            #the call is wrapped to (gboolean, guchar, guchar, guchar)
+            transparent = xbuf.add_alpha(True, chr(255), chr(255),chr(255))
+            icon_set = Gtk.IconSet(transparent)
+            factory.add('demo-gtk-logo', icon_set)
+
+        except GObject.GError as error:
+            print('failed to load GTK logo for toolbar')
+
 
 if __name__ == '__main__':
     print("This file was not meant to run directly")
@@ -821,53 +833,6 @@ class Config:
                         if self.optarr[bb][3] != None:
                             self.optarr[bb][3]()
         return args
-
-
-
-# It's totally optional to do this, you could just manually insert icons
-# and have them not be themeable, especially if you never expect people
-# to theme your app.
-
-def register_stock_icons():
-    ''' This function registers our custom toolbar icons, so they
-        can be themed.
-    '''
-    items = [('demo-gtk-logo', '_GTK!', 0, 0, '')]
-    # Register our stock items
-    #Gtk.stock_add(items)
-
-    # Add our custom icon factory to the list of defaults
-    factory = Gtk.IconFactory()
-    factory.add_default()
-
-    img_dir = os.path.join(os.path.dirname(__file__), 'images')
-    img_path = os.path.join(img_dir, 'gtk-logo-rgb.gif')
-
-    #print( img_path)
-    try:
-        #pixbuf = Gdk.pixbuf_new_from_file(img_path)
-        # Register icon to accompany stock item
-
-        # The gtk-logo-rgb icon has a white background, make it transparent
-        # the call is wrapped to (gboolean, guchar, guchar, guchar)
-        #transparent = pixbuf.add_alpha(True, chr(255), chr(255),chr(255))
-        #icon_set = Gtk.IconSet(transparent)
-        #factory.add('demo-gtk-logo', icon_set)
-        pass
-    except GObject.GError as error:
-        #print( 'failed to load GTK logo ... trying local')
-        try:
-            #img_path = os.path.join(img_dir, 'gtk-logo-rgb.gif')
-            xbuf = Gdk.pixbuf_new_from_file('gtk-logo-rgb.gif')
-            #Register icon to accompany stock item
-            #The gtk-logo-rgb icon has a white background, make it transparent
-            #the call is wrapped to (gboolean, guchar, guchar, guchar)
-            transparent = pixbuf.add_alpha(True, chr(255), chr(255),chr(255))
-            icon_set = Gtk.IconSet(transparent)
-            factory.add('demo-gtk-logo', icon_set)
-
-        except GObject.GError as error:
-            print('failed to load GTK logo for toolbar')
 
 # EOF
 
