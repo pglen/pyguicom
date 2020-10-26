@@ -269,7 +269,7 @@ class   NumberSel(Gtk.Label):
 
             else:
                 self.lastsel =  self.text[idx:idx+2]
-                print("lastsel", self.lastsel)
+                #print("lastsel", self.lastsel)
                 self.newtext = self.text[:idx] + self.text[idx].upper() + self.text[idx+1:]
                 self.set_text(self.newtext)
 

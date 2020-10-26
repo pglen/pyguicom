@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-import signal, os, time, sys, pickle, subprocess, random
+import signal, os, time, sys, pickle, subprocess, random, warnings
 import math, copy
 
 import gi
@@ -228,6 +228,9 @@ class MenuButt(Gtk.DrawingArea):
 
     def __init__(self, menarr, callb, tooltip = "Menu", size = 20, border = 2):
         GObject.GObject.__init__(self)
+
+        warnings.simplefilter("ignore")
+
         self.border = border
         self.callb = callb
         self.menarr = menarr
@@ -961,13 +964,17 @@ class Menu():
 
         #GObject.GObject.__init__(self)
 
+        warnings.simplefilter("ignore")
+
         self.callb   = callb
         self.menarr  = menarr
-        self.event   = coords()
-        self.event.x = int(event.x)
-        self.event.y = int(event.y)
         self.title   = menarr[0]
         self.gtkmenu = Gtk.Menu()
+
+        # Remember initial location
+        self.event   = coords();
+        self.event.x = event.x;  self.event.y = event.y
+        #print("popup Menu at:", self.event.x, self.event.y)
 
         cnt = 0
         for aa in self.menarr:

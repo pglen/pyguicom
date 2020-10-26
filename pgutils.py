@@ -3,14 +3,17 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-import os, sys, getopt, signal, string, fnmatch, math
+import os, sys, getopt, signal, string, fnmatch, math, warnings
 import random, time, subprocess, traceback, glob, stat, syslog
 
 #import serial.tools.list_ports
 
-import inspect
-if inspect.isbuiltin(time.process_time):
-    time.clock = time.process_time
+if sys.version_info.major < 3:
+    pass
+else:
+    import inspect
+    if inspect.isbuiltin(time.process_time):
+        time.clock = time.process_time
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -72,9 +75,8 @@ def  usleep(msec):
         #print ("Sleeping")
         Gtk.main_iteration_do(False)
 
-
 # -----------------------------------------------------------------------
-#
+# Pull up a message box
 
 def message(strx, title = "Dialog", parent=None):
 
@@ -96,6 +98,106 @@ def message(strx, title = "Dialog", parent=None):
 
         dialog.connect ("response", lambda d, r: d.destroy())
         dialog.show_all()
+
+
+def yes_no(message, title = "Question", parent=None):
+
+        dialog = Gtk.MessageDialog()
+
+        if title:
+            dialog.set_title(title)
+
+        dialog.add_button("_Yes", Gtk.ResponseType.YES)
+        dialog.add_button("_No", Gtk.ResponseType.NO)
+
+        dialog.set_markup(message)
+
+        img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
+        dialog.set_image(img)
+
+        if parent:
+            dialog.set_transient_for(parent)
+
+        dialog.connect("key-press-event", yn_key, 0)
+
+        #dialog.connect ("response", lambda d, r: d.destroy())
+
+        dialog.show_all()
+        response = dialog.run()
+        dialog.destroy()
+
+        return response
+
+
+# ------------------------------------------------------------------------
+# Do dialog
+
+def yes_no_cancel(message, title = "Question", cancel = True, parent=None):
+
+    warnings.simplefilter("ignore")
+
+    dialog = Gtk.Dialog(title,
+                   None,
+                   Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT)
+
+    dialog.set_default_response(Gtk.ResponseType.YES)
+    dialog.set_position(Gtk.WindowPosition.CENTER)
+    #dialog.set_transient_for(pedconfig.conf.pedwin.mywin)
+
+    sp = "     "
+    label = Gtk.Label(message);
+    label2 = Gtk.Label(sp);      label3 = Gtk.Label(sp)
+    label2a = Gtk.Label(sp);     label3a = Gtk.Label(sp)
+
+    hbox = Gtk.HBox() ;
+
+    hbox.pack_start(label2, 0, 0, 0);
+    hbox.pack_start(label, 1, 1, 0);
+    hbox.pack_start(label3, 0, 0, 0)
+
+    dialog.vbox.pack_start(label2a, 0, 0, 0);
+    dialog.vbox.pack_start(hbox, 0, 0, 0)
+    dialog.vbox.pack_start(label3a, 0, 0, 0);
+
+    dialog.add_button("_Yes", Gtk.ResponseType.YES)
+    dialog.add_button("_No", Gtk.ResponseType.NO)
+
+    if cancel:
+        dialog.add_button("_Cancel", Gtk.ResponseType.CANCEL)
+
+    dialog.connect("key-press-event", yn_key, cancel)
+    #dialog.connect("key-release-event", yn_key, cancel)
+    warnings.simplefilter("default")
+
+    dialog.show_all()
+    response = dialog.run()
+
+    # Convert all responses to cancel
+    if  response == Gtk.ResponseType.CANCEL or \
+            response == Gtk.ResponseType.REJECT or \
+                response == Gtk.ResponseType.CLOSE  or \
+                    response == Gtk.ResponseType.DELETE_EVENT:
+        response = Gtk.ResponseType.CANCEL
+
+    dialog.destroy()
+
+    #print("YNC result:", response);
+    return  response
+
+def yn_key(win, event, cancel):
+    #print event
+    if event.keyval == Gdk.KEY_y or \
+        event.keyval == Gdk.KEY_Y:
+        win.response(Gtk.ResponseType.YES)
+
+    if event.keyval == Gdk.KEY_n or \
+        event.keyval == Gdk.KEY_N:
+        win.response(Gtk.ResponseType.NO)
+
+    if cancel:
+        if event.keyval == Gdk.KEY_c or \
+            event.keyval == Gdk.KEY_C:
+            win.response(Gtk.ResponseType.CANCEL)
 
 # ------------------------------------------------------------------------
 # Resolve path name
