@@ -79,6 +79,37 @@ class CairoHelper():
     def circle(self, xx, yy, size):
         self.cr.arc(xx, yy, size, 0,  2 * math.pi)
 
+    # --------------------------------------------------------------------
+    #   0 1+2    midx    1+2
+    #   x,y       -
+    #           -   -
+    #  x+hh   -       -  y+ww
+
+    def tri(self, rect):
+        #                xx       yy       ww       hh
+        #print("tri", rect[0], rect[1], rect[2], rect[3])
+        midx =  rect[0] + rect[2] // 2
+        self.cr.move_to(rect[0], rect[1] + rect[3])
+        self.cr.line_to(midx, rect[1])
+        self.cr.line_to(rect[0] + rect[2], rect[1] + rect[3])
+        self.cr.line_to(rect[0], rect[1] + rect[3])
+
+    # Inverse, down
+    # --------------------------------------------------------------------
+    #   0 1+2    midx    1+2
+    #   x,y   -   -   -
+    #           -   -
+    #  x+hh       -      y+ww
+
+    def tri2(self, rect):
+        #                xx       yy       ww       hh
+        #print("tri2", rect[0], rect[1], rect[2], rect[3])
+        midx =  rect[0] + rect[2] // 2
+        self.cr.move_to(rect[0], rect[1])
+        self.cr.line_to(midx, rect[1] + rect[3])
+        self.cr.line_to(rect[0] + rect[2], rect[1])
+        self.cr.line_to(rect[0], rect[1])
+
 class   TextTable(Gtk.Table):
 
     def __init__(self, confarr, main = None, textwidth = 24):
