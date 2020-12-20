@@ -4,7 +4,9 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import os, sys, getopt, signal, string, fnmatch, math, warnings
-import random, time, subprocess, traceback, glob, stat, syslog
+import random, time, subprocess, traceback, glob, stat
+
+#import syslog
 
 #import serial.tools.list_ports
 
@@ -275,7 +277,10 @@ def put_debug(xstr):
         if os.isatty(sys.stdout.fileno()):
             print( xstr)
         else:
-            syslog.syslog(xstr)
+            #syslog.syslog(xstr)
+            pass
+            print(file=sys.stderr, xstr)
+
     except:
         print( "Failed on debug output.")
         print( sys.exc_info())
