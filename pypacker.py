@@ -44,6 +44,7 @@ Empty format string will use auto detected types
 
 __all = ("autotype", "encode_data", "decode_data", "wrap_data", "unwrap_data", "verbose")
 
+pgdebug = 0
 
 class InvalidType(Exception):
 
@@ -444,12 +445,22 @@ class packbin():
         #if type(formstr[1]).__name__ == "NoneType":
         #    raise ValueError("Cannot encode, must be an iterable")
 
+        if pgdebug:
+           print("encode input:", *formstr)
+
         rrr = self.__encode_data("pg ", *formstr)
+
+        if pgdebug > 1:
+           print("encode output:", rrr)
+
         return rrr
 
     def decode_data(self, dstr):
 
         #print ("---org:\n", dstr, "org---")
+
+        if pgdebug:
+            print ("decode input", dstr)
 
         if dstr[0:3] != 'pg ':
             raise ValueError("Cannot decode, must begin with pg sequence")
@@ -483,6 +494,9 @@ class packbin():
         except:
             #print("Exception at:", idx, "val:", val)
             raise
+
+        if pgdebug > 1:
+           print("decode output:", arr)
 
         return arr
 
