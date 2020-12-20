@@ -279,7 +279,7 @@ def put_debug(xstr):
         else:
             #syslog.syslog(xstr)
             pass
-            print(file=sys.stderr, xstr)
+            print(xstr, file=sys.stderr)
 
     except:
         print( "Failed on debug output.")
