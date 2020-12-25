@@ -213,6 +213,19 @@ class   TextRow(Gtk.HBox):
         return self.tbox.set_text(txt)
 
 
+class LabelButt(Gtk.EventBox):
+
+    def __init__(self, front, callb, toolt=""):
+        GObject.GObject.__init__(self)
+        self.label = Gtk.Label.new(front)
+        if toolt:
+            self.label.set_tooltip_text(toolt)
+        self.label.set_single_line_mode(True)
+        self.add(self.label)
+        if callb:
+            self.connect_after("button-press-event", callb, front)
+        self.set_above_child(True)
+
 class Led(Gtk.DrawingArea):
 
     def __init__(self, color, size = 20, border = 2):

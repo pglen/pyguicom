@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 from __future__ import absolute_import
 from __future__ import print_function
@@ -60,7 +60,7 @@ def print_exception(xstr):
                         " Line: " + str(aa[1]) + "\n" +  \
                     "   Context: " + aa[2] + " -> " + aa[3] + "\n"
         except:
-            print( "Could not print trace stack. ", sys.exc_info())
+            print("Could not print trace stack. ", sys.exc_info())
     print( cumm)
 
 
@@ -230,6 +230,4 @@ def yn_key(win, event, cancel):
             event.keyval == Gdk.KEY_C:
             win.response(Gtk.ResponseType.CANCEL)
 
-
-
-
+# EOF
