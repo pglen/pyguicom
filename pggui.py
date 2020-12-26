@@ -217,7 +217,14 @@ class LabelButt(Gtk.EventBox):
 
     def __init__(self, front, callb, toolt=""):
         GObject.GObject.__init__(self)
+
         self.label = Gtk.Label.new(front)
+        self.curve =  Gdk.Cursor(Gdk.CursorType.CROSSHAIR)
+        self.arrow =  Gdk.Cursor(Gdk.CursorType.ARROW)
+
+        #gdk_window = self.get_root_window()
+        #self.arrow = gdk_window.get_cursor()
+
         if toolt:
             self.label.set_tooltip_text(toolt)
         self.label.set_single_line_mode(True)
@@ -225,6 +232,26 @@ class LabelButt(Gtk.EventBox):
         if callb:
             self.connect_after("button-press-event", callb, front)
         self.set_above_child(True)
+
+        #self.label.connect("motion-notify-event", self.area_motion)
+        self.connect("motion-notify-event", self.area_motion)
+
+        #self.connect("enter-notify-event", self.area_enter)
+        #self.connect("leave-notify-event", self.area_leave)
+
+    def area_motion(self, arg1, arg2):
+        #print("LabelButt Motion")
+        pass
+
+    def area_enter(self, arg1, arg2):
+        #print("LabelButt neter")
+        gdk_window = self.get_root_window()
+        gdk_window.set_cursor(self.curve)
+
+    def area_leave(self, arg1, arg2):
+        #print("LabelButt leave")
+        gdk_window = self.get_root_window()
+        gdk_window.set_cursor(self.arrow)
 
 class Led(Gtk.DrawingArea):
 
@@ -596,7 +623,7 @@ def set_testmode(flag):
 
 # ------------------------------------------------------------------------
 
-class   SimpleTree(Gtk.TreeView):
+class   SimpleTree2(Gtk.TreeView):
 
     def __init__(self, head = [], editx = [], skipedit = 0):
 
@@ -680,73 +707,10 @@ class   SimpleTree(Gtk.TreeView):
     def clear(self):
         self.treestore.clear()
 
-class   SimpleEdit(Gtk.TextView):
-
-    def __init__(self, head = []):
-
-        Gtk.TextView.__init__(self)
-        self.buffer = Gtk.TextBuffer()
-        self.set_buffer(self.buffer)
-        self.set_editable(True)
-        self.connect("unmap", self.unmapx)
-        #self.connect("focus-in-event", self.focus_in)
-        #self.connect("focus-out-event", self.focus_out)
-        self.connect("key-press-event", self.area_key)
-        self.modified = False
-        self.text = ""
-        self.savecb = None
-        #self.mefocus = False
-
-    def focus_out(self, win, arg):
-        #print("SimpleEdit focus_out")
-        self.check_saved()
-        #self.mefocus = False
-
-    def check_saved(self):
-        if not self.buffer.get_modified():
-            return
-        #print("Saving")
-        startt = self.buffer.get_start_iter()
-        endd = self.buffer.get_end_iter()
-        self.text = self.buffer.get_text(startt, endd, False)
-        if self.savecb:
-            self.savecb(self.text)
-
-    def focus_in(self, win, arg):
-        pass
-        #self.buffer.set_modified(False)
-        #self.mefocus = True
-        #print("SimpleEdit focus_in")
-
-    def unmapx(self, widget):
-        #print("SimpleEdit unmap", widget)
-        pass
-
-    def area_key(self, widget, event):
-        #print("SimpleEdit keypress")  #, win, arg)
-        #self.buffer.set_modified(True)
-        pass
-
-    def append(self, strx):
-        self.check_saved()
-        iter = self.buffer.get_end_iter()
-        self.buffer.insert(iter, strx)
-        self.buffer.set_modified(False)
-
-    def clear(self):
-        self.check_saved()
-        startt = self.buffer.get_start_iter()
-        endd = self.buffer.get_end_iter()
-        self.buffer.delete(startt, endd)
-        self.buffer.set_modified(False)
-
-    def setsavecb(self, callb):
-        self.savecb = callb
-
 
 # Select character by index
 
-class   SimpleSel(Gtk.Label):
+class   SimpleSel2(Gtk.Label):
 
     def __init__(self, text = " ", callb = None):
         self.text = text

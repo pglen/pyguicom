@@ -117,7 +117,7 @@ class   SimpleEdit(Gtk.TextView):
         self.modified = False
         self.text = ""
         self.savecb = None
-        #self.mefocus = False
+        self.single_line = False
 
     def focus_out(self, win, arg):
         #print("SimpleEdit focus_out")
@@ -145,9 +145,18 @@ class   SimpleEdit(Gtk.TextView):
         pass
 
     def area_key(self, widget, event):
-        #print("SimpleEdit keypress")  #, win, arg)
+        #print("SimpleEdit keypress", event.string)
         #self.buffer.set_modified(True)
-        pass
+
+        if self.single_line:
+            if event.string == "\r":
+                #print("newline")
+                if self.savecb:
+                    try:
+                        self.savecb(self.get_text())
+                    except:
+                        print("Error simpledit callback")
+                return True
 
     def append(self, strx):
         self.check_saved()
@@ -170,13 +179,15 @@ class   SimpleEdit(Gtk.TextView):
         endd = self.buffer.get_end_iter()
         return self.buffer.get_text(startt, endd, False)
 
-    def set_text(self, txt):
-        self.check_saved()
+    def set_text(self, txt, eventx = False):
+        if eventx:
+            self.check_saved()
         startt = self.buffer.get_start_iter()
         endd = self.buffer.get_end_iter()
         self.buffer.delete(startt, endd)
         self.buffer.insert(startt, txt)
         self.buffer.set_modified(True)
+
 
 # Select character by index
 
