@@ -23,6 +23,10 @@ install:
 pack:
 	@./pack.sh
 
+clean:
+	rm -f *.pyc
+	rm -rf __pycache__
+
 git:
 	git add .
 	git commit -m autocheck

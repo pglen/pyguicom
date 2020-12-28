@@ -14,6 +14,23 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
 
+gui_testmode = False
+
+# ------------------------------------------------------------------------
+# An N pixel horizontal spacer. Defaults to X pix  get_center
+
+class zSpacer(Gtk.HBox):
+
+    def __init__(self, sp = None):
+        GObject.GObject.__init__(self)
+        #self.pack_start()
+        #if gui_testmode:
+        #    col = randcolstr(100, 200)
+        #    self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(col))
+        if sp == None:
+            sp = 6
+        self.set_size_request(sp, sp)
+
 # ------------------------------------------------------------------------
 
 class   SimpleTree(Gtk.TreeView):
@@ -316,7 +333,7 @@ class   LetterSel(Gtk.VBox):
         hbox3b.pack_start(Gtk.Label(label=" "), 1, 1, 0)
 
         self.pack_start(hbox3a, 0, 0, False)
-        self.pack_start(pggui.xSpacer(4), 0, 0, False)
+        self.pack_start(zSpacer(4), 0, 0, False)
         self.pack_start(hbox3b, 0, 0, False)
 
     def  letter(self, letter):

@@ -15,6 +15,7 @@ from gi.repository import Pango
 
 sys.path.append('..')
 import pycommon.pgutils
+import pycommon.pgsimp
 
 IDXERR = "Index is larger than the available number of controls."
 
@@ -622,140 +623,6 @@ def set_testmode(flag):
     gui_testmode = flag
 
 # ------------------------------------------------------------------------
-
-class   SimpleTree2(Gtk.TreeView):
-
-    def __init__(self, head = [], editx = [], skipedit = 0):
-
-        Gtk.TreeView.__init__(self)
-
-        self.callb = None
-        self.chcallb = None
-
-        # repair missing column
-        if len(head) == 0:
-            head.append("")
-
-        if len(editx) == 0:
-            editx.append("")
-
-        self.types = []
-        for aa in head:
-            self.types.append(str)
-
-        self.treestore = Gtk.TreeStore()
-        self.treestore.set_column_types(self.types)
-
-        cnt = 0
-        for aa in head:
-            # Create a CellRendererText to render the data
-            cell = Gtk.CellRendererText()
-            if cnt > skipedit:
-                cell.set_property("editable", True)
-                cell.connect("edited", self.text_edited, cnt)
-
-            tvcolumn = Gtk.TreeViewColumn(aa)
-            tvcolumn.pack_start(cell, True)
-            tvcolumn.add_attribute(cell, 'text', cnt)
-            self.append_column(tvcolumn)
-            cnt += 1
-
-        self.set_model(self.treestore)
-        self.connect("cursor-changed", self.selection)
-
-    def text_edited(self, widget, path, text, idx):
-        #print ("edited", widget, path, text, idx)
-        self.treestore[path][idx] = text
-        args = []
-        for aa in self.treestore[path]:
-            args.append(aa)
-        self.chcallb(args)
-
-    def selection(self, xtree):
-        #print("simple tree sel", xtree)
-        sel = xtree.get_selection()
-        xmodel, xiter = sel.get_selected()
-        if xiter:
-            self.args = []
-            for aa in range(len(self.types)):
-                xstr = xmodel.get_value(xiter, aa)
-                self.args.append(xstr)
-            #print("selection", self.args)
-            if self.callb:
-                self.callb(self.args)
-
-    def setcallb(self, callb):
-        self.callb = callb
-
-    def setCHcallb(self, callb):
-        self.chcallb = callb
-
-    def append(self, args):
-        piter = self.treestore.append(None, args)
-
-    def sel_last(self):
-        sel = self.get_selection()
-        xmodel, xiter = sel.get_selected()
-        iter = self.treestore.get_iter_first()
-        while True:
-            iter2 = self.treestore.iter_next(iter)
-            if not iter2:
-                break
-            iter = iter2
-        sel.select_iter(iter)
-
-    def clear(self):
-        self.treestore.clear()
-
-
-# Select character by index
-
-class   SimpleSel2(Gtk.Label):
-
-    def __init__(self, text = " ", callb = None):
-        self.text = text
-        self.callb = callb
-        self.axx = self.text.find("[All]")
-        Gtk.Label.__init__(self, text)
-        self.set_has_window(True)
-        self.set_events(Gdk.EventMask.ALL_EVENTS_MASK )
-        self.connect("button-press-event", self.area_button)
-        self.modify_font(Pango.FontDescription("Mono 13"))
-
-    def area_button(self, but, event):
-
-        #print("sss =", self.get_allocation().width)
-        #print("click", event.x, event.y)
-
-        prop = event.x / float(self.get_allocation().width)
-        idx = int(prop * len(self.text))
-        if self.text[idx] == " ":
-            idx -= 1
-        try:
-            # See of it is all
-            if self.axx >= 0:
-                if idx > self.axx:
-                    #print("all", idx, self.text[idx-5:idx+7])
-                    self.lastsel =  "All"
-                    self.newtext = self.text[:self.axx] + self.text[self.axx:].upper()
-                    self.set_text(self.newtext)
-                else:
-                    self.newtext = self.text[:self.axx] + self.text[self.axx:].lower()
-                    self.set_text(self.newtext)
-
-            else:
-                self.lastsel =  self.text[idx]
-                self.newtext = self.text[:idx] + self.text[idx].upper() + self.text[idx+1:]
-                self.set_text(self.newtext)
-
-
-            if self.callb:
-                self.callb(self.lastsel)
-
-        except:
-            print(sys.exc_info())
-
-# ------------------------------------------------------------------------
 # Letter selection control
 
 class   LetterSel(Gtk.VBox):
@@ -768,14 +635,14 @@ class   LetterSel(Gtk.VBox):
         strx = "abcdefghijklmnopqrstuvwxyz"
         hbox3a = Gtk.HBox()
         hbox3a.pack_start(Gtk.Label(" "), 1, 1, 0)
-        self.simsel = SimpleSel(strx, self.letter)
+        self.simsel = pgsimp.SimpleSel(strx, self.letter)
         hbox3a.pack_start(self.simsel, 0, 0, 0)
         hbox3a.pack_start(Gtk.Label(" "), 1, 1, 0)
 
         strn = "1234567890!@#$^&*_+ [All]"
         hbox3b = Gtk.HBox()
         hbox3b.pack_start(Gtk.Label(" "), 1, 1, 0)
-        self.simsel2 = SimpleSel(strn, self.letter)
+        self.simsel2 = pgsimp.SimpleSel(strn, self.letter)
         hbox3b.pack_start(self.simsel2, 0, 0, 0)
         hbox3b.pack_start(Gtk.Label(" "), 1, 1, 0)
 
