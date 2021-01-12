@@ -17,7 +17,8 @@ from gi.repository import Pango
 gui_testmode = False
 
 # ------------------------------------------------------------------------
-# An N pixel horizontal spacer. Defaults to X pix  get_center
+# An N pixel horizontal spacer. Defaults to X pix get_center
+# Re-created for no dependency include of this module
 
 class zSpacer(Gtk.HBox):
 
@@ -101,9 +102,11 @@ class   SimpleTree(Gtk.TreeView):
         self.chcallb = callb
 
     def append(self, args):
+        #print("append", args)
         piter = self.treestore.append(None, args)
 
     def sel_last(self):
+        #print("sel last ...")
         sel = self.get_selection()
         xmodel, xiter = sel.get_selected()
         iter = self.treestore.get_iter_first()
@@ -113,6 +116,7 @@ class   SimpleTree(Gtk.TreeView):
                 break
             iter = iter2
         sel.select_iter(iter)
+        self.scroll_to_cell(self.treestore.get_path(iter), None, 0, 0, 0 )
 
     def clear(self):
         self.treestore.clear()
@@ -265,6 +269,7 @@ class   NumberSel(Gtk.Label):
         self.set_events(Gdk.EventMask.ALL_EVENTS_MASK )
         self.connect("button-press-event", self.area_button)
         self.override_font(Pango.FontDescription("Mono 13"))
+        self.lastsel = "All"
 
     def area_button(self, but, event):
 

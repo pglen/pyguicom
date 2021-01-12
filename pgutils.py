@@ -6,10 +6,6 @@ from __future__ import print_function
 import os, sys, getopt, signal, string, fnmatch, math, warnings
 import random, time, subprocess, traceback, glob, stat
 
-#import syslog
-
-#import serial.tools.list_ports
-
 if sys.version_info.major < 3:
     pass
 else:

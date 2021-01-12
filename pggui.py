@@ -14,8 +14,8 @@ from gi.repository import GObject
 from gi.repository import Pango
 
 sys.path.append('..')
-import pycommon.pgutils
-import pycommon.pgsimp
+from  pycommon import pgutils
+from  pycommon import pgsimp
 
 IDXERR = "Index is larger than the available number of controls."
 
