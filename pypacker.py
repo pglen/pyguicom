@@ -32,7 +32,8 @@ Usage:
 
     pb  = packbin()
     newdata  = pb.encode_data(formatstr, arr_of_data)
-    orgdata  = pb.decode_data(newdata)
+    decdata  = pb.decode_data(newdata)
+    ?assert?(decdata == arr_of_data)
 
 Empty format string will use auto detected types
 
@@ -42,16 +43,17 @@ Empty format string will use auto detected types
 
 # Exports
 
-__all = ("autotype", "encode_data", "decode_data", "wrap_data", "unwrap_data", "verbose")
-
 pgdebug = 0
+
+#__all__ = ("autotype", "packbin.encode_data", "decode_data",
+#                "wrap_data", "unwrap_data", "verbose")
 
 class InvalidType(Exception):
 
-    def __init__(self, message):
+    def _init_(self, message):
          self.message = message
 
-    def __str__(self):
+    def _str_(self):
         return(self.message)
 
 # ------------------------------------------------------------------------
@@ -66,64 +68,64 @@ class packbin():
         # extended list
 
         self.typeact = [
-                 ["i", self.__got_int, self.__found_int],
-                 ["l", self.__got_long, self.__found_long],
-                 ["f", self.__got_float, self.__found_float],
-                 ["c", self.__got_char, self.__found_char],
-                 ["s", self.__got_str, self.__found_str],
-                 ["b", self.__got_bin, self.__found_bin],
-                 ["a", self.__got_list, self.__found_list],
-                 ["t", self.__got_tuple, self.__found_tuple],
-                 ["x", self.__got_xtend, self.__found_ext],
-                 ["d", self.__got_dict, self.__found_dict],
+                 ["i", self._got_int, self._found_int],
+                 ["l", self._got_long, self._found_long],
+                 ["f", self._got_float, self._found_float],
+                 ["c", self._got_char, self._found_char],
+                 ["s", self._got_str, self._found_str],
+                 ["b", self._got_bin, self._found_bin],
+                 ["a", self._got_list, self._found_list],
+                 ["t", self._got_tuple, self._found_tuple],
+                 ["x", self._got_xtend, self._found_ext],
+                 ["d", self._got_dict, self._found_dict],
                 ]
 
         self.verbose = 0
 
     # These functions contain the ations on encode
 
-    def __got_int(self, tt, var):
+    def _got_int(self, tt, var):
         #print ("got int", var)
         return "%c%d %d " %  (tt, 4, var)
 
-    def __got_long(self, tt, var):
+    def _got_long(self, tt, var):
         #print ("got long", var)
         return "%c%d %d " %  (tt, 8, var)
 
-    def __got_float(self, tt, var):
+    def _got_float(self, tt, var):
         #print ("got num", "'" + str(var) + "'")
         return "%c%d %f " %  (tt, 8, var)
 
-    def __got_char(self, tt, var):
+    def _got_char(self, tt, var):
         #print ("got char", "'" + str(var) + "'")
         return "%c%d %c " %  (tt, 1, var)
 
-    def __got_str(self, tt, var):
+    def _got_str(self, tt, var):
         #print ("got str", "'" + var + "'")
         return "%c%d '%s' " %  (tt, len(var), var)
 
-    def __got_bin(self, tt, var):
+    def _got_bin(self, tt, var):
         enco    = base64.b64encode(var)
         if sys.version_info[0] > 2:
             enco  = enco.decode("cp437")
         #print ("got bin", "'" + enco + "'")
         return "%c%d '%s' " %  (tt, len(enco), enco)
 
-    def __got_list(self, tt, var):
-        #print ("got list", "'" + str(var) + "'")
+    def _got_list(self, tt, var):
+        print ("got list", "'" + str(var) + "'")
         enco = self.encode_data("", *var)
         return "%c%d '%s' " %  (tt, len(enco), enco)
 
-    def __got_tuple(self, tt, var):
+    def _got_tuple(self, tt, var):
         #print ("got tuple", "'" + str(var) + "'")
         enco = self.encode_data("", *var)
         return "%c%d '%s' " %  (tt, len(enco), enco)
 
-    def __got_xtend(self, tt, var):
+    def _got_xtend(self, tt, var):
         #print ("got xtend", "'" + str(var) + "'")
         return "%c%d [%s] " %  (tt, len(var), var)
 
-    def __got_dict(self, tt, var):
+    def _got_dict(self, tt, var):
         #print ("got dict", "'" + str(var) + "'")
         # Flatten it
         ccc = []
@@ -135,7 +137,7 @@ class packbin():
     # ------------------------------------------------------------------------
     # Return var and consumed number of characters
 
-    def __found_char(self, xstr):
+    def _found_char(self, xstr):
         idxx = 0; var = 0
         #print ("found int:", xstr)
         if xstr[1:3] != "1 ":
@@ -155,7 +157,7 @@ class packbin():
         #print("int idxx:", idxx, "var:", var, "next:", "'" + xstr[idxx:idxx+6] + "'")
         return idxx, chr(var)
 
-    def __found_int(self, xstr):
+    def _found_int(self, xstr):
         idxx = 0; var = 0
         #print ("found int:", xstr)
         if xstr[1:3] != "4 ":
@@ -170,7 +172,7 @@ class packbin():
         #print("int idxx:", idxx, "var:", var, "next:", "'" + xstr[idxx:idxx+6] + "'")
         return idxx, var
 
-    def __found_long(self, xstr):
+    def _found_long(self, xstr):
         idxx = 0; var = 0
         #print ("found long:", xstr)
         if xstr[1:3] != "8 ":
@@ -185,7 +187,7 @@ class packbin():
         #print("long idxx:", idxx, "var:", var, "next:", "'" + xstr[idxx:idxx+6] + "'")
         return idxx, var
 
-    def __found_float(self, xstr):
+    def _found_float(self, xstr):
         idxx = 0; var = 0
         #print ("found long:", xstr)
         if xstr[1:3] != "8 ":
@@ -200,13 +202,14 @@ class packbin():
         #print("float idxx:", idxx, "var:", var, "next:", "'" + xstr[idxx:idxx+6] + "'")
         return idxx, var
 
-    def __found_str(self, xstr):
+    def _found_str(self, xstr):
         idxx = 0
         #print ("found str:", xstr)
         idxx = 1
         nnn = xstr[idxx:].find(" ")
         if nnn < 0:
             print("bad encoding at ", xstr[idxx:idxx+5])
+        #print ("found num:", xstr[idxx:idxx+nnn])
         slen = int(xstr[idxx:idxx+nnn])
         #print("slen", slen)
         if slen >= len(xstr):
@@ -218,7 +221,7 @@ class packbin():
         #print("idxx:", idxx, "var:", "{" + sval + "}", "next:", "'" + xstr[idxx:idxx+6] + "'")
         return idxx, sval
 
-    def __found_dict(self, xstr):
+    def _found_dict(self, xstr):
         idxx =  0
         #print ("found dict:", xstr)
         idxx =  1
@@ -242,7 +245,7 @@ class packbin():
             ddd[aaa[0]] = aaa[1]
         return idxx, ddd
 
-    def __found_ext(self, xstr):
+    def _found_ext(self, xstr):
         idxx = 0
         #print ("found ext:", xstr)
         idxx = 1
@@ -260,7 +263,7 @@ class packbin():
         #print("idxx:", idxx, "var:", "{" + sval + "}", "next:", "'" + xstr[idxx:idxx+6] + "'")
         return idxx, sval
 
-    def __found_bin(self, xstr):
+    def _found_bin(self, xstr):
         idxx = 0
         #print ("found bin:", xstr)
         idxx = 1
@@ -279,7 +282,7 @@ class packbin():
         #print("idxx:", idxx, "var:", "{" + sval + "}", "next:", "'" + xstr[idxx:idxx+6] + "'")
         return idxx, deco
 
-    def __found_list(self, xstr):
+    def _found_list(self, xstr):
         idxx = 0
         #print ("found list:", xstr)
         idxx = 1
@@ -297,7 +300,7 @@ class packbin():
         #print("idxx:", idxx, "var:", "{" + sval + "}", "next:", "'" + xstr[idxx:idxx+6] + "'")
         return idxx, deco
 
-    def __found_tuple(self, xstr):
+    def _found_tuple(self, xstr):
         idxx = 0
         #print ("found tuple:", xstr)
         idxx = 1
@@ -334,6 +337,7 @@ class packbin():
 
     # Estabilish a proper format string autmatically
     def autotype(self, xdata):
+
         aaa = ""
         for aa in xdata:
             #print("typename:", type(aa).__name__)
@@ -360,7 +364,7 @@ class packbin():
                     else:
                         aaa += "s"
 
-            # Py 2 does not have tis ... safe to test in both
+            # Py 2 does not have this ... safe to test in both
             elif type(aa).__name__ == "bytes":
                 #print(crysupp.hexdump(aa, len(aa)))
                 aaa += "b"
@@ -383,12 +387,13 @@ class packbin():
             else:
                 raise InvalidType( "Unsupported type: "  + str(type(aa).__name__ ))
 
-        #print("autotype res", aaa)
+        print("autotype res", aaa)
+
         return aaa
 
     # Add front string
 
-    def __encode_data(self, front, *formstr):
+    def _encode_data(self, front, *formstr):
 
         #print("front", front, "formstr", formstr)
 
@@ -406,7 +411,7 @@ class packbin():
         packed_str = front
 
         # Add the form string itself
-        packed_str += self.__got_str("s", localf)
+        packed_str += self._got_str("s", localf)
 
         idx = 1;
         for bb in localf:
@@ -429,58 +434,39 @@ class packbin():
 
         return packed_str
 
-    #def __decode_data(self, dstr):
-    #    decode_data(self, dstr):
+
+    def _decode_data(self, dstr):
 
         #print ("---org:\n", dstr, "org---")
-
-    ##########################################################################
-    # Encode data into a string
-    # Pass format string as the first element. Empty string switches on
-    # autotype
-
-    def encode_data(self, *formstr):
-
-        #print("type", type(formstr[1]), len(formstr[1]))
-        #if type(formstr[1]).__name__ == "NoneType":
-        #    raise ValueError("Cannot encode, must be an iterable")
-
-        if pgdebug:
-           print("encode input:", *formstr)
-
-        rrr = self.__encode_data("pg ", *formstr)
-
-        if pgdebug > 1:
-           print("encode output:", rrr)
-
-        return rrr
-
-    def decode_data(self, dstr):
-
-        #print ("---org:\n", dstr, "org---")
-
-        if pgdebug:
-            print ("decode input", dstr)
 
         if dstr[0:3] != 'pg ':
-            raise ValueError("Cannot decode, must begin with pg sequence")
+            raise ValueError("Cannot decode, must begin with pg sequence.")
             #print("pypacker decode: Error, must begin with 'pg '")
             #return ""
 
         idx = 3
-        if dstr[3:4] != 's':
-            raise ValueError("pypacker decode: Error, must have format string at the beginning")
+        if dstr[idx] != 's':
+            raise ValueError("pypacker decode: Error, must have format string at the beginning.")
             return ""
+        idx += 1
 
-        flen = int(dstr[4])
+        nnn = dstr[idx:].find(" ")
+
+        #print("nnn", nnn)
+        #print("lens", "'" + dstr[idx:idx+nnn] + "'")
+
+        flen = int(dstr[idx:idx+nnn])
         if flen > len(dstr) - idx:
             raise ValueError("pypacker decode: Error, bad decode: (overflow) at %d", idx)
 
         #print("flen", flen)
-        idx = 7
-        fstr = dstr[idx:idx+flen]
+
+        idx += nnn + 1
+        fstr = dstr[idx:idx+flen+2]
         #print("fstr: ", "[" + fstr + "]")
-        idx += flen + 2;
+        idx += flen + 3;
+
+        #print("start", "[" + dstr[idx:] + "]")
 
         try:
             arr = []
@@ -499,5 +485,35 @@ class packbin():
            print("decode output:", arr)
 
         return arr
+
+    ##########################################################################
+    # Encode data into a string
+    # Pass format string as the first element. Empty string switches on
+    # autotype
+
+    def encode_data(self, *formstr):
+
+        #print("type", type(formstr[1]), len(formstr[1]))
+        #if type(formstr[1]).__name__ == "NoneType":
+        #    raise ValueError("Cannot encode, must be an iterable")
+
+        if pgdebug:
+           print("encode input:", *formstr)
+        rrr = self._encode_data("pg ", *formstr)
+        if pgdebug > 1:
+           print("encode output:", rrr)
+
+        return rrr
+
+    def decode_data(self, dstr):
+
+        #print ("---org:\n", dstr, "org---")
+        if pgdebug:
+            print ("decode input", dstr)
+        rrr = self._decode_data(dstr)
+        if pgdebug > 1:
+           print("decode output:", rrr)
+
+        return rrr
 
 # EOF

@@ -13,9 +13,11 @@ from gi.repository import Gdk
 from gi.repository import GObject
 from gi.repository import Pango
 
-sys.path.append('..')
-from  pycommon import pgutils
-from  pycommon import pgsimp
+realinc = os.path.realpath(os.path.dirname(__file__) + os.sep + "../pycommon")
+sys.path.append(realinc)
+
+import pgutils
+import pgsimp
 
 IDXERR = "Index is larger than the available number of controls."
 
@@ -621,39 +623,6 @@ class Spinner(Gtk.SpinButton):
 def set_testmode(flag):
     global gui_testmode
     gui_testmode = flag
-
-# ------------------------------------------------------------------------
-# Letter selection control
-
-class   LetterSel(Gtk.VBox):
-
-    def __init__(self, callb = None):
-
-        Gtk.VBox.__init__(self)
-        self.callb = callb
-
-        strx = "abcdefghijklmnopqrstuvwxyz"
-        hbox3a = Gtk.HBox()
-        hbox3a.pack_start(Gtk.Label(" "), 1, 1, 0)
-        self.simsel = pgsimp.SimpleSel(strx, self.letter)
-        hbox3a.pack_start(self.simsel, 0, 0, 0)
-        hbox3a.pack_start(Gtk.Label(" "), 1, 1, 0)
-
-        strn = "1234567890!@#$^&*_+ [All]"
-        hbox3b = Gtk.HBox()
-        hbox3b.pack_start(Gtk.Label(" "), 1, 1, 0)
-        self.simsel2 = pgsimp.SimpleSel(strn, self.letter)
-        hbox3b.pack_start(self.simsel2, 0, 0, 0)
-        hbox3b.pack_start(Gtk.Label(" "), 1, 1, 0)
-
-        self.pack_start(hbox3a, 0, 0, False)
-        self.pack_start(xSpacer(4), 0, 0, False)
-        self.pack_start(hbox3b, 0, 0, False)
-
-    def  letter(self, letter):
-        #print("LetterSel::letterx:", letter)
-        if self.callb:
-            self.callb(letter)
 
 # ------------------------------------------------------------------------
 # An N pixel horizontal spacer. Defaults to X pix  get_center
