@@ -45,8 +45,8 @@ Empty format string will use auto detected types
 
 pgdebug = 0
 
-#__all__ = ("autotype", "packbin.encode_data", "decode_data",
-#                "wrap_data", "unwrap_data", "verbose")
+__all__ = ("autotype", "packbin.encode_data", "decode_data",
+                "wrap_data", "unwrap_data", "verbose")
 
 class InvalidType(Exception):
 
@@ -112,7 +112,7 @@ class packbin():
         return "%c%d '%s' " %  (tt, len(enco), enco)
 
     def _got_list(self, tt, var):
-        print ("got list", "'" + str(var) + "'")
+        #print ("got list", "'" + str(var) + "'")
         enco = self.encode_data("", *var)
         return "%c%d '%s' " %  (tt, len(enco), enco)
 
@@ -387,7 +387,7 @@ class packbin():
             else:
                 raise InvalidType( "Unsupported type: "  + str(type(aa).__name__ ))
 
-        print("autotype res", aaa)
+        #print("autotype res", aaa)
 
         return aaa
 
