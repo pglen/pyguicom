@@ -110,6 +110,8 @@ class   SimpleTree(Gtk.TreeView):
         sel = self.get_selection()
         xmodel, xiter = sel.get_selected()
         iter = self.treestore.get_iter_first()
+        if not iter:
+            return
         while True:
             iter2 = self.treestore.iter_next(iter)
             if not iter2:
