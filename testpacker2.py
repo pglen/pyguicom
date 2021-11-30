@@ -10,7 +10,6 @@ from Crypto.Hash import SHA512
 
 import pypacker
 
-
 # ------------------------------------------------------------------------
 # Test harness
 

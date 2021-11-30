@@ -43,10 +43,12 @@ Empty format string will use auto detected types
 
 # Exports
 
-pgdebug = 0
+__all__ = [ "packbin"]
 
-__all__ = ("autotype", "packbin.encode_data", "decode_data",
-                "wrap_data", "unwrap_data", "verbose")
+#"packbin.autotype","packbin.encode_data", "packbin.decode_data",
+#                "wrap_data", "unwrap_data", "verbose"]
+
+pgdebug = 0
 
 class InvalidType(Exception):
 
