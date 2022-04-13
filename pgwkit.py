@@ -41,12 +41,20 @@ except:
 
 class pgwebw(WebKit2.WebView):
 
-    def __init__(self, xlink=None):
+    def __init__(self, editable=None, xlink=None):
         try:
-            GObject.GObject.__init__(self)
+            #GObject.GObject.__init__(self)
+            super(pgwebw, self).__init__();
         except:
+            print("Cannot in parent object", sys.exc_info())
             pass
         self.xlink = xlink
+
+        if editable:
+            self.set_editable(True)
+
+        self.load_html("", "file:///")
+        self.editor = self
 
     def do_ready_to_show(self):
         #print("do_ready_to_show() was called")
@@ -73,6 +81,8 @@ class pgwebw(WebKit2.WebView):
             self.xlink.status.set_text("Failed: " + failing_uri[:64])
 
     def on_action(self, action):
+        print("on_action", action.get_name())
+
         self.editor.run_javascript("document.execCommand('%s', false, false);" % action.get_name())
 
     def on_paste(self, action):
@@ -163,6 +173,29 @@ class pgwebw(WebKit2.WebView):
                                    None,
                                    javascript_completion,
                                    user_data)
+
+class   HtmlEdit(Gtk.VBox):
+
+    def __init__(self, editable = False):
+
+        super(HtmlEdit, self).__init__();
+
+        self._htmlx = pgwebw(editable)
+        self.ui = generate_ui(self._htmlx)
+        #self.add_accel_group(self.ui.get_accel_group())
+        self.toolbar1 = self.ui.get_widget("/toolbar_main")
+        self.toolbar2 = self.ui.get_widget("/toolbar_format")
+        self.menubar = self.ui.get_widget("/menubar_main")
+
+        #self.pack_start(self.menubar, False, False, 0)
+        #self.pack_start(self.toolbar1, False, False, 0)
+        self.pack_start(self.toolbar2, False, False, 0)
+        self.pack_start(self._htmlx, True, True, 0)
+
+        #self.layout.pack_start(self.scroll, True, True, 0)
+
+    def get_view(self):
+        return self._htmlx
 
 
 def generate_ui(self):

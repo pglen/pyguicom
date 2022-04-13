@@ -518,4 +518,7 @@ class packbin():
 
         return rrr
 
+if __name__ == '__main__':
+    print("This file was meant to run as a module")
+
 # EOF
