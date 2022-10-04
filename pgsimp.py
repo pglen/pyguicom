@@ -214,11 +214,48 @@ class   SimpleEdit(Gtk.TextView):
         self.buffer.insert(startt, txt)
         self.buffer.set_modified(True)
 
-# Select character by index
 
-class   SimpleSel(Gtk.Label):
+# ------------------------------------------------------------------------
+# Letter selection control
 
-    def __init__(self, text = " ", callb = None):
+class   LetterNumberSel(Gtk.VBox):
+
+    def __init__(self, callb = None, font="Mono 13"):
+
+        Gtk.VBox.__init__(self)
+        self.callb = callb
+
+        strx = "abcdefghijklmnopqrstuvwxyz"
+        hbox3a = Gtk.HBox()
+        hbox3a.pack_start(Gtk.Label(label=" "), 1, 1, 0)
+        self.simsel =  internal_SimpleSel(strx, self.letter, font)
+        hbox3a.pack_start(self.simsel, 0, 0, 0)
+        hbox3a.pack_start(Gtk.Label(label=" "), 1, 1, 0)
+
+        strn = "1234567890!@#$^&*_+ [All]"
+        hbox3b = Gtk.HBox()
+        hbox3b.pack_start(Gtk.Label(label=" "), 1, 1, 0)
+        self.simsel2 = internal_SimpleSel(strn, self.letter, font)
+        hbox3b.pack_start(self.simsel2, 0, 0, 0)
+        hbox3b.pack_start(Gtk.Label(label=" "), 1, 1, 0)
+
+        self.simsel2.other = self.simsel
+        self.simsel.other = self.simsel2
+
+        self.pack_start(hbox3a, 0, 0, False)
+        self.pack_start(zSpacer(4), 0, 0, False)
+        self.pack_start(hbox3b, 0, 0, False)
+
+    def  letter(self, letter):
+        #print("LetterSel::letterx:", letter)
+        if self.callb:
+            self.callb(letter)
+
+# Select character by index (do not call directly)
+
+class   internal_SimpleSel(Gtk.Label):
+
+    def __init__(self, text = " ", callb = None, font="Mono 13"):
         self.text = text
         self.callb = callb
         self.axx = self.text.find("[All]")
@@ -227,18 +264,18 @@ class   SimpleSel(Gtk.Label):
         self.set_has_window(True)
         self.set_events(Gdk.EventMask.ALL_EVENTS_MASK )
         self.connect("button-press-event", self.area_button)
-        self.modify_font(Pango.FontDescription("Mono 13"))
+        self.modify_font(Pango.FontDescription(font))
         self.lastsel = "All"
+        self.lastidx = 0
+        self.other = None
 
     def area_button(self, but, event):
 
-        #print("width =", self.get_allocation().width)
-        #print("click", event.x, event.y)
         prop = event.x / float(self.get_allocation().width)
         idx = int(prop * len(self.text))
-        #print("idx", idx)
-        if self.text[idx] == " ":
-            idx -= 1
+        #print("width =", self.get_allocation().width)
+        #print("idx", idx, )
+        #print("click", event.x, event.y)
         try:
             # See of it is all
             if self.axx >= 0:
@@ -248,13 +285,33 @@ class   SimpleSel(Gtk.Label):
                     self.newtext = self.text[:self.axx] + self.text[self.axx:].upper()
                     self.set_text(self.newtext)
                 else:
-                    self.lastsel =  self.text[idx]
-                    self.newtext = self.text[:self.axx] + self.text[self.axx:].lower()
-                    self.set_text(self.newtext)
+                    if self.text[idx].isalpha():
+                        self.newtext = self.text[:self.axx] + self.text[self.axx:].lower()
+                    else:
+                        #print("Non alpha, filling pipe char")
+
+                        print("old sel", self.lastidx, "new sel", idx, self.text[:idx])
+
+                        if  self.lastidx + 2 < idx:
+                            idx -= 1
+                        #elif  self.lastidx + 1 <  idx:
+                        #    idx -= 0
+
+                        self.lastsel =  self.text[idx]
+                        self.newtext = self.text[:idx] + "|" + self.text[idx] + "|" + self.text[idx+1:]
+                        self.lastidx =  idx
+
+                self.set_text(self.newtext)
+
             else:
                 self.lastsel =  self.text[idx]
                 self.newtext = self.text[:idx] + self.text[idx].upper() + self.text[idx+1:]
                 self.set_text(self.newtext)
+
+            # Clear the other
+            if self.other:
+                self.other.newtext = self.other.text[:]
+                self.other.set_text(self.other.newtext)
 
             if self.callb:
                 self.callb(self.lastsel)
@@ -266,7 +323,7 @@ class   SimpleSel(Gtk.Label):
 
 class   NumberSel(Gtk.Label):
 
-    def __init__(self, text = " ", callb = None):
+    def __init__(self, text = " ", callb = None, font="Mono 13"):
         self.text = text
         self.callb = callb
         self.axx = self.text.find("[All]")
@@ -274,7 +331,7 @@ class   NumberSel(Gtk.Label):
         self.set_has_window(True)
         self.set_events(Gdk.EventMask.ALL_EVENTS_MASK )
         self.connect("button-press-event", self.area_button)
-        self.override_font(Pango.FontDescription("Mono 15"))
+        self.override_font(Pango.FontDescription(font))
         self.lastsel = "All"
 
     def area_button(self, but, event):
@@ -317,40 +374,6 @@ class   NumberSel(Gtk.Label):
 
         except:
             print(sys.exc_info())
-
-
-# ------------------------------------------------------------------------
-# Letter selection control
-
-class   LetterNumberSel(Gtk.VBox):
-
-    def __init__(self, callb = None):
-
-        Gtk.VBox.__init__(self)
-        self.callb = callb
-
-        strx = "abcdefghijklmnopqrstuvwxyz"
-        hbox3a = Gtk.HBox()
-        hbox3a.pack_start(Gtk.Label(label=" "), 1, 1, 0)
-        self.simsel = SimpleSel(strx, self.letter)
-        hbox3a.pack_start(self.simsel, 0, 0, 0)
-        hbox3a.pack_start(Gtk.Label(label=" "), 1, 1, 0)
-
-        strn = "1234567890!@#$^&*_+ [All]"
-        hbox3b = Gtk.HBox()
-        hbox3b.pack_start(Gtk.Label(label=" "), 1, 1, 0)
-        self.simsel2 = SimpleSel(strn, self.letter)
-        hbox3b.pack_start(self.simsel2, 0, 0, 0)
-        hbox3b.pack_start(Gtk.Label(label=" "), 1, 1, 0)
-
-        self.pack_start(hbox3a, 0, 0, False)
-        self.pack_start(zSpacer(4), 0, 0, False)
-        self.pack_start(hbox3b, 0, 0, False)
-
-    def  letter(self, letter):
-        #print("LetterSel::letterx:", letter)
-        if self.callb:
-            self.callb(letter)
 
 class   HourSel(Gtk.VBox):
 
@@ -400,6 +423,7 @@ class TextViewWin(Gtk.VBox):
 
     def __init__(self):
         Gtk.VBox.__init__(self)
+
         self.callb = None
         self.grid = Gtk.Grid()
         self.add(self.grid)
@@ -412,9 +436,27 @@ class TextViewWin(Gtk.VBox):
         myfd = pg.get_font_description()
         self.mysize = myfd.get_size() / Pango.SCALE
         self.myfam = myfd.get_family()
+        self.textview.connect("key-press-event", self.area_key)
+        #self.connect("button-press-event", self.area_button)
+        #self.textview.connect("focus-out-event", self.focus_out)
+        self.findcall = None;
+
+    def area_key(self, widget, event):
+        #print("TextViewWin keypress", event.string, event.keyval)
+        if event.state & Gdk.ModifierType.CONTROL_MASK:
+            if event.keyval == 102:
+                #print("control find")
+                if self.findcall:
+                    # Call with object argument
+                    self.findcall[0](self.findcall[1])
 
     '''
-        #self.textview.connect("focus-out-event", self.focus_out)
+    def area_button(self, but, event):
+        print("TextViewWin click", event.x, event.y)
+        pass
+    '''
+
+    '''
     def focus_out(self, arg1, arg2):
         print("Focus out")
     '''
@@ -532,6 +574,9 @@ class TextViewWin(Gtk.VBox):
 
         self.textview = Gtk.TextView()
         self.textbuffer = self.textview.get_buffer()
+        #self.textview.set_has_window(True)
+
+        #self.set_events(Gdk.EventMask.ALL_EVENTS_MASK )
 
         scrolledwindow.add(self.textview)
 
@@ -632,15 +677,10 @@ class TextViewWin(Gtk.VBox):
         self.textview.set_justification(justification)
 
     def on_search_clicked(self, widget):
-        dialog = SearchDialog(None)
-        response = dialog.run()
-        if response == Gtk.ResponseType.OK:
-            cursor_mark = self.textbuffer.get_insert()
-            start = self.textbuffer.get_iter_at_mark(cursor_mark)
-            if start.get_offset() == self.textbuffer.get_char_count():
-                start = self.textbuffer.get_start_iter()
 
-            self.search_and_mark(dialog.entry.get_text(), start)
+        if self.findcall:
+            # Call with object argument
+            self.findcall[0](self.findcall[1])
 
         dialog.destroy()
 
