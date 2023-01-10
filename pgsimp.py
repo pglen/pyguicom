@@ -16,6 +16,8 @@ from gi.repository import Pango
 
 gui_testmode = False
 
+#print("pgsimp", __file__)
+
 # ------------------------------------------------------------------------
 # An N pixel horizontal spacer. Defaults to X pix get_center
 # Re-created for no dependency include of this module

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from __future__ import absolute_import
-from __future__ import print_function
+#from __future__ import absolute_import
+#from __future__ import print_function
 
 import signal, os, time, sys, pickle, subprocess, random, warnings
 import math, copy
@@ -15,7 +15,6 @@ from gi.repository import Pango
 
 gi.require_version('PangoCairo', '1.0')
 from gi.repository import PangoCairo
-
 
 realinc = os.path.realpath(os.path.dirname(__file__) + os.sep + "../pycommon")
 sys.path.append(realinc)
