@@ -1,6 +1,8 @@
 # pyv Common utilites
 
-## Common GUI routines (and classes) for python PyGobject (Gtk) development.
+## Common GUI routines and classes
+
+ These calsses are for python PyGobject (Gtk) development.
 
 These routines are used in several projects. The classes act as a simplification
 front end for the PyGtk (PyGobject) classes.
@@ -28,6 +30,25 @@ Just a sampler of what is in there (pasted from code, in no particular order):
     class xSpacer(Gtk.HBox):
     class ScrollListBox(Gtk.Frame):
     class ListBox(Gtk.TreeView):
+
+    ... and a lot more ...
+
+## Also includes python / Gtk primitives:
+
+    def get_screen_wh():
+    def get_screen_xy():
+    def print_exception(xstr):
+    def message(strx, parent = None, title = None, icon = Gtk.MessageType.INFO):
+    def usleep(msec):
+    def tmpname(indir, template):
+    def mainloop():
+    def time_n2s(ttt):
+    def time_s2n(sss):
+    def yes_no_cancel(title, message, cancel = True, parent = None):
+    def yn_key(win, event, cancel):
+    def opendialog(parent=None):
+    def savedialog(resp):
+    def leadspace(strx):
 
      ... and a lot more ...
 
