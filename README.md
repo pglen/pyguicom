@@ -7,29 +7,29 @@ front end for the PyGtk (PyGobject) classes.
 
 Just a sampler of what is in there (pasted from code, in no particular order):
 
-class CairoHelper():
-class TextTable(Gtk.Table):
-class TextRow(Gtk.HBox):
-class RadioGroup(Gtk.Frame):
-class Led(Gtk.DrawingArea):
-class SeparatorMenuItem(Gtk.SeparatorMenuItem):
-class Menu():
-class MenuButt(Gtk.DrawingArea):
-class Lights(Gtk.Frame):
-class WideButt(Gtk.Button):
-class ScrollListBox(Gtk.Frame):
-class TextRow(Gtk.HBox):
-class RadioGroup(Gtk.Frame):
-class Led(Gtk.DrawingArea):
-class Lights(Gtk.Frame):
-class FrameTextView(Gtk.TextView):
-class Label(Gtk.Label):
-class Logo(Gtk.VBox):
-class xSpacer(Gtk.HBox):
-class ScrollListBox(Gtk.Frame):
-class ListBox(Gtk.TreeView):
+    class CairoHelper():
+    class TextTable(Gtk.Table):
+    class TextRow(Gtk.HBox):
+    class RadioGroup(Gtk.Frame):
+    class Led(Gtk.DrawingArea):
+    class SeparatorMenuItem(Gtk.SeparatorMenuItem):
+    class Menu():
+    class MenuButt(Gtk.DrawingArea):
+    class Lights(Gtk.Frame):
+    class WideButt(Gtk.Button):
+    class ScrollListBox(Gtk.Frame):
+    class TextRow(Gtk.HBox):
+    class RadioGroup(Gtk.Frame):
+    class Led(Gtk.DrawingArea):
+    class Lights(Gtk.Frame):
+    class FrameTextView(Gtk.TextView):
+    class Label(Gtk.Label):
+    class Logo(Gtk.VBox):
+    class xSpacer(Gtk.HBox):
+    class ScrollListBox(Gtk.Frame):
+    class ListBox(Gtk.TreeView):
 
- ... and a lot more ...
+     ... and a lot more ...
 
  For instance the Label takes a constructor, and feeds the arguments as
  one would expect.
@@ -44,6 +44,11 @@ class ListBox(Gtk.TreeView):
 
  The defaults are set to a reasonable value, and the named argument can be
 set on one line. This makes the code look more compact and maintainable.
+
+## Tests:
+
+ The test utilities can  confirm correct operation; however being a visual
+set of classes, the real test is seeing the generated UI.
 
  See descendent projects for more examples. (pyedpro; pycal; pggui; ...)
 
