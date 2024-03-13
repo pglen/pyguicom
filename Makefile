@@ -7,8 +7,10 @@
 #  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
+.PHONY: docs
+
 all:
-	@echo "Type 'make help' for a list of targets"
+	@echo "Targets: git install pack docs clean ; 'make help' for a full list."
 
 help:
 	@echo
@@ -32,11 +34,22 @@ git:
 	git commit -m autocheck
 	git push
 
+
+docs:
+	@pdoc  --force --html -o docs pyvguicom/pgbox.py
+	@pdoc  --force --html -o docs pyvguicom/browsewin.py
+	@pdoc  --force --html -o docs pyvguicom/pgbutt.py
+	@pdoc  --force --html -o docs pyvguicom/pgutils.py
+	@pdoc  --force --html -o docs pyvguicom/htmledit.py
+	@pdoc  --force --html -o docs pyvguicom/pgentry.py
+	@pdoc  --force --html -o docs pyvguicom/pgwkit.py
+	@pdoc  --force --html -o docs pyvguicom/sutil.py
+	@pdoc  --force --html -o docs pyvguicom/pggui.py
+	@pdoc  --force --html -o docs pyvguicom/pgsimp.py
+	@pdoc  --force --html -o docs pyvguicom/pggui.py
+	@pdoc  --force --html -o docs pyvguicom/pgbox.py
+	@pdoc  --force --html -o docs pyvguicom/pgtextview.py
+
 # End of Makefile
 
-
-
-
-
-
-
+# eof
