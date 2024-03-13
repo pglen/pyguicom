@@ -1,4 +1,4 @@
-# pyvguicom  CPyv GUI common utilities
+# pyvguicom  PyV GUI Common utilities
 
 ## Common GUI routines and classes
 
@@ -53,12 +53,12 @@ A sampler of what is in there (pasted from code, in no particular order):
 
 ## Example:
 
- For instance the Label takes a constructor, and feeds the arguments
- with defaults as one would expect.
+The Label Button (smallbutt) takes a constructor, and feeds
+ the arguments with defaults as one would expect.
 
      def __init__(self, textm="", widget=None, tooltip=None, font=None):
 
-The simplification effect allows one to create a label with no arguments,
+The simplification effect allows one to create a smallbutt with no arguments,
 and still have a somewhat reasonable outcome. The label example is trivial,
 the simplification takes a new dimension with classes like SimpleTree.
 

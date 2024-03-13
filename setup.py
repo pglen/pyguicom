@@ -1,7 +1,10 @@
 import setuptools
 
 descx = '''
-        '''
+    These classes are for python PyGobject (Gtk) development. They are used in
+    several projects. They act as a simplification front end for the PyGtk / PyGobject
+    classes.
+    '''
 
 classx = [
           'Development Status :: Mature',
