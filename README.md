@@ -1,13 +1,12 @@
-# pyv Common utilites
+# pyvguicom  CPyv GUI common utilities
 
 ## Common GUI routines and classes
 
- These calsses are for python PyGobject (Gtk) development.
+ These classes are for python PyGobject (Gtk) development. They are used in
+several projects. They act as a simplification front end for the PyGtk / PyGobject
+ classes.
 
-These routines are used in several projects. The classes act as a simplification
-front end for the PyGtk (PyGobject) classes.
-
-Just a sampler of what is in there (pasted from code, in no particular order):
+A sampler of what is in there (pasted from code, in no particular order):
 
     class CairoHelper():
     class TextTable(Gtk.Table):
@@ -52,18 +51,18 @@ Just a sampler of what is in there (pasted from code, in no particular order):
 
      ... and a lot more ...
 
- For instance the Label takes a constructor, and feeds the arguments as
- one would expect.
+## Example:
 
- Like this:
+ For instance the Label takes a constructor, and feeds the arguments
+ with defaults as one would expect.
 
-     def __init__(self, textm = "", widget = None, tooltip=None, font = None):
+     def __init__(self, textm="", widget=None, tooltip=None, font=None):
 
-     The simplification effect allows one to create a label with no arguments,
-     and still have a somewhat reasonable outcome. The label example is trivial,
-     the simplification takes a new dimension with classed like SimpleTree.
+The simplification effect allows one to create a label with no arguments,
+and still have a somewhat reasonable outcome. The label example is trivial,
+the simplification takes a new dimension with classes like SimpleTree.
 
- The defaults are set to a reasonable value, and the named argument can be
+The defaults are set to a reasonable value, and the named argument(s) can be
 set on one line. This makes the code look more compact and maintainable.
 
 ## Tests:

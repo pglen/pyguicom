@@ -34,7 +34,6 @@ git:
 	git commit -m autocheck
 	git push
 
-
 docs:
 	@pdoc  --force --html -o docs pyvguicom/pgbox.py
 	@pdoc  --force --html -o docs pyvguicom/browsewin.py
