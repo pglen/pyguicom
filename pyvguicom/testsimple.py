@@ -56,7 +56,7 @@ class pgtestwin(testwin):
         frame3 = wrapscroll(self.editor)
         hbox.pack_start(frame3, 1, 1, 2)
 
-        self.selector = LetterNumberSel(self.letterfilter, "Mono 16")
+        self.selector = LetterNumberSel(self.letterfilter, "Mono 16", " ")
         hbox2.pack_start(self.selector , 1, 1, 2)
 
         vbox.pack_start(hbox3, 0, 0, 2)
@@ -69,7 +69,7 @@ class pgtestwin(testwin):
         self.show_all()
 
     def  letterfilter(self, letter):
-        #print("letterfilter", letter)
+        print("letterfilter", letter)
         self.label.set_text(letter)
 
 tw = pgtestwin()
@@ -101,3 +101,4 @@ for aa in aaa:
 
 Gtk.main()
 
+# EOF

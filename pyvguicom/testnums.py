@@ -26,7 +26,7 @@ class testwin(Gtk.Window):
 
     def __init__(self):
         Gtk.Window.__init__(self)
-        self.set_default_size(1024, 768)
+        #self.set_default_size(1024, 768)
         #self.set_default_size(800, 600)
         self.set_position(Gtk.WindowPosition.CENTER)
         self.connect("unmap", Gtk.main_quit)

@@ -21,6 +21,7 @@ import pgbox
 
 #print("pgsimp", __file__)
 
+import sutil
 # ------------------------------------------------------------------------
 # An N pixel horizontal spacer. Defaults to X pix get_center
 # Re-created for no dependency include of this module
@@ -67,8 +68,8 @@ class   SimpleTree(Gtk.TreeView):
         for aa in head:
             # Create a CellRendererText to render the data
             cell = Gtk.CellRendererText()
-            #cell.set_property("alignment", Pango.Alignment.CENTER)
-            #cell.set_property("align-set", True)
+            cell.set_property("alignment", Pango.Alignment.LEFT)
+            cell.set_property("align-set", True)
             cell.set_property("xalign", xalign)
 
             if cnt > skipedit:
@@ -101,7 +102,8 @@ class   SimpleTree(Gtk.TreeView):
         args = []
         for aa in self.treestore[path]:
             args.append(aa)
-        self.chcallb(args)
+        if self.chcallb:
+            self.chcallb(args)
 
     def selection(self, xtree):
         #print("simple tree sel", xtree)
@@ -141,8 +143,9 @@ class   SimpleTree(Gtk.TreeView):
         iter = self.treestore.get_iter_first()
         sel.select_iter(iter)
         ppp = self.treestore.get_path(iter)
-        self.scroll_to_cell(ppp, None, 0, 0, 0 )
         self.set_cursor(ppp, self.get_column(0), False)
+        sutil.usleep(5)
+        self.scroll_to_cell(ppp, None, 0, 0, 0 )
 
     def sel_last(self):
         #print("sel last ...")
@@ -158,8 +161,9 @@ class   SimpleTree(Gtk.TreeView):
             iter = iter2.copy()
         sel.select_iter(iter)
         ppp = self.treestore.get_path(iter)
-        self.scroll_to_cell(ppp, None, 0, 0, 0 )
         self.set_cursor(ppp, self.get_column(0), False)
+        sutil.usleep(5)
+        self.scroll_to_cell(ppp, None, True, 0., 0. )
         #sel.select_path(self.treestore.get_path(iter))
 
     def find_item(self, item):
@@ -279,23 +283,35 @@ class   SimpleEdit(Gtk.TextView):
 
 class   LetterNumberSel(Gtk.VBox):
 
-    def __init__(self, callb = None, font="Mono 13"):
+    def __init__(self, callb = None, font="Mono 13", spacer = ""):
 
         Gtk.VBox.__init__(self)
         self.callb = callb
 
+        strx2 = ""
         strx = "abcdefghijklmnopqrstuvwxyz"
+        for aa in strx:
+            strx2 += aa + spacer
+        strx = strx2
+
         hbox3a = Gtk.HBox()
         hbox3a.pack_start(Gtk.Label(label=" "), 1, 1, 0)
-        self.simsel =  internal_SimpleSel(strx, self.letter, font)
+        self.simsel =  internal_SimpleSel(strx, self.letter, font, spacer)
 
         hbox3a.pack_start(self.simsel, 0, 0, 0)
         hbox3a.pack_start(Gtk.Label(label=" "), 1, 1, 0)
 
-        strn = "1234567890!@#$^&*_+ [All]"
+        strn2 = ""
+        strn = "1234567890!@#$^&*_+-[All]"
+        for aa in strn[:-5]:
+            strn2 += aa + spacer
+        strn2 += strn[-5:]
+
+        strn = strn2
+
         hbox3b = Gtk.HBox()
         hbox3b.pack_start(Gtk.Label(label=" "), 1, 1, 0)
-        self.simsel2 = internal_SimpleSel(strn, self.letter, font)
+        self.simsel2 = internal_SimpleSel(strn, self.letter, font, spacer)
         hbox3b.pack_start(self.simsel2, 0, 0, 0)
         hbox3b.pack_start(Gtk.Label(label=" "), 1, 1, 0)
 
@@ -329,7 +345,7 @@ class   LetterNumberSel(Gtk.VBox):
 
 class   internal_SimpleSel(Gtk.Label):
 
-    def __init__(self, text = " ", callb = None, font="Mono 13"):
+    def __init__(self, text = " ", callb = None, font="Mono 13", pad = ""):
         self.text = text
         self.callb = callb
         self.axx = self.text.find("[All]")
@@ -342,17 +358,20 @@ class   internal_SimpleSel(Gtk.Label):
         self.lastsel = "All"
         self.lastidx = 0
         self.other = None
+        self.pad = pad
+        self.newtext = ""
 
     def area_button(self, but, event):
 
         prop = event.x / float(self.get_allocation().width)
         idx = int(prop * len(self.text))
         #print("width =", self.get_allocation().width)
-        #print("idx", idx, )
+        print("idx", idx, )
         #print("click", event.x, event.y)
         try:
-            # See of it is all
+            # See if it is the line with ALL
             if self.axx >= 0:
+                # Past All?
                 if idx > self.axx:
                     #print("all", idx, self.text[idx-5:idx+7])
                     self.lastsel =  "All"
@@ -360,20 +379,31 @@ class   internal_SimpleSel(Gtk.Label):
                     self.set_text(self.newtext)
                 else:
                     if self.text[idx].isalpha():
+                        if self.text[idx] == self.pad:
+                            #print("On sep", self.text[idx], self.text[idx-1],)
+                            idx -= 1
                         self.newtext = self.text[:self.axx] + self.text[self.axx:].lower()
                     else:
+                        pipe = self.newtext.find("|")
+                        print ("pipe", pipe)
+                        if pipe >= 0 and pipe < idx:
+                            idx -= 1
+                        if self.text[idx] == self.pad:
+                            #print("On sep", self.text[idx], self.text[idx-1],)
+                            idx -= 1
+
                         #print("Non alpha, filling pipe char")
                         #print("old sel", self.lastidx, "new sel", idx, self.text[:idx])
-                        if  self.lastidx + 2 < idx:
-                            idx -= 1
                         self.lastsel =  self.text[idx]
                         self.newtext = self.text[:idx] + "|" + self.text[idx] + "|" + self.text[idx+1:]
                         self.lastidx =  idx
 
                 self.set_text(self.newtext)
-
             else:
                 self.lastsel =  self.text[idx]
+                if self.text[idx] == self.pad:
+                    #print("Skip padding:", self.text[idx], self.text[idx-1])
+                    idx -= 1
                 self.newtext = self.text[:idx] + self.text[idx].upper() + self.text[idx+1:]
                 self.set_text(self.newtext)
 

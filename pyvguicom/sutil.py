@@ -82,7 +82,6 @@ def message(strx, parent = None, title = None, icon = Gtk.MessageType.INFO):
     dialog.connect("response", lambda d, r: d.destroy())
     dialog.show()
 
-
 # -----------------------------------------------------------------------
 # Sleep just a little, but allow the system to breed
 

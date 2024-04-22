@@ -34,25 +34,8 @@ allstr =    " " + \
 
 allasc =      string.ascii_lowercase +  string.ascii_uppercase +  \
                 string.digits + "_"
-
 alllett =      string.ascii_lowercase +  string.ascii_uppercase
-
-
 testmode = 0
-
-# -----------------------------------------------------------------------
-# Sleep just a little, but allow the system to breed
-#
-#def  usleep2(msec):
-#
-#    got_clock = time.clock() + float(msec) / 1000
-#    #print( got_clock)
-#    while True:
-#        if time.clock() > got_clock:
-#            break
-#        #print ("Sleeping")
-#        Gtk.main_iteration_do(False)
-#
 
 # -----------------------------------------------------------------------
 # Sleep just a little, but allow the system to breed
@@ -1097,6 +1080,97 @@ def message(strx, title = None):
     dialog.connect("response", lambda d, r: d.destroy())
     dialog.show()
     dialog.run()
+
+# -----------------------------------------------------------------------
+# Call func with all processes, func called with stat as its argument
+# Function may return True to stop iteration
+
+def withps(func, opt = None):
+
+    ret = False
+    dl = os.listdir("/proc")
+    for aa in dl:
+        fname = "/proc/" + aa + "/stat"
+        if os.path.isfile(fname):
+            ff = open(fname, "r").read().split()
+            ret = func(ff, opt)
+        if ret:
+            break
+    return ret
+
+# ------------------------------------------------------------------------
+# Find
+
+def find(self):
+
+    head = "Find in text"
+
+    dialog = Gtk.Dialog(head,
+                   None,
+                   Gtk.DIALOG_MODAL | Gtk.DIALOG_DESTROY_WITH_PARENT,
+                   (Gtk.STOCK_CANCEL, Gtk.RESPONSE_REJECT,
+                    Gtk.STOCK_OK, Gtk.RESPONSE_ACCEPT))
+    dialog.set_default_response(Gtk.RESPONSE_ACCEPT)
+
+    try:
+        dialog.set_icon_from_file("epub.png")
+    except:
+        print ("Cannot load find dialog icon", sys.exc_info())
+
+    self.dialog = dialog
+
+    # Spacers
+    label1 = Gtk.Label("   ");  label2 = Gtk.Label("   ")
+    label3 = Gtk.Label("   ");  label4 = Gtk.Label("   ")
+    label5 = Gtk.Label("   ");  label6 = Gtk.Label("   ")
+    label7 = Gtk.Label("   ");  label8 = Gtk.Label("   ")
+
+    warnings.simplefilter("ignore")
+    entry = Gtk.Entry();
+    warnings.simplefilter("default")
+    entry.set_text(self.oldfind)
+
+    entry.set_activates_default(True)
+
+    dialog.vbox.pack_start(label4)
+
+    hbox2 = Gtk.HBox()
+    hbox2.pack_start(label6, False)
+    hbox2.pack_start(entry)
+    hbox2.pack_start(label7, False)
+
+    dialog.vbox.pack_start(hbox2)
+
+    dialog.checkbox = Gtk.CheckButton("Search _Backwards")
+    dialog.checkbox2 = Gtk.CheckButton("Case In_sensitive")
+    dialog.vbox.pack_start(label5)
+
+    hbox = Gtk.HBox()
+    #hbox.pack_start(label1);  hbox.pack_start(dialog.checkbox)
+    #hbox.pack_start(label2);  hbox.pack_start(dialog.checkbox2)
+    hbox.pack_start(label3);
+    dialog.vbox.pack_start(hbox)
+    dialog.vbox.pack_start(label8)
+
+    label32 = Gtk.Label("   ");  label33 = Gtk.Label("   ")
+    label34 = Gtk.Label("   ");  label35 = Gtk.Label("   ")
+
+    hbox4 = Gtk.HBox()
+
+    hbox4.pack_start(label32);
+    dialog.vbox.pack_start(hbox4)
+
+    dialog.show_all()
+    response = dialog.run()
+    self.srctxt = entry.get_text()
+
+    dialog.destroy()
+
+    if response != Gtk.RESPONSE_ACCEPT:
+        return None
+
+    return self.srctxt, dialog.checkbox.get_active(), \
+                dialog.checkbox2.get_active()
 
 # EOF
 
