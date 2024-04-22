@@ -366,7 +366,7 @@ class   internal_SimpleSel(Gtk.Label):
         prop = event.x / float(self.get_allocation().width)
         idx = int(prop * len(self.text))
         #print("width =", self.get_allocation().width)
-        print("idx", idx, )
+        #print("idx", idx, )
         #print("click", event.x, event.y)
         try:
             # See if it is the line with ALL
@@ -385,7 +385,7 @@ class   internal_SimpleSel(Gtk.Label):
                         self.newtext = self.text[:self.axx] + self.text[self.axx:].lower()
                     else:
                         pipe = self.newtext.find("|")
-                        print ("pipe", pipe)
+                        #print ("pipe", pipe)
                         if pipe >= 0 and pipe < idx:
                             idx -= 1
                         if self.text[idx] == self.pad:
