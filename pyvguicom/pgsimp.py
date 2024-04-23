@@ -1,32 +1,28 @@
 #!/usr/bin/python
 
-from __future__ import absolute_import
-from __future__ import print_function
-
-import os, sys, getopt, signal, string, fnmatch, math
-import random, time, subprocess, traceback, glob
+import  sys
 
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from gi.repository import Gdk
-from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
 
+''' Simplified controls '''
+
 gui_testmode = False
-import pgbox
 
-#print("pyedpro pgsimp", __file__)
-
-#print("pgsimp", __file__)
-
+#import pgbox
 import sutil
+
 # ------------------------------------------------------------------------
-# An N pixel horizontal spacer. Defaults to X pix get_center
-# Re-created for no dependency include of this module
 
 class zSpacer(Gtk.HBox):
+
+    '''  Create an N pixel horizontal spacer. Defaults to X pix get_center
+          Re-created for no dependency include of this module
+    '''
 
     def __init__(self, sp = None):
         GObject.GObject.__init__(self)
@@ -34,6 +30,7 @@ class zSpacer(Gtk.HBox):
         #if gui_testmode:
         #    col = randcolstr(100, 200)
         #    self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(col))
+
         if sp == None:
             sp = 6
         self.set_size_request(sp, sp)
@@ -41,6 +38,8 @@ class zSpacer(Gtk.HBox):
 # ------------------------------------------------------------------------
 
 class   SimpleTree(Gtk.TreeView):
+
+    ''' Simplified Tree control '''
 
     def __init__(self, head = [], editx = [], skipedit = 0, xalign = 0.5):
 
@@ -140,9 +139,9 @@ class   SimpleTree(Gtk.TreeView):
         #print("sel first ...")
         sel = self.get_selection()
         xmodel, xiter = sel.get_selected()
-        iter = self.treestore.get_iter_first()
-        sel.select_iter(iter)
-        ppp = self.treestore.get_path(iter)
+        iterx = self.treestore.get_iter_first()
+        sel.select_iter(iterx)
+        ppp = self.treestore.get_path(iterx)
         self.set_cursor(ppp, self.get_column(0), False)
         sutil.usleep(5)
         self.scroll_to_cell(ppp, None, 0, 0, 0 )
@@ -151,20 +150,20 @@ class   SimpleTree(Gtk.TreeView):
         #print("sel last ...")
         sel = self.get_selection()
         xmodel, xiter = sel.get_selected()
-        iter = self.treestore.get_iter_first()
-        if not iter:
+        iterx = self.treestore.get_iter_first()
+        if not iterx:
             return
         while True:
-            iter2 = self.treestore.iter_next(iter)
+            iter2 = self.treestore.iter_next(iterx)
             if not iter2:
                 break
-            iter = iter2.copy()
-        sel.select_iter(iter)
-        ppp = self.treestore.get_path(iter)
+            iterx = iter2.copy()
+        sel.select_iter(iterx)
+        ppp = self.treestore.get_path(iterx)
         self.set_cursor(ppp, self.get_column(0), False)
         sutil.usleep(5)
         self.scroll_to_cell(ppp, None, True, 0., 0. )
-        #sel.select_path(self.treestore.get_path(iter))
+        #sel.select_path(self.treestore.get_path(iterx))
 
     def find_item(self, item):
 
@@ -172,19 +171,19 @@ class   SimpleTree(Gtk.TreeView):
 
         #print("find", item)
         found = 0
-        iter = self.treestore.get_iter_first()
-        if not iter:
-            return
+        iterx = self.treestore.get_iter_first()
+        if not iterx:
+            return found
         while True:
-            value = self.treestore.get_value(iter, 0)
+            value = self.treestore.get_value(iterx, 0)
             #print("item:", value)
             if item == value:
                 found = True
                 break
-            iter2 = self.treestore.iter_next(iter)
+            iter2 = self.treestore.iter_next(iterx)
             if not iter2:
                 break
-            iter = iter2.copy()
+            iterx = iter2.copy()
         return found
 
     def clear(self):
@@ -193,6 +192,8 @@ class   SimpleTree(Gtk.TreeView):
 # ------------------------------------------------------------------------
 
 class   SimpleEdit(Gtk.TextView):
+
+    ''' Simplified Edit controol '''
 
     def __init__(self, head = []):
 
@@ -249,8 +250,8 @@ class   SimpleEdit(Gtk.TextView):
 
     def append(self, strx):
         self.check_saved()
-        iter = self.buffer.get_end_iter()
-        self.buffer.insert(iter, strx)
+        iterx = self.buffer.get_end_iter()
+        self.buffer.insert(iterx, strx)
         self.buffer.set_modified(False)
 
     def clear(self):
@@ -277,43 +278,48 @@ class   SimpleEdit(Gtk.TextView):
         self.buffer.insert(startt, txt)
         self.buffer.set_modified(True)
 
-
 # ------------------------------------------------------------------------
 # Letter selection control
 
 class   LetterNumberSel(Gtk.VBox):
 
+    ''' Letter Number selector '''
+
     def __init__(self, callb = None, font="Mono 13", spacer = ""):
 
         Gtk.VBox.__init__(self)
-        self.callb = callb
 
-        strx2 = ""
-        strx = "abcdefghijklmnopqrstuvwxyz"
-        for aa in strx:
-            strx2 += aa + spacer
-        strx = strx2
+        self.set_can_focus(True)
+        self.set_focus_on_click(True)
+        self.set_can_default(True)
+
+        self.callb = callb
 
         hbox3a = Gtk.HBox()
         hbox3a.pack_start(Gtk.Label(label=" "), 1, 1, 0)
-        self.simsel =  internal_SimpleSel(strx, self.letter, font, spacer)
+
+        strx = "abcdefghijklmnopqrstuvwxyz"
+        self.simsel =  internal_SimpleSel(strx, self.lettercb, font, spacer)
+        self.override_background_color(Gtk.StateFlags.FOCUSED, Gdk.RGBA(.9,.9,.9))
+
+        self.connect("key-press-event", self.simsel_key)
 
         hbox3a.pack_start(self.simsel, 0, 0, 0)
         hbox3a.pack_start(Gtk.Label(label=" "), 1, 1, 0)
 
         strn2 = ""
-        strn = "1234567890!@#$^&*_+-[All]"
-        for aa in strn[:-5]:
-            strn2 += aa + spacer
-        strn2 += strn[-5:]
-
-        strn = strn2
-
         hbox3b = Gtk.HBox()
         hbox3b.pack_start(Gtk.Label(label=" "), 1, 1, 0)
-        self.simsel2 = internal_SimpleSel(strn, self.letter, font, spacer)
+        strn = "1234567890!@#$^&*_-+[All]"
+        self.simsel2 = internal_SimpleSel(strn, self.lettercb, font, spacer)
         hbox3b.pack_start(self.simsel2, 0, 0, 0)
         hbox3b.pack_start(Gtk.Label(label=" "), 1, 1, 0)
+
+        self.simsel2.other = self.simsel
+        self.simsel.other = self.simsel2
+        self.curr = self.simsel
+        # Commit changes
+        self.simsel.exec_index(True)
 
         self.hand_cursor = Gdk.Cursor(Gdk.CursorType.HAND2)
         self.simsel.connect("enter_notify_event", self.enter_label)
@@ -321,12 +327,57 @@ class   LetterNumberSel(Gtk.VBox):
         self.simsel2.connect("enter_notify_event", self.enter_label)
         self.simsel2.connect("leave_notify_event", self.leave_label)
 
-        self.simsel2.other = self.simsel
-        self.simsel.other = self.simsel2
-
         self.pack_start(hbox3a, 0, 0, False)
         self.pack_start(zSpacer(4), 0, 0, False)
         self.pack_start(hbox3b, 0, 0, False)
+
+    def simsel_key(self, arg, event):
+        #  print(event.keyval)
+        if event.keyval == Gdk.KEY_Left:
+            self.curr.idx -= 1
+            self.curr.exec_index(True)
+
+        if event.keyval == Gdk.KEY_Right:
+            self.curr.idx += 1
+            self.curr.exec_index(True)
+
+        if event.keyval == Gdk.KEY_Down:
+            if self.curr == self.simsel:
+                self.curr = self.simsel2
+            else:
+                self.curr = self.simsel
+            self.curr.exec_index(True)
+            return True
+
+        if event.keyval == Gdk.KEY_Up:
+            if self.curr == self.simsel:
+                self.curr = self.simsel2
+            else:
+                self.curr = self.simsel
+            self.curr.exec_index(True)
+            return True
+
+        if event.keyval == Gdk.KEY_Home:
+            self.curr.idx = 0
+            self.curr.exec_index(True)
+            return True
+
+        if event.keyval == Gdk.KEY_End:
+            self.curr.idx = len(self.curr.textarr) - 1
+            self.curr.exec_index(True)
+            return True
+
+        if event.keyval == Gdk.KEY_Return:
+            self.simsel.exec_index(False)
+
+        if event.keyval == Gdk.KEY_space:
+            self.simsel.exec_index(False)
+
+        if event.keyval >= Gdk.KEY_a and event.keyval <= Gdk.KEY_z:
+            self.curr.idx = event.keyval - Gdk.KEY_a
+            self.curr.exec_index(True)
+            return True
+
 
     def enter_label(self, arg, arg2):
         #print("Enter")
@@ -336,7 +387,7 @@ class   LetterNumberSel(Gtk.VBox):
         #print("Leave")
         self.get_window().set_cursor()
 
-    def  letter(self, letter):
+    def  lettercb(self, letter):
         #print("LetterSel::letterx:", letter)
         if self.callb:
             self.callb(letter)
@@ -345,82 +396,99 @@ class   LetterNumberSel(Gtk.VBox):
 
 class   internal_SimpleSel(Gtk.Label):
 
-    def __init__(self, text = " ", callb = None, font="Mono 13", pad = ""):
-        self.text = text
-        self.callb = callb
-        self.axx = self.text.find("[All]")
-        #self.axx = -1
-        Gtk.Label.__init__(self, text)
-        self.set_has_window(True)
+    ''' Internal class for selectors '''
+
+    def __init__(self, textx = " ", callb = None, font="Mono 13", pad = ""):
+
+        Gtk.Label.__init__(self, "")
+
+        allstr = "[All]"
+
         self.set_events(Gdk.EventMask.ALL_EVENTS_MASK )
         self.connect("button-press-event", self.area_button)
         self.modify_font(Pango.FontDescription(font))
-        self.lastsel = "All"
+        self.set_has_window(True)
+
+        self.callb = callb
+        self.axx = textx.find(allstr)
+        self.lastsel = ""
         self.lastidx = 0
         self.other = None
         self.pad = pad
-        self.newtext = ""
+        self.newtext = pad
+        self.idx = 0
+        self.set_can_focus(True)
+        self.set_focus_on_click(True)
+
+        #print("newtext", self.newtext)
+        #print("pad:", self.pad)
+
+        if self.axx >= 0:
+            textx = textx[:self.axx]
+
+        self.textarr = []
+        for aa in textx:
+            self.textarr.append(aa)
+        if self.axx >= 0:
+            self.textarr.append(allstr)
+
+        self.fill()
 
     def area_button(self, but, event):
 
+        self.get_parent().get_parent().grab_focus()
         prop = event.x / float(self.get_allocation().width)
-        idx = int(prop * len(self.text))
-        #print("width =", self.get_allocation().width)
-        #print("idx", idx, )
-        #print("click", event.x, event.y)
-        try:
-            # See if it is the line with ALL
-            if self.axx >= 0:
-                # Past All?
-                if idx > self.axx:
-                    #print("all", idx, self.text[idx-5:idx+7])
-                    self.lastsel =  "All"
-                    self.newtext = self.text[:self.axx] + self.text[self.axx:].upper()
-                    self.set_text(self.newtext)
-                else:
-                    if self.text[idx].isalpha():
-                        if self.text[idx] == self.pad:
-                            #print("On sep", self.text[idx], self.text[idx-1],)
-                            idx -= 1
-                        self.newtext = self.text[:self.axx] + self.text[self.axx:].lower()
-                    else:
-                        pipe = self.newtext.find("|")
-                        #print ("pipe", pipe)
-                        if pipe >= 0 and pipe < idx:
-                            idx -= 1
-                        if self.text[idx] == self.pad:
-                            #print("On sep", self.text[idx], self.text[idx-1],)
-                            idx -= 1
+        self.idx = int(prop * len(self.textarr))
+        self.exec_index(False)
 
-                        #print("Non alpha, filling pipe char")
-                        #print("old sel", self.lastidx, "new sel", idx, self.text[:idx])
-                        self.lastsel =  self.text[idx]
-                        self.newtext = self.text[:idx] + "|" + self.text[idx] + "|" + self.text[idx+1:]
-                        self.lastidx =  idx
+    def fill(self):
 
-                self.set_text(self.newtext)
+        #if self.is_focus():
+        #    pipe = "-"
+        #else:
+        pipe = "|"
+
+        self.newtext = self.pad
+        cnt = 0
+        for aa in self.textarr:
+            if cnt == self.idx:
+                self.newtext += pipe + aa.upper() + pipe + self.pad
             else:
-                self.lastsel =  self.text[idx]
-                if self.text[idx] == self.pad:
-                    #print("Skip padding:", self.text[idx], self.text[idx-1])
-                    idx -= 1
-                self.newtext = self.text[:idx] + self.text[idx].upper() + self.text[idx+1:]
-                self.set_text(self.newtext)
+                self.newtext += aa + self.pad
+            cnt += 1
+        self.set_text(self.newtext)
 
-            # Clear the other
-            if self.other:
-                self.other.newtext = self.other.text[:]
-                self.other.set_text(self.other.newtext)
+        # Fill other, if allocated
+        if self.other:
+            pipe = " "
+            self.other.newtext = self.other.pad
+            cnt = 0
+            for aa in self.other.textarr:
+                if cnt == self.other.idx:
+                    self.other.newtext += pipe + aa.upper() + pipe + self.other.pad
+                else:
+                    self.other.newtext += aa + self.other.pad
+                cnt += 1
+            self.other.set_text(self.other.newtext)
 
+    def exec_index(self, fromkey):
+
+        if self.idx < 0:
+            self.idx = 0
+        if self.idx > len(self.textarr) - 1:
+            self.idx = len(self.textarr) - 1
+
+        print("index:", self.idx)
+        self.fill()
+        if not fromkey:
             if self.callb:
-                self.callb(self.lastsel)
-
-        except:
-            print(sys.exc_info())
+                self.callb(self.textarr[self.idx])
 
 # Give a proportional answer
 
 class   NumberSel(Gtk.Label):
+
+    ''' Number selector '''
 
     def __init__(self, text = " ", callb = None, font="Mono 13"):
         self.text = text
@@ -476,6 +544,8 @@ class   NumberSel(Gtk.Label):
 
 class   HourSel(Gtk.VBox):
 
+    ''' Hour selector '''
+
     def __init__(self, callb = None):
 
         Gtk.VBox.__init__(self)
@@ -496,6 +566,8 @@ class   HourSel(Gtk.VBox):
             self.callb(letter)
 
 class   MinSel(Gtk.VBox):
+
+    ''' Minute selector '''
 
     def __init__(self, callb = None):
 
