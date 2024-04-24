@@ -34,20 +34,23 @@ git:
 	git commit -m autocheck
 	git push
 
+XPATH=PYTHONPATH=../pyvcommon:../  python -W ignore::DeprecationWarning `which pdoc` --force --html
+
 docs:
-	@pdoc  --force --html -o docs pyvguicom/pgbox.py
-	@pdoc  --force --html -o docs pyvguicom/browsewin.py
-	@pdoc  --force --html -o docs pyvguicom/pgbutt.py
-	@pdoc  --force --html -o docs pyvguicom/pgutils.py
-	@pdoc  --force --html -o docs pyvguicom/htmledit.py
-	@pdoc  --force --html -o docs pyvguicom/pgentry.py
-	@pdoc  --force --html -o docs pyvguicom/pgwkit.py
-	@pdoc  --force --html -o docs pyvguicom/sutil.py
-	@pdoc  --force --html -o docs pyvguicom/pggui.py
-	@pdoc  --force --html -o docs pyvguicom/pgsimp.py
-	@pdoc  --force --html -o docs pyvguicom/pggui.py
-	@pdoc  --force --html -o docs pyvguicom/pgbox.py
-	@pdoc  --force --html -o docs pyvguicom/pgtextview.py
+	@${XPATH}   -o docs pyvguicom/pgbox.py
+	@${XPATH}   -o docs pyvguicom/pgsel.py
+	@${XPATH}   -o docs pyvguicom/browsewin.py
+	@${XPATH}   -o docs pyvguicom/pgbutt.py
+	@${XPATH}   -o docs pyvguicom/pgutils.py
+	@${XPATH}   -o docs pyvguicom/htmledit.py
+	@${XPATH}   -o docs pyvguicom/pgentry.py
+	@${XPATH}   -o docs pyvguicom/pgwkit.py
+	@${XPATH}   -o docs pyvguicom/sutil.py
+	@${XPATH}   -o docs pyvguicom/pggui.py
+	@${XPATH}   -o docs pyvguicom/pgsimp.py
+	@${XPATH}   -o docs pyvguicom/pggui.py
+	@${XPATH}   -o docs pyvguicom/pgbox.py
+	@${XPATH}   -o docs pyvguicom/pgtextview.py
 
 # End of Makefile
 

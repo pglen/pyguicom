@@ -330,17 +330,24 @@ class Led(Gtk.DrawingArea):
         #cr.restore()
 
         ccc = pgutils.str2float(self.color)
+
+        cr.set_source_rgba(ccc[0] * 0.5, ccc[1] * 0.5, ccc[2] * 0.5)
+        cr.arc(rect.width/2, rect.height/2, rect.width / 2. * .85, 0., 2 * math.pi)
+        cr.fill()
+
         cr.set_source_rgba(ccc[0] * 0.7, ccc[1] * 0.7, ccc[2] * 0.7)
         cr.arc(rect.width/2, rect.height/2., rect.width/2., 0., 2 * math.pi)
         cr.fill()
 
         cr.set_source_rgba(ccc[0], ccc[1], ccc[2])
-        cr.arc(rect.width/2, rect.height/2, rect.width / 2. * .8, 0., 2 * math.pi)
+        cr.arc(rect.width/2, rect.height/2, rect.width / 2. * .7, 0., 2 * math.pi)
         cr.fill()
 
         # Reflection on the r
-        cr.set_source_rgba(ccc[0], ccc[1] + 0.51, ccc[2])
-        cr.arc(rect.width/2+1, rect.height/2, rect.width / 2. * .2, 0., 2 * math.pi)
+        cdx = 0.2
+        colx = [ min(1, ccc[0] + cdx), min(1, ccc[1] + cdx), min(1, ccc[2] + cdx), ]
+        cr.set_source_rgba(*colx)
+        cr.arc(rect.width/2+1, rect.height/2, rect.width / 2. * .3, 0., 2 * math.pi)
         cr.fill()
 
 # ------------------------------------------------------------------------
@@ -2181,17 +2188,24 @@ new() -&gt; Gtk.Widget
         #cr.restore()
 
         ccc = pgutils.str2float(self.color)
+
+        cr.set_source_rgba(ccc[0] * 0.5, ccc[1] * 0.5, ccc[2] * 0.5)
+        cr.arc(rect.width/2, rect.height/2, rect.width / 2. * .85, 0., 2 * math.pi)
+        cr.fill()
+
         cr.set_source_rgba(ccc[0] * 0.7, ccc[1] * 0.7, ccc[2] * 0.7)
         cr.arc(rect.width/2, rect.height/2., rect.width/2., 0., 2 * math.pi)
         cr.fill()
 
         cr.set_source_rgba(ccc[0], ccc[1], ccc[2])
-        cr.arc(rect.width/2, rect.height/2, rect.width / 2. * .8, 0., 2 * math.pi)
+        cr.arc(rect.width/2, rect.height/2, rect.width / 2. * .7, 0., 2 * math.pi)
         cr.fill()
 
         # Reflection on the r
-        cr.set_source_rgba(ccc[0], ccc[1] + 0.51, ccc[2])
-        cr.arc(rect.width/2+1, rect.height/2, rect.width / 2. * .2, 0., 2 * math.pi)
+        cdx = 0.2
+        colx = [ min(1, ccc[0] + cdx), min(1, ccc[1] + cdx), min(1, ccc[2] + cdx), ]
+        cr.set_source_rgba(*colx)
+        cr.arc(rect.width/2+1, rect.height/2, rect.width / 2. * .3, 0., 2 * math.pi)
         cr.fill()</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -2230,17 +2244,24 @@ new() -&gt; Gtk.Widget
     #cr.restore()
 
     ccc = pgutils.str2float(self.color)
+
+    cr.set_source_rgba(ccc[0] * 0.5, ccc[1] * 0.5, ccc[2] * 0.5)
+    cr.arc(rect.width/2, rect.height/2, rect.width / 2. * .85, 0., 2 * math.pi)
+    cr.fill()
+
     cr.set_source_rgba(ccc[0] * 0.7, ccc[1] * 0.7, ccc[2] * 0.7)
     cr.arc(rect.width/2, rect.height/2., rect.width/2., 0., 2 * math.pi)
     cr.fill()
 
     cr.set_source_rgba(ccc[0], ccc[1], ccc[2])
-    cr.arc(rect.width/2, rect.height/2, rect.width / 2. * .8, 0., 2 * math.pi)
+    cr.arc(rect.width/2, rect.height/2, rect.width / 2. * .7, 0., 2 * math.pi)
     cr.fill()
 
     # Reflection on the r
-    cr.set_source_rgba(ccc[0], ccc[1] + 0.51, ccc[2])
-    cr.arc(rect.width/2+1, rect.height/2, rect.width / 2. * .2, 0., 2 * math.pi)
+    cdx = 0.2
+    colx = [ min(1, ccc[0] + cdx), min(1, ccc[1] + cdx), min(1, ccc[2] + cdx), ]
+    cr.set_source_rgba(*colx)
+    cr.arc(rect.width/2+1, rect.height/2, rect.width / 2. * .3, 0., 2 * math.pi)
     cr.fill()</code></pre>
 </details>
 </dd>

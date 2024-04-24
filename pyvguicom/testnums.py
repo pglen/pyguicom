@@ -12,7 +12,7 @@ from gi.repository import Gdk
 from gi.repository import GObject
 from gi.repository import GLib
 
-from pgsimp import *
+from pgsel import *
 from pgutils import *
 from pggui import *
 from pgbox import *
@@ -81,6 +81,10 @@ class pgtestwin(testwin):
         vbox.pack_start(hbox4, 0, 0, 2)
         vbox.pack_start(hbox, 1, 1, 2)
         vbox.pack_start(hbox5, 0, 0, 2)
+
+        butt = Gtk.Button.new_with_mnemonic("E_xit")
+        butt.connect("clicked", Gtk.main_quit)
+        vbox.pack_start(butt, 0, 0, 2)
 
         self.add(vbox)
         self.show_all()

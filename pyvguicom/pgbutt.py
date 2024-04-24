@@ -150,7 +150,8 @@ class smallbutt(Gtk.EventBox):
             #print("changed to", self.mnem)
             self.queue_draw()
 
-        GLib.timeout_add(1000, self.stattime, self, 0)
+        #GLib.timeout_add(1000, self.stattime, self, 0)
+        return True
 
     def mactivate(self, *arg):
         #print("mactivate", arg)

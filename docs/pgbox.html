@@ -47,9 +47,8 @@ from gi.repository import PangoCairo
 
 import sutil
 
-sys.path.append(&#39;..&#39;)
-import pycommon.pgutils
-
+#sys.path.append(&#39;..&#39;)
+#import pycommon.pgutils
 
 box_testmode = False
 
@@ -542,10 +541,10 @@ class   ColorRenderer(Gtk.CellRenderer):
     __gproperties__ = {
           &#39;text&#39; : (GObject.TYPE_STRING, &#39;text&#39;,
                     &#39;string that represents the item&#39;,
-                    &#39;hello&#39;, GObject.PARAM_READWRITE),
+                    &#39;hello&#39;, GObject.ParamFlags.READWRITE),
           &#39;bgcolor&#39; : (GObject.TYPE_STRING, &#39;bgcolor&#39;,
                     &#39;string that represents the RGB color&#39;,
-                    &#39;white&#39;, GObject.PARAM_READWRITE),
+                    &#39;white&#39;, GObject.ParamFlags.READWRITE),
           }
 
     def __init__(self):
@@ -1144,10 +1143,10 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
     __gproperties__ = {
           &#39;text&#39; : (GObject.TYPE_STRING, &#39;text&#39;,
                     &#39;string that represents the item&#39;,
-                    &#39;hello&#39;, GObject.PARAM_READWRITE),
+                    &#39;hello&#39;, GObject.ParamFlags.READWRITE),
           &#39;bgcolor&#39; : (GObject.TYPE_STRING, &#39;bgcolor&#39;,
                     &#39;string that represents the RGB color&#39;,
-                    &#39;white&#39;, GObject.PARAM_READWRITE),
+                    &#39;white&#39;, GObject.ParamFlags.READWRITE),
           }
 
     def __init__(self):

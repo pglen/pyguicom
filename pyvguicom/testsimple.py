@@ -17,8 +17,8 @@ class testwin(Gtk.Window):
 
     def __init__(self):
         Gtk.Window.__init__(self)
-        self.set_default_size(1024, 768)
-        #self.set_default_size(800, 600)
+        #self.set_default_size(1024, 768)
+        self.set_default_size(800, 600)
         self.set_position(Gtk.WindowPosition.CENTER)
         self.connect("unmap", Gtk.main_quit)
 
@@ -56,21 +56,18 @@ class pgtestwin(testwin):
         frame3 = wrapscroll(self.editor)
         hbox.pack_start(frame3, 1, 1, 2)
 
-        self.selector = LetterNumberSel(self.letterfilter, "Mono 16", " ")
-        hbox2.pack_start(self.selector , 1, 1, 2)
-
         vbox.pack_start(hbox3, 0, 0, 2)
         vbox.pack_start(hbox2, 0, 0, 2)
         vbox.pack_start(hbox4, 0, 0, 2)
         vbox.pack_start(hbox, 1, 1, 2)
         vbox.pack_start(hbox5, 0, 0, 2)
 
+        butt = Gtk.Button.new_with_mnemonic("E_xit")
+        butt.connect("clicked", Gtk.main_quit)
+        vbox.pack_start(butt, 0, 0, 2)
+
         self.add(vbox)
         self.show_all()
-
-    def  letterfilter(self, letter):
-        print("letterfilter", letter)
-        self.label.set_text(letter)
 
 tw = pgtestwin()
 

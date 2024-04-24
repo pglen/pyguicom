@@ -27,7 +27,7 @@ class testWin(Gtk.Window):
         vbox13 = Gtk.VBox()
 
         vbox13.pack_start(vspacer(), 0, 0, 0)
-        vbox13.pack_start(Gtk.Label.new("Test smallbutt TEST implementation"), 1, 1, 0)
+        vbox13.pack_start(Gtk.Label.new("Smallbutt TEST implementation"), 1, 1, 0)
         #vbox13.pack_start(vspacer(), 1, 1, 0)
 
         hbox13 = Gtk.HBox()
@@ -56,19 +56,21 @@ class testWin(Gtk.Window):
 
         hbox15 = Gtk.HBox()
         hbox15.pack_start(vspacer(), 1, 1, 0)
-        butt3z = Gtk.Button.new_with_mnemonic("Regular _Button")
+        butt3z = Gtk.Button.new_with_mnemonic("Regular small _Button")
         butt3z.set_relief(Gtk.ReliefStyle.NONE)
         butt3z.connect("clicked", self.regbutt)
         hbox15.pack_start(butt3z, 0, 0, 0)
         hbox15.pack_start(vspacer(), 1, 1, 0)
 
+
         vbox13.pack_start(hbox13, 0, 0, 0)
         vbox13.pack_start(hbox16, 0, 0, 0)
-        #vbox13.pack_start(hbox15, 0, 0, 0)
         vbox13.pack_start(hbox14, 0, 0, 0)
+        vbox13.pack_start(hbox15, 0, 0, 0)
+
         vbox13.pack_start(vspacer(), 1, 1, 0)
 
-        self.set_size_request(300, 200)
+        self.set_size_request(400, 300)
         self.add(vbox13)
         self.show_all()
 
