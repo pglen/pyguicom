@@ -14,27 +14,7 @@ from gi.repository import Pango
 
 gui_testmode = False
 
-#import pgbox
-import sutil
-
-# ------------------------------------------------------------------------
-
-class zSpacer(Gtk.HBox):
-
-    '''  Create an N pixel horizontal spacer. Defaults to X pix get_center
-          Re-created for no dependency include of this module
-    '''
-
-    def __init__(self, sp = None):
-        GObject.GObject.__init__(self)
-        #self.pack_start()
-        #if gui_testmode:
-        #    col = randcolstr(100, 200)
-        #    self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(col))
-
-        if sp == None:
-            sp = 6
-        self.set_size_request(sp, sp)
+import pgutils, pggui
 
 # ------------------------------------------------------------------------
 # Letter selection control
@@ -43,7 +23,7 @@ class   LetterNumberSel(Gtk.VBox):
 
     ''' Letter Number selector '''
 
-    def __init__(self, callb = None, font="Mono 13", spacer = ""):
+    def __init__(self, callb = None, font="Mono 13", pad = ""):
 
         Gtk.VBox.__init__(self)
 
@@ -59,7 +39,7 @@ class   LetterNumberSel(Gtk.VBox):
         hbox3a.pack_start(Gtk.Label(label=" "), 1, 1, 0)
 
         strx = "abcdefghijklmnopqrstuvwxyz"
-        self.simsel =  internal_SimpleSel(strx, self.lettercb, font, spacer)
+        self.simsel =  internal_SimpleSel(strx, self.lettercb, font, pad)
         #self.override_background_color(Gtk.StateFlags.FOCUSED, Gdk.RGBA(.9,.9,.9))
 
         self.connect("key-press-event", self.simsel_key)
@@ -72,10 +52,10 @@ class   LetterNumberSel(Gtk.VBox):
         hbox3b = Gtk.HBox()
         hbox3b.pack_start(Gtk.Label(label="  "), 1, 1, 0)
         strn = "1234567890!@#$^*_-+"
-        self.simsel2 = internal_SimpleSel(strn, self.lettercb, font, spacer)
+        self.simsel2 = internal_SimpleSel(strn, self.lettercb, font, pad)
         hbox3b.pack_start(self.simsel2, 0, 0, 0)
 
-        self.simall = internal_AllSel("All", self.lettercb, font, spacer)
+        self.simall = internal_AllSel("All", self.lettercb, font, pad)
         hbox3b.pack_start(self.simall, 0, 0, 0)
         hbox3b.pack_start(Gtk.Label(label="  "), 1, 1, 0)
 
@@ -103,7 +83,7 @@ class   LetterNumberSel(Gtk.VBox):
 
         vbox = Gtk.VBox()
         vbox.pack_start(hbox3a, 0, 0, False)
-        vbox.pack_start(zSpacer(4), 0, 0, False)
+        vbox.pack_start(pggui.ySpacer(4), 0, 0, False)
         vbox.pack_start(hbox3b, 0, 0, False)
 
         self.frame = Gtk.Frame()

@@ -1,10 +1,12 @@
 #!/usr/bin/python
 
-from __future__ import absolute_import
-from __future__ import print_function
+# pylint: disable=C0103
+# pylint: disable=C0209
+# pylint: disable=C0321
 
-import os, sys, getopt, signal, string, fnmatch, math, warnings
-import random, time, subprocess, traceback, glob, stat
+import os, sys, getopt, string,  math, warnings
+import random, time, traceback, stat
+import platform
 
 if sys.version_info.major < 3:
     pass
@@ -13,13 +15,13 @@ else:
     if inspect.isbuiltin(time.process_time):
         time.clock = time.process_time
 
+''' General utility fiunctions '''
+
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from gi.repository import Gdk
-from gi.repository import GLib
 from gi.repository import GObject
-from gi.repository import Pango
 
 # Add the new line twice for more balaced string
 
@@ -61,58 +63,43 @@ def  usleep2(msec):
 
 def message2(strx, title = "Dialog", parent=None):
 
-        dialog = Gtk.MessageDialog()
-
-        # Close dialog on user response
-        dialog.add_button("Close", Gtk.ButtonsType.CLOSE)
-
-        if title:
-            dialog.set_title(title)
-
-        #box = dialog.get_content_area()
-        #box.add(Gtk.Label(strx))
-
-        dialog.set_markup(strx)
-
-        if parent:
-            dialog.set_transient_for(parent)
-
-        dialog.connect ("response", lambda d, r: d.destroy())
-        dialog.show_all()
-
+    dialog = Gtk.MessageDialog()
+    # Close dialog on user response
+    dialog.add_button("Close", Gtk.ButtonsType.CLOSE)
+    if title:
+        dialog.set_title(title)
+    #box = dialog.get_content_area()
+    #box.add(Gtk.Label(strx))
+    dialog.set_markup(strx)
+    if parent:
+        dialog.set_transient_for(parent)
+    dialog.connect ("response", lambda d, r: d.destroy())
+    dialog.show_all()
 
 def yes_no2(message, title = "Question", parent=None):
 
-        dialog = Gtk.MessageDialog()
+    dialog = Gtk.MessageDialog()
+    if title:
+        dialog.set_title(title)
+    dialog.add_button("_Yes", Gtk.ResponseType.YES)
+    dialog.add_button("_No", Gtk.ResponseType.NO)
+    dialog.set_markup(message)
+    img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
+    dialog.set_image(img)
+    if parent:
+        dialog.set_transient_for(parent)
+    dialog.connect("key-press-event", yn_key, 0)
+    #dialog.connect ("response", lambda d, r: d.destroy())
+    dialog.show_all()
+    response = dialog.run()
+    dialog.destroy()
 
-        if title:
-            dialog.set_title(title)
-
-        dialog.add_button("_Yes", Gtk.ResponseType.YES)
-        dialog.add_button("_No", Gtk.ResponseType.NO)
-
-        dialog.set_markup(message)
-
-        img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
-        dialog.set_image(img)
-
-        if parent:
-            dialog.set_transient_for(parent)
-
-        dialog.connect("key-press-event", yn_key, 0)
-
-        #dialog.connect ("response", lambda d, r: d.destroy())
-
-        dialog.show_all()
-        response = dialog.run()
-        dialog.destroy()
-
-        return response
+    return response
 
 # ------------------------------------------------------------------------
 # Do dialog
 
-def yes_no_cancel2(message, title = "Question", cancel = True, parent=None):
+def yes_no_cancel2(message, title = "Question", cancel = True):
 
     warnings.simplefilter("ignore")
 
@@ -122,22 +109,21 @@ def yes_no_cancel2(message, title = "Question", cancel = True, parent=None):
 
     dialog.set_default_response(Gtk.ResponseType.YES)
     dialog.set_position(Gtk.WindowPosition.CENTER)
-    #dialog.set_transient_for(pedconfig.conf.pedwin.mywin)
 
     sp = "     "
-    label = Gtk.Label(message);
+    label = Gtk.Label(message)
     label2 = Gtk.Label(sp);      label3 = Gtk.Label(sp)
     label2a = Gtk.Label(sp);     label3a = Gtk.Label(sp)
 
-    hbox = Gtk.HBox() ;
+    hbox = Gtk.HBox()
 
-    hbox.pack_start(label2, 0, 0, 0);
-    hbox.pack_start(label, 1, 1, 0);
+    hbox.pack_start(label2, 0, 0, 0)
+    hbox.pack_start(label, 1, 1, 0)
     hbox.pack_start(label3, 0, 0, 0)
 
-    dialog.vbox.pack_start(label2a, 0, 0, 0);
+    dialog.vbox.pack_start(label2a, 0, 0, 0)
     dialog.vbox.pack_start(hbox, 0, 0, 0)
-    dialog.vbox.pack_start(label3a, 0, 0, 0);
+    dialog.vbox.pack_start(label3a, 0, 0, 0)
 
     dialog.add_button("_Yes", Gtk.ResponseType.YES)
     dialog.add_button("_No", Gtk.ResponseType.NO)
@@ -325,7 +311,7 @@ def clean_str2(strx):
     skip = False
     for aa in range(len(strx)):
         if skip:
-            skip = False;
+            skip = False
             continue
         if strx[aa] == '\\' and strx[aa+1] == 'r':
             skip = True
@@ -544,7 +530,7 @@ def unescape(strx):
 
         chh = strx[pos]
 
-        if(chh == '\\'):
+        if chh == '\\':
             #print "backslash", strx[pos:]
             pos2 = pos + 1; strx2 = ""
             while True:
@@ -643,58 +629,6 @@ def isfile(fname):
         return True
     return False
 
-
-'''
-# Append to log
-def logentry(kind, startt, fname):
-    logfname = "account.txt"
-    logfile = pedconfig.conf.log_dir + "/" + logfname
-    try:
-        fp = open(logfile, "a+")
-    except:
-        try:
-            fp = open(logfile, "w+")
-            fp.seek(0, os.SEEK_END);
-        except:
-            print("Cannot open/create log file", logfile)
-            return
-
-    log_clock = time.time()
-
-    print("Action:", "%s %s" % (kind, os.path.realpath(fname)), file=fp)
-    print("On:", time.ctime(log_clock), file=fp)
-    print("Delta:", "%.0f" % (log_clock - startt), file=fp)
-    print("Date:", "%.0f %s %s\n" % \
-                        (log_clock, os.path.basename(fname), kind.split()[0]), file=fp)
-    fp.close()
-
-# Append to timesheet
-def timesheet(kind, startt, endd):
-
-    logfname = "timesheet.txt"
-    logfile = pedconfig.conf.log_dir + "/" + logfname
-    try:
-        fp = open(logfile, "a+")
-    except:
-        try:
-            fp = open(logfile, "w+")
-            fp.seek(0, os.SEEK_END);
-        except:
-            print("Cannot open/create log file", logfile)
-            return
-
-    log_clock = time.time()
-
-    print("Action:", "%s" % (kind), file=fp)
-    print("On:", time.ctime(log_clock), file=fp)
-    if endd:
-        td = endd - startt
-        print("Time diff:", "%.0f %d:%d" % (td, td / 3600, (td % 3600) / 60), file=fp)
-
-    print(file=fp)
-    fp.close()
-'''
-
 def put_exception2_old(xstr):
 
     cumm = xstr + " "
@@ -739,7 +673,7 @@ def untab_str(strx, tabstop = 4):
         if  chh == "\t":
             # Generate string
             spaces = tabstop - (cnt % tabstop)
-            ttt = "";
+            ttt = ""
             for aa in range(spaces):
                 ttt += " "
             res += ttt
@@ -757,13 +691,11 @@ def ampmstr(bb):
 
     dd = "AM"
     if bb == 12:
-       dd = "PM"
+        dd = "PM"
     elif bb > 12:
         bb -= 12
         dd = "PM"
-
     return "%02d %s" % (bb, dd)
-
 
 # It's totally optional to do this, you could just manually insert icons
 # and have them not be themeable, especially if you never expect people
@@ -773,7 +705,7 @@ def register_stock_icons():
     ''' This function registers our custom toolbar icons, so they
         can be themed.
     '''
-    items = [('demo-gtk-logo', '_GTK!', 0, 0, '')]
+    #items = [('demo-gtk-logo', '_GTK!', 0, 0, '')]
     # Register our stock items
     #Gtk.stock_add(items)
 
@@ -809,10 +741,6 @@ def register_stock_icons():
 
         except GObject.GError as error:
             print('failed to load GTK logo for toolbar')
-
-
-if __name__ == '__main__':
-    print("This file was not meant to run directly")
 
 # ------------------------------------------------------------------------
 # Let the higher level deal with errors.
@@ -858,8 +786,8 @@ def  readfile(strx, sep = None):
     text = []
     for aa in text2:
         #print("'%s\n" % aa)
-        bb = aa.replace("\r", "");
-        cc = bb.replace("\n", "");
+        bb = aa.replace("\r", "")
+        cc = bb.replace("\n", "")
         text.append(cc)
     #text2 = []
 
@@ -934,19 +862,21 @@ def yes_no_cancel(title, message, cancel = True):
     #dialog.set_transient_for(pedconfig.conf.pedwin.mywin)
 
     sp = "     "
-    label = Gtk.Label(message);
-    label2 = Gtk.Label(sp);      label3 = Gtk.Label(sp)
-    label2a = Gtk.Label(sp);     label3a = Gtk.Label(sp)
+    label = Gtk.Label(message)
+    label2 = Gtk.Label(sp)
+    label3 = Gtk.Label(sp)
+    label2a = Gtk.Label(sp)
+    label3a = Gtk.Label(sp)
 
-    hbox = Gtk.HBox() ;
+    hbox = Gtk.HBox()
 
-    hbox.pack_start(label2, 0, 0, 0);
-    hbox.pack_start(label, 1, 1, 0);
+    hbox.pack_start(label2, 0, 0, 0)
+    hbox.pack_start(label, 1, 1, 0)
     hbox.pack_start(label3, 0, 0, 0)
 
-    dialog.vbox.pack_start(label2a, 0, 0, 0);
+    dialog.vbox.pack_start(label2a, 0, 0, 0)
     dialog.vbox.pack_start(hbox, 0, 0, 0)
-    dialog.vbox.pack_start(label3a, 0, 0, 0);
+    dialog.vbox.pack_start(label3a, 0, 0, 0)
 
     dialog.add_button("_Yes", Gtk.ResponseType.YES)
     dialog.add_button("_No", Gtk.ResponseType.NO)
@@ -988,17 +918,14 @@ def _yn_key(win, event, cancel):
             event.keyval == Gdk.KEY_C:
             win.response(Gtk.ResponseType.CANCEL)
 
-# ------------------------------------------------------------------------
-# Show About dialog:
+def  about2(self2):
 
-import platform
-
-def  about(self2):
+    ''' Show About dialog: '''
 
     dialog = Gtk.AboutDialog()
     dialog.set_name(pedconfig.conf.progname +  " - Python Editor ")
 
-    dialog.set_version(str(pedconfig.conf.version));
+    dialog.set_version(str(pedconfig.conf.version))
     gver = (Gtk.get_major_version(), \
                         Gtk.get_minor_version(), \
                             Gtk.get_micro_version())
@@ -1022,7 +949,7 @@ def  about(self2):
         "\nPyedPro Build Date: %s\n" % pedconfig.conf.build_date +\
         "Exe Path:\n%s\n" % os.path.realpath(ddd)
 
-    dialog.set_comments(comm);
+    dialog.set_comments(comm)
     dialog.set_copyright(pedconfig.conf.progname + " Created by Peter Glen.\n"
                           "Project is in the Public Domain.")
     dialog.set_program_name(pedconfig.conf.progname)
@@ -1036,7 +963,7 @@ def  about(self2):
         dialog.set_logo(pixbuf)
 
     except:
-        print("Cannot load logo for about dialog", img_path);
+        print("Cannot load logo for about dialog", img_path)
         print(sys.exc_info())
 
     #dialog.set_website("")
@@ -1054,10 +981,33 @@ def about_key(win, event):
             if event.state & Gdk.ModifierType.MOD1_MASK:
                 win.destroy()
 
+
+def message(self, msg):
+    dialog = Gtk.MessageDialog(None, Gtk.DialogFlags.DESTROY_WITH_PARENT,
+        Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE, text=msg)
+
+    #    'Action: "%s" of type "%s"' % (action.get_name(), type(action)))
+
+    # Close dialog on user response
+    dialog.connect ("response", lambda d, r: d.destroy())
+    return dialog.run()
+
+def yesno(self, msg):
+    dialog = Gtk.MessageDialog(None, Gtk.DialogFlags.DESTROY_WITH_PARENT,
+        Gtk.MessageType.INFO, Gtk.ButtonsType.YES_NO, text=msg)
+
+    #    'Action: "%s" of type "%s"' % (action.get_name(), type(action)))
+
+    # Close dialog on user response
+    #dialog.connect ("response", lambda d, r: d.destroy())
+    ret = dialog.run()
+    dialog.destroy()
+    return  ret
+
 # ------------------------------------------------------------------------
 # Show a regular message:
 
-def message(strx, title = None):
+def message3(strx, title = None):
 
     #print("called: message()", strx)
 
@@ -1119,14 +1069,12 @@ def find(self):
 
     self.dialog = dialog
 
-    # Spacers
-    label1 = Gtk.Label("   ");  label2 = Gtk.Label("   ")
     label3 = Gtk.Label("   ");  label4 = Gtk.Label("   ")
     label5 = Gtk.Label("   ");  label6 = Gtk.Label("   ")
     label7 = Gtk.Label("   ");  label8 = Gtk.Label("   ")
 
     warnings.simplefilter("ignore")
-    entry = Gtk.Entry();
+    entry = Gtk.Entry()
     warnings.simplefilter("default")
     entry.set_text(self.oldfind)
 
@@ -1148,16 +1096,14 @@ def find(self):
     hbox = Gtk.HBox()
     #hbox.pack_start(label1);  hbox.pack_start(dialog.checkbox)
     #hbox.pack_start(label2);  hbox.pack_start(dialog.checkbox2)
-    hbox.pack_start(label3);
+    hbox.pack_start(label3)
     dialog.vbox.pack_start(hbox)
     dialog.vbox.pack_start(label8)
 
-    label32 = Gtk.Label("   ");  label33 = Gtk.Label("   ")
-    label34 = Gtk.Label("   ");  label35 = Gtk.Label("   ")
-
+    label32 = Gtk.Label("   ")
     hbox4 = Gtk.HBox()
 
-    hbox4.pack_start(label32);
+    hbox4.pack_start(label32)
     dialog.vbox.pack_start(hbox4)
 
     dialog.show_all()
@@ -1172,6 +1118,347 @@ def find(self):
     return self.srctxt, dialog.checkbox.get_active(), \
                 dialog.checkbox2.get_active()
 
+disp = Gdk.Display.get_default()
+scr = disp.get_default_screen()
+
+#print( "num_mon",  scr.get_n_monitors()    )
+#for aa in range(scr.get_n_monitors()):
+#    print( "mon", aa, scr.get_monitor_geometry(aa);)
+
+# ------------------------------------------------------------------------
+# Get current screen (monitor) width and height
+
+def get_screen_wh():
+
+    ptr = disp.get_pointer()
+    mon = scr.get_monitor_at_point(ptr[1], ptr[2])
+    geo = scr.get_monitor_geometry(mon)
+    www = geo.width; hhh = geo.height
+    if www == 0 or hhh == 0:
+        www = Gdk.get_screen_width()
+        hhh = Gdk.get_screen_height()
+    return www, hhh
+
+# ------------------------------------------------------------------------
+# Get current screen (monitor) upper left corner xx / yy
+
+def get_screen_xy():
+
+    ptr = disp.get_pointer()
+    mon = scr.get_monitor_at_point(ptr[1], ptr[2])
+    geo = scr.get_monitor_geometry(mon)
+    return geo.x, geo.y
+
+# ------------------------------------------------------------------------
+# Print( an exception as the system would print it)
+
+def print_exception(xstr):
+    cumm = xstr + " "
+    a,b,c = sys.exc_info()
+    if a != None:
+        cumm += str(a) + " " + str(b) + "\n"
+        try:
+            #cumm += str(traceback.format_tb(c, 10))
+            ttt = traceback.extract_tb(c)
+            for aa in ttt:
+                cumm += "File: " + os.path.basename(aa[0]) + \
+                        " Line: " + str(aa[1]) + "\n" +  \
+                    "   Context: " + aa[2] + " -> " + aa[3] + "\n"
+        except:
+            print("Could not print trace stack. ", sys.exc_info())
+    print( cumm)
+
+
+# ------------------------------------------------------------------------
+# Show a regular message:
+
+def message(strx, parent = None, title = None, icon = Gtk.MessageType.INFO):
+
+    dialog = Gtk.MessageDialog(parent, Gtk.DialogFlags.DESTROY_WITH_PARENT,
+        icon, Gtk.ButtonsType.CLOSE, strx)
+
+    dialog.set_modal(True)
+
+    if title:
+        dialog.set_title(title)
+    else:
+        dialog.set_title("DBGui Message")
+
+    # Close dialog on user response
+    dialog.connect("response", lambda d, r: d.destroy())
+    dialog.show()
+
+# -----------------------------------------------------------------------
+# Sleep just a little, but allow the system to breed
+
+def  usleep(msec):
+
+    if sys.version_info[0] < 3 or \
+        (sys.version_info[0] == 3 and sys.version_info[1] < 3):
+        timefunc = time.clock
+    else:
+        timefunc = time.process_time
+
+    got_clock = timefunc() + float(msec) / 1000
+    #print( got_clock)
+    while True:
+        if timefunc() > got_clock:
+            break
+        #print ("Sleeping")
+        Gtk.main_iteration_do(False)
+
+# ------------------------------------------------------------------------
+# Create temporary file, return name. Empty string ("") if error.
+
+def tmpname(indir, template):
+
+    fname = ""
+    if not os.access(indir, os.W_OK):
+        print( "Cannot access ", indir)
+        return fname
+
+    cnt = 1
+    while True:
+        tmp = indir + "/" + template + "_" + str(cnt)
+        if not os.access(tmp, os.R_OK):
+            fname = tmp
+            break
+        # Safety valve
+        if cnt > 10000:
+            break
+    return fname
+
+# ------------------------------------------------------------------------
+# Execute man loop
+
+def mainloop():
+    while True:
+        ev = Gdk.event_peek()
+        #print( ev)
+        if ev:
+            if ev.type == Gdk.EventType.DELETE:
+                break
+            if ev.type == Gdk.EventType.UNMAP:
+                break
+        if Gtk.main_iteration_do(True):
+            break
+
+class Unbuffered(object):
+    def __init__(self, stream):
+        self.stream = stream
+
+    def write(self, data):
+        self.stream.write(data)
+        self.stream.flush()
+
+    def writelines(self, datas):
+        self.stream.writelines(datas)
+        self.stream.flush()
+
+    def __getattr__(self, attr):
+        return getattr(self.stream, attr)
+
+# Time to str and str to time
+
+def time_n2s(ttt):
+    sss = time.ctime(ttt)
+    return sss
+
+def time_s2n(sss):
+    rrr = time.strptime(sss)
+    ttt = time.mktime(rrr)
+    return ttt
+
+def yes_no_cancel(title, message, cancel = True, parent = None):
+
+    #warnings.simplefilter("ignore")
+    dialog = Gtk.Dialog(title,
+                   None,
+                   Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT)
+
+
+    dialog.set_default_response(Gtk.ResponseType.YES)
+    dialog.set_position(Gtk.WindowPosition.CENTER)
+    dialog.set_transient_for(parent)
+
+    sp = "     "
+    label = Gtk.Label(message)
+    label2 = Gtk.Label(sp)
+    label3 = Gtk.Label(sp)
+    label2a = Gtk.Label(sp)
+    label3a = Gtk.Label(sp)
+
+    hbox = Gtk.HBox()
+
+    hbox.pack_start(label2, 0, 0, 0)
+    hbox.pack_start(label, 1, 1, 0)
+    hbox.pack_start(label3, 0, 0, 0)
+
+    dialog.vbox.pack_start(label2a, 0, 0, 0)
+    dialog.vbox.pack_start(hbox, 0, 0, 0)
+    dialog.vbox.pack_start(label3a, 0, 0, 0)
+
+    dialog.add_button("_Yes", Gtk.ResponseType.YES)
+    dialog.add_button("_No", Gtk.ResponseType.NO)
+
+    if cancel:
+        dialog.add_button("_Cancel", Gtk.ResponseType.CANCEL)
+
+    dialog.connect("key-press-event", yn_key, cancel)
+    #dialog.connect("key-release-event", yn_key, cancel)
+    #warnings.simplefilter("default")
+
+    dialog.show_all()
+    response = dialog.run()
+    # Convert all responses to cancel
+    if  response == Gtk.ResponseType.CANCEL or \
+        response == Gtk.ResponseType.REJECT or \
+        response == Gtk.ResponseType.CLOSE  or \
+        response == Gtk.ResponseType.DELETE_EVENT:
+        response = Gtk.ResponseType.CANCEL
+    dialog.destroy()
+
+    return  response
+
+def yn_key(win, event, cancel):
+    #print( event)
+    if event.keyval == Gdk.KEY_y or \
+        event.keyval == Gdk.KEY_Y:
+        win.response(Gtk.ResponseType.YES)
+
+    if event.keyval == Gdk.KEY_n or \
+        event.keyval == Gdk.KEY_N:
+        win.response(Gtk.ResponseType.NO)
+
+    if cancel:
+        if event.keyval == Gdk.KEY_c or \
+            event.keyval == Gdk.KEY_C:
+            win.response(Gtk.ResponseType.CANCEL)
+
+def opendialog(parent=None):
+
+    # We create an array, so it is passed around by reference
+    fname = [""]
+
+    def makefilter(mask, name):
+        filter =  Gtk.FileFilter.new()
+        filter.add_pattern(mask)
+        filter.set_name(name)
+        return filter
+
+    def done_open_fc(win, resp, fname):
+        #print "done_open_fc", win, resp
+        if resp == Gtk.ButtonsType.OK:
+            fname[0] = win.get_filename()
+            if not fname[0]:
+                #print "Must have filename"
+                pass
+            elif os.path.isdir(fname[0]):
+                os.chdir(fname[0])
+                win.set_current_folder(fname[0])
+                return
+            else:
+                #print("OFD", fname[0])
+                pass
+        win.destroy()
+
+    but =   "Cancel", Gtk.ButtonsType.CANCEL,\
+            "Open File", Gtk.ButtonsType.OK
+
+    fc = Gtk.FileChooserDialog("Open file", parent, \
+         Gtk.FileChooserAction.OPEN  \
+        , but)
+
+    filters = []
+    filters.append(makefilter("*.mup", "MarkUp files (*.py)"))
+    filters.append(makefilter("*.*", "All files (*.*)"))
+
+    if filters:
+        for aa in filters:
+            fc.add_filter(aa)
+
+    fc.set_default_response(Gtk.ButtonsType.OK)
+    fc.set_current_folder(os.getcwd())
+    fc.connect("response", done_open_fc, fname)
+    #fc.connect("current-folder-changed", self.folder_ch )
+    #fc.set_current_name(self.fname)
+    fc.run()
+    #print("OFD2", fname[0])
+    return fname[0]
+
+def savedialog(resp):
+
+    #print "File dialog"
+    fname = [""]   # So it is passed around as a reference
+
+    def makefilter(mask, name):
+        filterx =  Gtk.FileFilter.new()
+        filterx.add_pattern(mask)
+        filterx.set_name(name)
+        return filterx
+
+    def done_fc(win, resp, fname):
+        #print( "done_fc", win, resp)
+        if resp == Gtk.ResponseType.OK:
+            fname[0] = win.get_filename()
+            if not fname[0]:
+                print("Must have filename")
+            else:
+                pass
+        win.destroy()
+
+    but =   "Cancel", Gtk.ResponseType.CANCEL,   \
+                    "Save File", Gtk.ResponseType.OK
+    fc = Gtk.FileChooserDialog("Save file as ... ", None,
+            Gtk.FileChooserAction.SAVE, but)
+
+    #fc.set_do_overwrite_confirmation(True)
+
+    filters = []
+    filters.append(makefilter("*.mup", "MarkUp files (*.py)"))
+    filters.append(makefilter("*.*", "All files (*.*)"))
+
+    if filters:
+        for aa in filters:
+            fc.add_filter(aa)
+
+    fc.set_current_name(os.path.basename(fname[0]))
+    fc.set_current_folder(os.path.dirname(fname[0]))
+    fc.set_default_response(Gtk.ResponseType.OK)
+    fc.connect("response", done_fc, fname)
+    fc.run()
+    return fname[0]
+
+# ------------------------------------------------------------------------
+
+def leadspace(strx):
+
+    ''' Count lead spaces '''
+
+    cnt = 0
+    for aa in range(len(strx)):
+        bb = strx[aa]
+        if bb == " ":
+            cnt += 1
+        elif bb == "\t":
+            cnt += 1
+        elif bb == "\r":
+            cnt += 1
+        elif bb == "\n":
+            cnt += 1
+        else:
+            break
+    return cnt
+
+def wrapscroll(what):
+
+    scroll2 = Gtk.ScrolledWindow()
+    scroll2.add(what)
+    frame2 = Gtk.Frame()
+    frame2.add(scroll2)
+    return frame2
+
+if __name__ == '__main__':
+    print("This file was not meant to run directly")
+
 # EOF
-
-

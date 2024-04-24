@@ -31,14 +31,6 @@ class testwin(Gtk.Window):
         self.set_position(Gtk.WindowPosition.CENTER)
         self.connect("unmap", Gtk.main_quit)
 
-def wrapscroll(what):
-
-    scroll2 = Gtk.ScrolledWindow()
-    scroll2.add(what)
-    frame2 = Gtk.Frame()
-    frame2.add(scroll2)
-    return frame2
-
 # ------------------------------------------------------------------------
 
 class pgtestwin(testwin):
@@ -114,7 +106,6 @@ class pgtestwin(testwin):
         pass
 
 tw = pgtestwin()
-
 cnt = 0;
 
 def  handler_tick(ww):

@@ -1,19 +1,10 @@
 #!/usr/bin/env python
 
 '''
-
   This is a test application for driving the pgTextView control;
   It has load / save functionality.
-
 '''
-
 import os, sys, getopt, signal, random, time, warnings
-
-#from pgutil import  *
-#from pgui import  *
-
-import pgutils
-import pgtextview
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -23,12 +14,12 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
 
-import pgbox
-import sutil
+import pgutils
+import pgtextview
 
 #deftext = "It puzzles me when I see a person lacking fundamentals is \
 #  able to amass a fortune to the tune of billions. What is even more \
-#puzziling is that they beleive their 'BS' and open flout all."
+#puzziling is that they beleive their own 'BS' and openly flout all."
 
 # The pango example text
 

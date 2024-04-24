@@ -5,12 +5,16 @@ from __future__ import print_function
 import os, sys, getopt, signal, select, string, time
 import struct, stat, base64, random, zlib
 
-from pgsimp import *
-from pgutils import *
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import GLib
+from gi.repository import GObject
+from gi.repository import Pango
 
-#def OnExit(arg1, arg2):
-#    #print("Exiting", arg1, arg2)
-#    Gtk.main_quit()
+import pgsimp
+import pgutils
 
 # ------------------------------------------------------------------------
 class testwin(Gtk.Window):
@@ -21,15 +25,6 @@ class testwin(Gtk.Window):
         self.set_default_size(800, 600)
         self.set_position(Gtk.WindowPosition.CENTER)
         self.connect("unmap", Gtk.main_quit)
-
-
-def wrapscroll(what):
-
-    scroll2 = Gtk.ScrolledWindow()
-    scroll2.add(what)
-    frame2 = Gtk.Frame()
-    frame2.add(scroll2)
-    return frame2
 
 # ------------------------------------------------------------------------
 
@@ -48,12 +43,12 @@ class pgtestwin(testwin):
 
         vbox  = Gtk.VBox()
 
-        self.treeview = SimpleTree(("Hour", "Subject", "Alarm", "Notes"))
-        frame2 = wrapscroll(self.treeview)
+        self.treeview = pgsimp.SimpleTree(("Hour", "Subject", "Alarm", "Notes"))
+        frame2 = pgutils.wrapscroll(self.treeview)
         hbox.pack_start(frame2, 1, 1, 2)
 
-        self.editor = SimpleEdit()
-        frame3 = wrapscroll(self.editor)
+        self.editor = pgsimp.SimpleEdit()
+        frame3 = pgutils.wrapscroll(self.editor)
         hbox.pack_start(frame3, 1, 1, 2)
 
         vbox.pack_start(hbox3, 0, 0, 2)
@@ -76,7 +71,8 @@ tw = pgtestwin()
 def fillrand():
     aaa = []
     for aa in range(10):
-        aaa.append( (randstr(12), randstr(12), randstr(12), randstr(12)) )
+        aaa.append( (pgutils.randstr(12), pgutils.randstr(12),
+                        pgutils.randstr(12), pgutils.randstr(12)) )
     return aaa
 
 aaa = fillrand()

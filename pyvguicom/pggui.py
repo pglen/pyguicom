@@ -662,20 +662,79 @@ def set_testmode(flag):
 
 # ------------------------------------------------------------------------
 # An N pixel horizontal spacer. Defaults to X pix  get_center
+#
+#def hspacer(hbox, xstr = "    ", expand = False):
+#    lab = Gtk.Label(label=xstr)
+#    hbox.pack_start(lab, expand, 0, 0)
+#
+#def vspacer(vbox, xstr = "     ", expand = False):
+#    lab = Gtk.Label(label=xstr)
+#    vbox.pack_start(lab, expand , 0, 0)
+#def vspacer(sp = 8):
+#    lab = Gtk.VBox()
+#    lab.set_size_request(sp, sp)
+#
+#    if gui_testmode:
+#        lab.override_background_color(
+#                    Gtk.StateFlags.NORMAL, Gdk.RGBA(1, .5, .5) )
+#    return lab
 
-def vspacer(sp = 8):
-    lab = Gtk.VBox()
-    lab.set_size_request(sp, sp)
+# ------------------------------------------------------------------------
+# An N pixel spacer. Defaults to 1 char height / width
 
-    if gui_testmode:
-        lab.override_background_color(
-                    Gtk.StateFlags.NORMAL, Gdk.RGBA(1, .5, .5) )
-    return lab
+class Spacer(Gtk.Label):
+
+    global box_testmode
+
+    def __init__(self, sp = 1, title=None, left=False, bottom=False, test=False):
+
+        GObject.GObject.__init__(self)
+
+        #sp *= 1000
+        #self.set_markup("<span  size=\"" + str(sp) + "\"> </span>")
+        #self.set_text(" " * sp)
+
+        if title:
+            self.set_text(title)
+        else:
+            self.set_text(" " * sp)
+
+        if left:
+            self.set_xalign(0)
+
+        if bottom:
+            self.set_yalign(1)
+
+        if test or box_testmode:
+            self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#888888"))
+
+        #self.set_property("angle", 15)
+        #attr = self.get_property("attributes")
+        #attr2 = Pango.AttrList()
+        #print ("attr", dir(attr))
+        #attr.
+        #self.set_property("attributes", attr)
+        #self.set_property("label", "wtf")
+        #self.set_property("background-set", True)
 
 # ------------------------------------------------------------------------
 # An N pixel horizontal spacer. Defaults to X pix  get_center
 
 class xSpacer(Gtk.HBox):
+
+    def __init__(self, sp = None):
+        GObject.GObject.__init__(self)
+        #self.pack_start()
+        if gui_testmode:
+            col = randcolstr(100, 200)
+            self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(col))
+        if sp == None:
+            sp = 6
+        self.set_size_request(sp, sp)
+
+# An N pixel vertical spacer. Defaults to X pix  get_center
+
+class ySpacer(Gtk.VBox):
 
     def __init__(self, sp = None):
         GObject.GObject.__init__(self)
@@ -706,13 +765,10 @@ class Spacer(Gtk.Label):
             self.set_text(title)
         else:
             self.set_text(" " * sp)
-
         if left:
             self.set_xalign(0)
-
         if bottom:
             self.set_yalign(1)
-
         if test or gui_testmode:
             self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#888888"))
 
@@ -835,7 +891,6 @@ class   RadioGroup(Gtk.Frame):
                 return aa.get_label()
         # Nothing selected ... empty str
         return ""
-
 
 # Bug fix in Gtk
 
@@ -1323,6 +1378,29 @@ class RCLButt(Gtk.Button):
         #print("clicked", arg1)
         #if self.callme:
         #    self.callme(arg1)
+
+
+def message(msg):
+    dialog = Gtk.MessageDialog(None, Gtk.DialogFlags.DESTROY_WITH_PARENT,
+        Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE, text=msg)
+
+    #    'Action: "%s" of type "%s"' % (action.get_name(), type(action)))
+
+    # Close dialog on user response
+    dialog.connect ("response", lambda d, r: d.destroy())
+    return dialog.run()
+
+def yesno(msg):
+    dialog = Gtk.MessageDialog(None, Gtk.DialogFlags.DESTROY_WITH_PARENT,
+        Gtk.MessageType.INFO, Gtk.ButtonsType.YES_NO, text=msg)
+
+    #    'Action: "%s" of type "%s"' % (action.get_name(), type(action)))
+
+    # Close dialog on user response
+    #dialog.connect ("response", lambda d, r: d.destroy())
+    ret = dialog.run()
+    dialog.destroy()
+    return  ret
 
 # ------------------------------------------------------------------------
 # Highlite test items

@@ -15,7 +15,7 @@ from gi.repository import Pango
 #from gi.repository import WebKit2
 
 from pgbutt import *
-from pggui import *
+import pggui
 
 # Allow the core to search pydbase
 #fff = os.path.realpath(os.path.dirname(__file__) + os.sep + "../pydbase/")
@@ -100,7 +100,7 @@ class testWin(Gtk.Window):
 
         vbox13 = Gtk.VBox()
 
-        #vbox13.pack_start(vspacer(), 0, 0, 0)
+        #vbox13.pack_start(pggui.ySpacer(), 0, 0, 0)
         vbox13.pack_start(Gtk.Label.new("  Test root entry window implementation  "), 1, 1, 0)
 
         #popup.set_titlebar(Gtk.Button())
@@ -109,16 +109,17 @@ class testWin(Gtk.Window):
         self.arr = []
         for aa in range(3):
             self.arr.append(PopWin())
-        vbox13.pack_start(vspacer(), 1, 1, 0)
+
+        vbox13.pack_start(pggui.ySpacer(), 1, 1, 0)
 
         hbox14 = Gtk.HBox()
-        hbox14.pack_start(vspacer(), 1, 1, 0)
+        hbox14.pack_start(pggui.ySpacer(), 1, 1, 0)
         butt3y = smallbutt("E_xit", self.exit_prog, "Exit program")
         hbox14.pack_start(butt3y, 0, 0, 0)
-        hbox14.pack_start(vspacer(), 1, 1, 0)
+        hbox14.pack_start(pggui.ySpacer(), 1, 1, 0)
 
         vbox13.pack_start(hbox14, 0, 0, 0)
-        vbox13.pack_start(vspacer(12), 0, 0, 0)
+        vbox13.pack_start(pggui.ySpacer(12), 0, 0, 0)
 
         self.set_size_request(300, 200)
         self.add(vbox13)

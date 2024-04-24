@@ -19,7 +19,7 @@ gi.require_version('PangoCairo', '1.0')
 from gi.repository import PangoCairo
 
 import cairo
-from sutil import *
+from pgutils import *
 
 class smallbutt(Gtk.EventBox):
 

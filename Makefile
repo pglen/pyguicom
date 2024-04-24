@@ -15,8 +15,8 @@ all:
 help:
 	@echo
 	@echo "Targets:"
-	@echo "	 make install    -- Install PyEdPro "
-	@echo "	 make pack       -- package PyEdPro "
+	@echo "	 make install    -- Install  "
+	@echo "	 make pack       -- package  "
 	@echo
 
 install:
@@ -28,6 +28,8 @@ pack:
 clean:
 	rm -f *.pyc
 	rm -rf __pycache__
+	rm -rf build/*
+	rm -rf dist/*
 
 git:
 	git add .

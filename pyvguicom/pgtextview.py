@@ -16,7 +16,6 @@ from gi.repository import GObject
 from gi.repository import Pango
 
 import pgbox
-import sutil
 
 # Colors for editor selection. Use X11 color names.
 
