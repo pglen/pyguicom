@@ -6,9 +6,10 @@ descx = '''
     classes.
     '''
 
+includex = ["*", "pyvguicom"]
+
 classx = [
-          'Development Status :: Mature',
-          'Environment :: GUI',
+          'Development Status :: 6 - Mature',
           'Intended Audience :: End Users/Desktop',
           'Intended Audience :: Developers',
           'Intended Audience :: System Administrators',
@@ -16,29 +17,22 @@ classx = [
           'Operating System :: Microsoft :: Windows',
           'Operating System :: POSIX',
           'Programming Language :: Python',
-          'Topic :: Editors',
-          'Topic :: Software Development :: Servers',
+          'Topic :: Software Development :: Libraries',
         ]
-
-includex = ["*", "pyvguicom"]
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="pyvguicom",
-    version="1.0.0",
+    version="1.0.1",
     author="Peter Glen",
     author_email="peterglen99@gmail.com",
     description="High power secure server GUI utility helpers.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/pglen/pyvserv",
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-    ],
+    url="https://github.com/pglen/pyguicom.git",
+    classifiers= classx,
     include_package_data=True,
     packages=setuptools.find_packages(include=includex),
     package_dir = {

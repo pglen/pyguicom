@@ -33,10 +33,6 @@ class pgtestwin(testwin):
 
         testwin.__init__(self)
 
-        hbox5 = Gtk.HBox()
-
-        self.label = Gtk.Label.new("Test strings here")
-        hbox5.pack_start(self.label, 1, 1, 2)
 
         gridx = Gtk.Grid()
         gridx.set_column_spacing(6)
@@ -65,7 +61,12 @@ class pgtestwin(testwin):
         self.dat_dict['nick'] = lab4
         rowcnt += 1
 
-        tp6x = ("Notes: ", "", "Text for Notes. Press Shift Enter to advance", None)
+        tp5 = ("Long entr_y ", "nick", "Test Long entry", None)
+        lab5 = pgentry.griddouble(gridx, 0, rowcnt, tp5)
+        self.dat_dict['lob'] = lab5
+        rowcnt += 1
+
+        tp6x = ("Note_s: ", "", "Text for Notes. Press Shift Enter to advance", None)
         lab6x = pgentry.gridsingle(gridx, 0, rowcnt, tp6x)
         self.dat_dict['notes'] = lab6x
         rowcnt += 1
@@ -77,7 +78,11 @@ class pgtestwin(testwin):
         hbox2.pack_start(gridx, 1, 1, 2)
 
         vbox.pack_start(hbox2, 0, 0, 2)
-        vbox.pack_start(hbox5, 0, 0, 2)
+
+        #hbox5 = Gtk.HBox()
+        #self.label = Gtk.Label.new("Test strings here")
+        #hbox5.pack_start(self.label, 1, 1, 2)
+        #vbox.pack_start(hbox5, 0, 0, 2)
 
         butt = Gtk.Button.new_with_mnemonic("E_xit")
         butt.connect("clicked", Gtk.main_quit)

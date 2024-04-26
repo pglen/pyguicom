@@ -981,29 +981,6 @@ def about_key(win, event):
             if event.state & Gdk.ModifierType.MOD1_MASK:
                 win.destroy()
 
-
-def message(self, msg):
-    dialog = Gtk.MessageDialog(None, Gtk.DialogFlags.DESTROY_WITH_PARENT,
-        Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE, text=msg)
-
-    #    'Action: "%s" of type "%s"' % (action.get_name(), type(action)))
-
-    # Close dialog on user response
-    dialog.connect ("response", lambda d, r: d.destroy())
-    return dialog.run()
-
-def yesno(self, msg):
-    dialog = Gtk.MessageDialog(None, Gtk.DialogFlags.DESTROY_WITH_PARENT,
-        Gtk.MessageType.INFO, Gtk.ButtonsType.YES_NO, text=msg)
-
-    #    'Action: "%s" of type "%s"' % (action.get_name(), type(action)))
-
-    # Close dialog on user response
-    #dialog.connect ("response", lambda d, r: d.destroy())
-    ret = dialog.run()
-    dialog.destroy()
-    return  ret
-
 # ------------------------------------------------------------------------
 # Show a regular message:
 

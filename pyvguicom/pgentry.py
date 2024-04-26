@@ -151,12 +151,13 @@ def gridquad(gridx, left, top, entry1, entry2, butt = None):
     return headx, headx2
 
 def griddouble(gridx, left, top, entry1, buttx = None):
-    lab1 = Gtk.Label(entry1[0] + "   ")
+    lab1 = Gtk.Label.new_with_mnemonic(entry1[0] + "   ")
     lab1.set_alignment(1, 0)
     lab1.set_tooltip_text(entry1[2])
     gridx.attach(lab1, left, top, 1, 1)
 
     headx = Gtk.Entry();
+    lab1.set_mnemonic_widget(headx)
     headx.set_width_chars(40)
     if entry1[3] != None:
         headx.set_text(entry1[3])
@@ -206,12 +207,14 @@ class   TextViewx(Gtk.TextView):
         self.buffer.set_modified(True)
 
 def gridsingle(gridx, left, top, entry1):
-    lab1 = Gtk.Label(entry1[0] + "   ")
+    lab1 = Gtk.Label.new_with_mnemonic(entry1[0] + "   ")
     lab1.set_alignment(1, 0)
     lab1.set_tooltip_text(entry1[2])
     gridx.attach(lab1, left, top, 1, 1)
 
     headx, cont = wrap(TextViewx())
+    lab1.set_mnemonic_widget(cont)
+
     if entry1[3] != None:
          headx.set_text(entry1[3])
     gridx.attach(headx, left+1, top, 3, 1)
@@ -233,7 +236,6 @@ def scrolledtext(arr, name, body = None):
     sw.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
     sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
     return sw
-
 
 def imgbutt(imgfile, txt, func, win):
     hbb = Gtk.HBox(); vbb = Gtk.VBox();  ic = Gtk.Image();
