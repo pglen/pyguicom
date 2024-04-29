@@ -4,9 +4,11 @@
 # pylint: disable=C0209
 # pylint: disable=C0321
 
-import os, sys, getopt, string,  math, warnings
+import os, sys, getopt, string,  math
 import random, time, traceback, stat
 import platform
+
+#import warmings
 
 if sys.version_info.major < 3:
     pass
@@ -22,6 +24,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GObject
+from gi.repository import GdkPixbuf
 
 # Add the new line twice for more balaced string
 
@@ -96,12 +99,32 @@ def yes_no2(message, title = "Question", parent=None):
 
     return response
 
+def yes_no(message, title = "Question", parent=None):
+
+    dialog = Gtk.MessageDialog()
+    if title:
+        dialog.set_title(title)
+    dialog.add_button("_Yes", Gtk.ResponseType.YES)
+    dialog.add_button("_No", Gtk.ResponseType.NO)
+    dialog.set_markup(message)
+    img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
+    dialog.set_image(img)
+    if parent:
+        dialog.set_transient_for(parent)
+    dialog.connect("key-press-event", yn_key, 0)
+    #dialog.connect ("response", lambda d, r: d.destroy())
+    dialog.show_all()
+    response = dialog.run()
+    dialog.destroy()
+
+    return response
+
 # ------------------------------------------------------------------------
 # Do dialog
 
 def yes_no_cancel2(message, title = "Question", cancel = True):
 
-    warnings.simplefilter("ignore")
+    ##warmings.simplefilter("ignore")
 
     dialog = Gtk.Dialog(title,
                    None,
@@ -133,7 +156,7 @@ def yes_no_cancel2(message, title = "Question", cancel = True):
 
     dialog.connect("key-press-event", _yn_key, cancel)
     #dialog.connect("key-release-event", _yn_key, cancel)
-    warnings.simplefilter("default")
+    #warmings.simplefilter("default")
 
     dialog.show_all()
     response = dialog.run()
@@ -249,7 +272,7 @@ def put_debug2(xstr):
         print( "Failed on debug output.")
         print( sys.exc_info())
 
-def put_exception_old(xstr):
+def put_exception(xstr):
 
     cumm = xstr + " "
     a,b,c = sys.exc_info()
@@ -265,7 +288,7 @@ def put_exception_old(xstr):
         except:
             print( "Could not print trace stack. ", sys.exc_info())
 
-    put_debug2(cumm)
+    print(cumm)
     #syslog.syslog("%s %s %s" % (xstr, a, b))
 
 def decode_bits(numx):
@@ -849,9 +872,9 @@ class Config:
 
 # ------------------------------------------------------------------------
 
-def yes_no_cancel(title, message, cancel = True):
+def yes_no_cancel(message, title = "Yes No", cancel = True):
 
-    warnings.simplefilter("ignore")
+    #warmings.simplefilter("ignore")
 
     dialog = Gtk.Dialog(title,
                    None,
@@ -886,7 +909,7 @@ def yes_no_cancel(title, message, cancel = True):
 
     dialog.connect("key-press-event", _yn_key, cancel)
     #dialog.connect("key-release-event", _yn_key, cancel)
-    warnings.simplefilter("default")
+    #warmings.simplefilter("default")
 
     dialog.show_all()
     response = dialog.run()
@@ -918,44 +941,39 @@ def _yn_key(win, event, cancel):
             event.keyval == Gdk.KEY_C:
             win.response(Gtk.ResponseType.CANCEL)
 
-def  about2(self2):
+def  about(progname, verstr = "1.0.0", imgfile = "icon.png"):
 
     ''' Show About dialog: '''
 
     dialog = Gtk.AboutDialog()
-    dialog.set_name(pedconfig.conf.progname +  " - Python Editor ")
+    dialog.set_name(progname)
 
-    dialog.set_version(str(pedconfig.conf.version))
+    dialog.set_version(verstr)
     gver = (Gtk.get_major_version(), \
                         Gtk.get_minor_version(), \
                             Gtk.get_micro_version())
 
     dialog.set_position(Gtk.WindowPosition.CENTER)
-    dialog.set_transient_for(pedconfig.conf.pedwin.mywin)
+    #dialog.set_transient_for(pedconfig.conf.pedwin.mywin)
 
     #"\nRunning PyGObject %d.%d.%d" % GObject.pygobject_version +\
 
-    ddd = os.path.join(os.path.dirname(__file__), "../")
+    ddd = os.path.join(os.path.dirname(__file__))
 
     # GLib.pyglib_version
     vvv = gi.version_info
-    comm = "Python based easily configurable editor\n"\
-        "with time accounting module, spell "\
-        "check \n and macro recording.\n"\
-        "\nRunning PyGtk %d.%d.%d" % vvv +\
-        "\non GTK %d.%d.%d\n" % gver +\
+    comm = \
+        "Running PyGtk %d.%d.%d" % vvv +\
+        "\non GTK %d.%d.%d" % gver +\
         "\nRunning Python %s" % platform.python_version() +\
-        "\non %s %s\n" % (platform.system(), platform.release()) +\
-        "\nPyedPro Build Date: %s\n" % pedconfig.conf.build_date +\
-        "Exe Path:\n%s\n" % os.path.realpath(ddd)
+        "\non %s %s" % (platform.system(), platform.release()) +\
+        "\nExe Path:\n%s" % os.path.realpath(ddd)
 
     dialog.set_comments(comm)
-    dialog.set_copyright(pedconfig.conf.progname + " Created by Peter Glen.\n"
+    dialog.set_copyright(progname + " Created by Peter Glen.\n"
                           "Project is in the Public Domain.")
-    dialog.set_program_name(pedconfig.conf.progname)
-    img_dir = os.path.join(os.path.dirname(__file__), 'images')
-    #img_path = os.path.join(img_dir, 'gtk-logo-rgb.gif')
-    img_path = os.path.join(img_dir, 'pyedpro.png')
+    dialog.set_program_name(progname)
+    img_path = os.path.join(os.path.dirname(__file__), imgfile)
 
     try:
         pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
@@ -970,11 +988,11 @@ def  about2(self2):
 
     ## Close dialog on user response
     dialog.connect ("response", lambda d, r: d.destroy())
-    dialog.connect("key-press-event", about_key)
+    dialog.connect("key-press-event", _about_key)
 
     dialog.show()
 
-def about_key(win, event):
+def _about_key(win, event):
     #print "about_key", event
     if  event.type == Gdk.EventType.KEY_PRESS:
         if event.keyval == Gdk.KEY_x or event.keyval == Gdk.KEY_X:
@@ -983,30 +1001,25 @@ def about_key(win, event):
 
 # ------------------------------------------------------------------------
 # Show a regular message:
-
-def message3(strx, title = None):
-
-    #print("called: message()", strx)
-
-    icon = Gtk.STOCK_INFO
-    dialog = Gtk.MessageDialog(buttons=Gtk.ButtonsType.CLOSE,
-                               message_type=Gtk.MessageType.INFO)
-
-    dialog.props.text = strx
-
-    #dialog.set_transient_for()
-
-    if title:
-        dialog.set_title(title)
-    else:
-        dialog.set_title("PyEdPro")
-
-    dialog.set_position(Gtk.WindowPosition.CENTER)
-
-    # Close dialog on user response
-    dialog.connect("response", lambda d, r: d.destroy())
-    dialog.show()
-    dialog.run()
+#
+#def message3(strx, title = None):
+#
+#    #print("called: message()", strx)
+#
+#    icon = Gtk.STOCK_INFO
+#    dialog = Gtk.MessageDialog(buttons=Gtk.ButtonsType.CLOSE,
+#                               message_type=Gtk.MessageType.INFO)
+#    dialog.props.text = strx
+#    #dialog.set_transient_for()
+#    if title:
+#        dialog.set_title(title)
+#    else:
+#        dialog.set_title("PyEdPro")
+#    dialog.set_position(Gtk.WindowPosition.CENTER)
+#    # Close dialog on user response
+#    dialog.connect("response", lambda d, r: d.destroy())
+#    dialog.show()
+#    dialog.run()
 
 # -----------------------------------------------------------------------
 # Call func with all processes, func called with stat as its argument
@@ -1050,9 +1063,9 @@ def find(self):
     label5 = Gtk.Label("   ");  label6 = Gtk.Label("   ")
     label7 = Gtk.Label("   ");  label8 = Gtk.Label("   ")
 
-    warnings.simplefilter("ignore")
+    #warmings.simplefilter("ignore")
     entry = Gtk.Entry()
-    warnings.simplefilter("default")
+    #warmings.simplefilter("default")
     entry.set_text(self.oldfind)
 
     entry.set_activates_default(True)
@@ -1159,7 +1172,7 @@ def message(strx, parent = None, title = None, icon = Gtk.MessageType.INFO):
     if title:
         dialog.set_title(title)
     else:
-        dialog.set_title("DBGui Message")
+        dialog.set_title("Message")
 
     # Close dialog on user response
     dialog.connect("response", lambda d, r: d.destroy())
@@ -1245,57 +1258,6 @@ def time_s2n(sss):
     rrr = time.strptime(sss)
     ttt = time.mktime(rrr)
     return ttt
-
-def yes_no_cancel(title, message, cancel = True, parent = None):
-
-    #warnings.simplefilter("ignore")
-    dialog = Gtk.Dialog(title,
-                   None,
-                   Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT)
-
-
-    dialog.set_default_response(Gtk.ResponseType.YES)
-    dialog.set_position(Gtk.WindowPosition.CENTER)
-    dialog.set_transient_for(parent)
-
-    sp = "     "
-    label = Gtk.Label(message)
-    label2 = Gtk.Label(sp)
-    label3 = Gtk.Label(sp)
-    label2a = Gtk.Label(sp)
-    label3a = Gtk.Label(sp)
-
-    hbox = Gtk.HBox()
-
-    hbox.pack_start(label2, 0, 0, 0)
-    hbox.pack_start(label, 1, 1, 0)
-    hbox.pack_start(label3, 0, 0, 0)
-
-    dialog.vbox.pack_start(label2a, 0, 0, 0)
-    dialog.vbox.pack_start(hbox, 0, 0, 0)
-    dialog.vbox.pack_start(label3a, 0, 0, 0)
-
-    dialog.add_button("_Yes", Gtk.ResponseType.YES)
-    dialog.add_button("_No", Gtk.ResponseType.NO)
-
-    if cancel:
-        dialog.add_button("_Cancel", Gtk.ResponseType.CANCEL)
-
-    dialog.connect("key-press-event", yn_key, cancel)
-    #dialog.connect("key-release-event", yn_key, cancel)
-    #warnings.simplefilter("default")
-
-    dialog.show_all()
-    response = dialog.run()
-    # Convert all responses to cancel
-    if  response == Gtk.ResponseType.CANCEL or \
-        response == Gtk.ResponseType.REJECT or \
-        response == Gtk.ResponseType.CLOSE  or \
-        response == Gtk.ResponseType.DELETE_EVENT:
-        response = Gtk.ResponseType.CANCEL
-    dialog.destroy()
-
-    return  response
 
 def yn_key(win, event, cancel):
     #print( event)

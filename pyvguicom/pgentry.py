@@ -20,6 +20,32 @@ def wrap(cont):
     fr.add(sc)
     return fr, cont
 
+class Entryx(Gtk.Entry):
+
+    def __init__(self, noemit = False):
+        super(Entryx).__init__()
+        Gtk.Entry.__init__(self)
+        self.noemit = noemit    # do not emit move next on enter
+        self.connect("key-press-event", self.key_press_event)
+
+    def set_noemit(self, flag):
+        self.noemit = flag
+
+    def  key_press_event(self, arg1, event):
+        #print("keypress", event.keyval)
+        if event.keyval == Gdk.KEY_Tab or event.keyval == Gdk.KEY_ISO_Left_Tab:
+            #print("tab keypress ", event.keyval, event.state)
+            if event.state & Gdk.ModifierType.SHIFT_MASK:
+                self.emit("move-focus",  Gtk.DirectionType.TAB_BACKWARD)
+            else:
+                self.emit("move-focus",  Gtk.DirectionType.TAB_FORWARD)
+            return True
+
+        if event.keyval == Gdk.KEY_Return:
+            if not self.noemit:
+                self.emit("move-focus",  Gtk.DirectionType.TAB_FORWARD)
+                return True
+
 # Expects two tuples of stuff
 # labtext, labname, tip, defval = None:
 
@@ -34,7 +60,7 @@ def entryquad(arr, vbox, entry1, entry2):
     hbox2.pack_start(lab1, False, 0, 0)
     lab1a = Gtk.Label(label="      ")
     hbox2.pack_start(lab1a, False, 0, 0)
-    headx = Gtk.Entry();  headx.set_width_chars(33)
+    headx = Entryx();  headx.set_width_chars(33)
     lab1.set_mnemonic_widget(headx)
 
     if entry1[3] != None:
@@ -51,7 +77,7 @@ def entryquad(arr, vbox, entry1, entry2):
     hbox2.pack_start(lab2, False, 0, 0)
     lab1b = Gtk.Label(label="      ")
     hbox2.pack_start(lab1b, False, 0, 0)
-    headx2 = Gtk.Entry();  headx2.set_width_chars(33)
+    headx2 = Entryx();  headx2.set_width_chars(33)
     lab2.set_mnemonic_widget(headx2)
     if entry2[3] != None:
         headx2.set_text(entry2[3][entry2[1]])
@@ -127,7 +153,7 @@ def gridquad(gridx, left, top, entry1, entry2, butt = None):
     lab1.set_tooltip_text(entry1[2])
     gridx.attach(lab1, left, top, 1, 1)
 
-    headx = Gtk.Entry();
+    headx = Entryx();
     lab1.set_mnemonic_widget(headx)
     headx.set_width_chars(20)
     if entry1[3] != None:
@@ -139,7 +165,7 @@ def gridquad(gridx, left, top, entry1, entry2, butt = None):
     lab2.set_tooltip_text(entry2[2])
     gridx.attach(lab2, left+2, top, 1, 1)
 
-    headx2 = Gtk.Entry();
+    headx2 = Entryx();
     lab2.set_mnemonic_widget(headx2)
 
     headx2.set_width_chars(20)
@@ -156,7 +182,7 @@ def griddouble(gridx, left, top, entry1, buttx = None):
     lab1.set_tooltip_text(entry1[2])
     gridx.attach(lab1, left, top, 1, 1)
 
-    headx = Gtk.Entry();
+    headx = Entryx();
     lab1.set_mnemonic_widget(headx)
     headx.set_width_chars(40)
     if entry1[3] != None:
@@ -166,8 +192,9 @@ def griddouble(gridx, left, top, entry1, buttx = None):
         gridx.attach(buttx, left+3, top, 1, 1)
     return headx
 
-
 class   TextViewx(Gtk.TextView):
+
+    ''' Override textview for simple deployment '''
 
     def __init__(self):
         super(TextViewx).__init__()
@@ -179,12 +206,15 @@ class   TextViewx(Gtk.TextView):
 
     def  key_press_event(self, arg1, event):
 
+        ''' Override tabs '''
+
         if event.keyval == Gdk.KEY_Tab or event.keyval == Gdk.KEY_ISO_Left_Tab:
             #print("tab keypress ", event.keyval, event.state)
             if event.state & Gdk.ModifierType.SHIFT_MASK:
                 self.emit("move-focus",  Gtk.DirectionType.TAB_BACKWARD)
             else:
                 self.emit("move-focus",  Gtk.DirectionType.TAB_FORWARD)
+            return True
 
         if event.keyval == Gdk.KEY_Return:
             if event.state & Gdk.ModifierType.SHIFT_MASK:
