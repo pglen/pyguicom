@@ -64,40 +64,39 @@ def  usleep2(msec):
 # -----------------------------------------------------------------------
 # Pull up a message box
 
-def message2(strx, title = "Dialog", parent=None):
+#def message2(strx, title = "Dialog", parent=None):
+#
+#    dialog = Gtk.MessageDialog()
+#    # Close dialog on user response
+#    dialog.add_button("Close", Gtk.ButtonsType.CLOSE)
+#    if title:
+#        dialog.set_title(title)
+#    #box = dialog.get_content_area()
+#    #box.add(Gtk.Label(strx))
+#    dialog.set_markup(strx)
+#    if parent:
+#        dialog.set_transient_for(parent)
+#    dialog.connect ("response", lambda d, r: d.destroy())
+#    dialog.show_all()
 
-    dialog = Gtk.MessageDialog()
-    # Close dialog on user response
-    dialog.add_button("Close", Gtk.ButtonsType.CLOSE)
-    if title:
-        dialog.set_title(title)
-    #box = dialog.get_content_area()
-    #box.add(Gtk.Label(strx))
-    dialog.set_markup(strx)
-    if parent:
-        dialog.set_transient_for(parent)
-    dialog.connect ("response", lambda d, r: d.destroy())
-    dialog.show_all()
-
-def yes_no2(message, title = "Question", parent=None):
-
-    dialog = Gtk.MessageDialog()
-    if title:
-        dialog.set_title(title)
-    dialog.add_button("_Yes", Gtk.ResponseType.YES)
-    dialog.add_button("_No", Gtk.ResponseType.NO)
-    dialog.set_markup(message)
-    img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
-    dialog.set_image(img)
-    if parent:
-        dialog.set_transient_for(parent)
-    dialog.connect("key-press-event", yn_key, 0)
-    #dialog.connect ("response", lambda d, r: d.destroy())
-    dialog.show_all()
-    response = dialog.run()
-    dialog.destroy()
-
-    return response
+#def yes_no2(message, title = "Question", parent=None):
+#
+#    dialog = Gtk.MessageDialog()
+#    if title:
+#        dialog.set_title(title)
+#    dialog.add_button("_Yes", Gtk.ResponseType.YES)
+#    dialog.add_button("_No", Gtk.ResponseType.NO)
+#    dialog.set_markup(message)
+#    img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
+#    dialog.set_image(img)
+#    if parent:
+#        dialog.set_transient_for(parent)
+#    dialog.connect("key-press-event", yn_key, 0)
+#    #dialog.connect ("response", lambda d, r: d.destroy())
+#    dialog.show_all()
+#    response = dialog.run()
+#    dialog.destroy()
+#    return response
 
 def yes_no(message, title = "Question", parent=None):
 
@@ -1164,10 +1163,11 @@ def print_exception(xstr):
 
 def message(strx, parent = None, title = None, icon = Gtk.MessageType.INFO):
 
-    dialog = Gtk.MessageDialog(parent, Gtk.DialogFlags.DESTROY_WITH_PARENT,
-        icon, Gtk.ButtonsType.CLOSE, strx)
+    #dialog = Gtk.MessageDialog(parent, Gtk.DialogFlags.DESTROY_WITH_PARENT,
+    #    icon, Gtk.ButtonsType.CLOSE, strx)
 
-    dialog.set_modal(True)
+    dialog = Gtk.MessageDialog(title=title, buttons=Gtk.ButtonsType.CLOSE,
+                text=strx, destroy_with_parent=True, modal=True,)
 
     if title:
         dialog.set_title(title)

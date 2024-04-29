@@ -48,9 +48,9 @@ class pgtestwin(testwin):
         butt.connect("clicked", self.test_about)
         vbox.pack_start(butt, 0, 0, 2)
 
-        butt = Gtk.Button.new_with_mnemonic("Test Yes_no _cancel2")
-        butt.connect("clicked", self.test_yes_no_cancel2)
-        vbox.pack_start(butt, 0, 0, 2)
+        #butt = Gtk.Button.new_with_mnemonic("Test Yes_no _cancel2")
+        #butt.connect("clicked", self.test_yes_no_cancel2)
+        #vbox.pack_start(butt, 0, 0, 2)
 
         butt = Gtk.Button.new_with_mnemonic("Test Yes_no _cancel")
         butt.connect("clicked", self.test_yes_no_cancel)
@@ -60,13 +60,13 @@ class pgtestwin(testwin):
         butt.connect("clicked", self.test_yes_no)
         vbox.pack_start(butt, 0, 0, 2)
 
-        butt = Gtk.Button.new_with_mnemonic("Test Yes_no2")
-        butt.connect("clicked", self.test_yes_no2)
-        vbox.pack_start(butt, 0, 0, 2)
-
-        butt = Gtk.Button.new_with_mnemonic("Test M_essage2")
-        butt.connect("clicked", self.test_message2)
-        vbox.pack_start(butt, 0, 0, 2)
+        #butt = Gtk.Button.new_with_mnemonic("Test Yes_no2")
+        #butt.connect("clicked", self.test_yes_no2)
+        #vbox.pack_start(butt, 0, 0, 2)
+        #
+        #butt = Gtk.Button.new_with_mnemonic("Test M_essage2")
+        #butt.connect("clicked", self.test_message2)
+        #vbox.pack_start(butt, 0, 0, 2)
 
         butt = Gtk.Button.new_with_mnemonic("Test M_essage")
         butt.connect("clicked", self.test_message)
