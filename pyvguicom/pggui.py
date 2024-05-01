@@ -24,6 +24,8 @@ import pgsimp
 
 IDXERR = "Index is larger than the available number of controls."
 
+VERSION = "1.1.1"
+
 gui_testmode = 0
 
 def randcol():
@@ -46,6 +48,8 @@ for st in (gtk.STATE_NORMAL, gtk.STATE_INSENSITIVE,
     a[st] = gtk.gdk.Color(0, 34251, 0)
 '''
 
+def version():
+    return VERSION
 
 # ------------------------------------------------------------------------
 # Bemd some of the parameters for us
@@ -117,6 +121,8 @@ class CairoHelper():
         self.cr.line_to(rect[0], rect[1])
 
 class   TextTable(Gtk.Table):
+
+    ''' YTable of text entries '''
 
     def __init__(self, confarr, main = None, textwidth = 24):
         GObject.GObject.__init__(self)
@@ -191,7 +197,6 @@ class   TextRow(Gtk.HBox):
             #super().foreach(self.callb)
             '''
             pass
-
 
     def callb(self, arg1):
         #print ("callb arg1", arg1)
@@ -285,6 +290,7 @@ class Led(Gtk.DrawingArea):
         self.set_size_request(size + border, size + border)
         self.connect("draw", self.draw)
         self.color =  color
+        self.orgcolor =  color
 
     def set_color(self, col):
         self.color = col
@@ -421,19 +427,23 @@ class WideButt(Gtk.Button):
         if callme:
             self.connect("clicked", callme)
 
-class FrameTextView(Gtk.TextView):
+class FrameTextView(Gtk.Frame):
 
     def __init__(self, callme = None):
 
         GObject.GObject.__init__(self)
+        #super().__init__(self)
+
+        self.tview = Gtk.TextView()
+        #self.tview.set_buffer(Gtk.TextBuffer())
+
         self.scroll = Gtk.ScrolledWindow()
         self.scroll.set_size_request(100, 100)
-        self.scroll.add_with_viewport(self)
-        self.frame = Gtk.Frame()
-        self.frame.add(self.scroll)
+        self.scroll.add_with_viewport(self.tview)
+        #self.frame = Gtk.Frame()
+        self.add(self.scroll)
 
-        self.set_buffer(Gtk.TextBuffer())
-        self.set_size_request(150, 150)
+        #self.set_size_request(150, 150)
         ls = self.get_style_context()
         fd = ls.get_font(Gtk.StateFlags.NORMAL)
         #newfd = fd.to_string() + " " + str(fd.get_size() / Pango.SCALE + 4)
@@ -441,16 +451,16 @@ class FrameTextView(Gtk.TextView):
         self.modify_font(Pango.FontDescription("Sans 13"))
 
     def append(self, strx):
-        buff = self.get_buffer()
+        buff = self.tview.get_buffer()
         old = buff.get_text(buff.get_start_iter(), buff.get_end_iter(), False)
-        buff.set_text(old + "\n" +  strx)
+        buff.set_text(old + strx)
         pgutils.usleep(20)
         #mainwin.statb2.scroll_to_iter(buff.get_end_iter(), 1.0, True, 0.1, 0.1)
         sb = self.scroll.get_vscrollbar()
         sb.set_value(2000000)
 
 class Label(Gtk.Label):
-    def __init__(self, textm = "", widget = None, tooltip=None, font = None):
+    def __init__(self, textm = "", widget = None, tooltip=None, font=None):
         GObject.GObject.__init__(self)
         self.set_text_with_mnemonic(textm)
         if widget:
@@ -462,7 +472,7 @@ class Label(Gtk.Label):
 
 class Logo(Gtk.VBox):
 
-    def __init__(self, labelx, tooltip = None, callme = None):
+    def __init__(self, labelx, tooltip=None, callme=None, font="Times 45"):
 
         GObject.GObject.__init__(self)
 
@@ -477,7 +487,7 @@ class Logo(Gtk.VBox):
         if callme:
             self.logolab.connect("button-press-event", callme)
 
-        self.logolab.modify_font(Pango.FontDescription('Times 45'))
+        self.logolab.modify_font(Pango.FontDescription(font))
 
         #self.pack_start(Spacer(), 0, 0, False)
         self.pack_start(self.logolab, 0, 0, False)
@@ -497,7 +507,7 @@ class Logo(Gtk.VBox):
 
 class ListBox(Gtk.TreeView):
 
-    def __init__(self, limit = -1, colname = ''):
+    def __init__(self, callb = None, limit = -1, colname = ''):
 
         self.limit = limit
         self.treestore = Gtk.TreeStore(str)
@@ -516,7 +526,7 @@ class ListBox(Gtk.TreeView):
         self.append_column(tvcolumn)
         self.set_activate_on_single_click (True)
 
-        self.callb = None
+        self.callb = callb
         self.connect("row-activated",  self.tree_sel)
 
     def tree_sel(self, xtree, xiter, xpath):
@@ -661,30 +671,9 @@ def set_testmode(flag):
     gui_testmode = flag
 
 # ------------------------------------------------------------------------
-# An N pixel horizontal spacer. Defaults to X pix  get_center
-#
-#def hspacer(hbox, xstr = "    ", expand = False):
-#    lab = Gtk.Label(label=xstr)
-#    hbox.pack_start(lab, expand, 0, 0)
-#
-#def vspacer(vbox, xstr = "     ", expand = False):
-#    lab = Gtk.Label(label=xstr)
-#    vbox.pack_start(lab, expand , 0, 0)
-#def vspacer(sp = 8):
-#    lab = Gtk.VBox()
-#    lab.set_size_request(sp, sp)
-#
-#    if gui_testmode:
-#        lab.override_background_color(
-#                    Gtk.StateFlags.NORMAL, Gdk.RGBA(1, .5, .5) )
-#    return lab
-
-# ------------------------------------------------------------------------
 # An N pixel spacer. Defaults to 1 char height / width
 
 class Spacer(Gtk.Label):
-
-    global box_testmode
 
     def __init__(self, sp = 1, title=None, left=False, bottom=False, test=False):
 
@@ -705,7 +694,7 @@ class Spacer(Gtk.Label):
         if bottom:
             self.set_yalign(1)
 
-        if test or box_testmode:
+        if test or gui_testmode:
             self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#888888"))
 
         #self.set_property("angle", 15)
@@ -745,41 +734,6 @@ class ySpacer(Gtk.VBox):
         if sp == None:
             sp = 6
         self.set_size_request(sp, sp)
-
-# ------------------------------------------------------------------------
-# An N pixel spacer. Defaults to 1 char height / width
-
-class Spacer(Gtk.Label):
-
-    global gui_testmode
-
-    def __init__(self, sp = 1, title=None, left=False, bottom=False, test=False):
-
-        GObject.GObject.__init__(self)
-
-        #sp *= 1000
-        #self.set_markup("<span  size=\"" + str(sp) + "\"> </span>")
-        #self.set_text(" " * sp)
-
-        if title:
-            self.set_text(title)
-        else:
-            self.set_text(" " * sp)
-        if left:
-            self.set_xalign(0)
-        if bottom:
-            self.set_yalign(1)
-        if test or gui_testmode:
-            self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#888888"))
-
-        #self.set_property("angle", 15)
-        #attr = self.get_property("attributes")
-        #attr2 = Pango.AttrList()
-        #print ("attr", dir(attr))
-        #attr.
-        #self.set_property("attributes", attr)
-        #self.set_property("label", "wtf")
-        #self.set_property("background-set", True)
 
 # ------------------------------------------------------------------------
 # Added convenience methods
@@ -824,13 +778,21 @@ class   xHBox(Gtk.HBox):
 
 class   RadioGroup(Gtk.Frame):
 
-    def __init__(self, rad_arr, call_me):
+    def __init__(self, rad_arr, call_me = None, horiz = False):
 
         GObject.GObject.__init__(self)
         self.buttons = []
         self.callme = call_me
-        vbox6 = Gtk.VBox(); vbox6.set_spacing(4);
-        vbox6.set_border_width(6)
+        if horiz:
+            vbox6 = Gtk.HBox();
+            vbox6.set_spacing(6);
+            vbox6.set_border_width(4)
+        else:
+            vbox6 = Gtk.VBox();
+            vbox6.set_spacing(4);
+            vbox6.set_border_width(6)
+
+
 
         if gui_testmode:
             self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#778888"))
@@ -1054,11 +1016,12 @@ class ScrollListBox(Gtk.Frame):
 
 class   ComboBox(Gtk.ComboBox):
 
-    def __init__(self, init_cont = [], callme = None):
+    def __init__(self, init_cont, callme = None):
+
+        self.callme = callme
 
         self.store = Gtk.ListStore(str)
         Gtk.ComboBox.__init__(self)
-
         self.set_model(self.store)
         cell = Gtk.CellRendererText()
 
@@ -1066,9 +1029,6 @@ class   ComboBox(Gtk.ComboBox):
         #cell.set_property("background", "#ffff00")
         #cell.set_property("background-set", True)
         cell.set_padding(10, 0)
-
-        if callme:
-            self.connect("changed", callme)
 
         #cell.set_property("foreground", "#ffff00")
         #cell.set_property("foreground-set", True)
@@ -1099,6 +1059,9 @@ class   ComboBox(Gtk.ComboBox):
                 #print("Entered: %s" % name)
         except:
             pass
+
+        if self.callme:
+            self.callme(name)
 
         #print("Combo new selection / entry: '%s'" % name)
 

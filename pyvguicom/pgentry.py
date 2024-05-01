@@ -232,7 +232,7 @@ class   TextViewx(Gtk.TextView):
         # If reached last line, TAB it
         if event.keyval == Gdk.KEY_Down:
             pos = self.buffer.get_property("cursor-position")
-            print("Down", pos)
+            #print("Down", pos)
             #print(self.buffer.list_properties())
             sss = self.buffer.get_start_iter()
             eee = self.buffer.get_end_iter()
@@ -245,7 +245,7 @@ class   TextViewx(Gtk.TextView):
         if event.keyval == Gdk.KEY_Up:
             # Are we at the beginning:
             pos = self.buffer.get_property("cursor-position")
-            print("Up", pos)
+            #print("Up", pos)
             if pos == 0:
                 self.emit("move-focus",  Gtk.DirectionType.TAB_BACKWARD)
                 return True

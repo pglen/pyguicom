@@ -23,9 +23,23 @@ classx = [
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
+# Get version number from the file:
+fp = open("pyvguicom/pggui.py", "rt")
+vvv = fp.read(); fp.close()
+loc_vers =  '1.0.0'     # Default
+for aa in vvv.split("\n"):
+    idx = aa.find("VERSION =")
+    if idx == 0:        # At the beginning of line
+        try:
+            loc_vers = aa.split()[2].replace('"', "")
+            break
+        except:
+            pass
+#print("loc_vers:", loc_vers)
+
 setuptools.setup(
     name="pyvguicom",
-    version="1.1.0",
+    version=loc_vers,
     author="Peter Glen",
     author_email="peterglen99@gmail.com",
     description="High power secure server GUI utility helpers.",
