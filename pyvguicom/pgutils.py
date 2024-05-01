@@ -203,12 +203,6 @@ def respath(fname):
     return None
 
 # ------------------------------------------------------------------------
-# Random colors
-
-def randcol():
-    return random.randint(0, 255)
-
-# ------------------------------------------------------------------------
 # Color conversions
 
 def str2col(strx):
@@ -303,13 +297,6 @@ def decode_bits(numx):
         mask >>= 1
 
     return retx
-
-def randcolstr(start = 0, endd = 255):
-    rr =  random.randint(start, endd)
-    gg =  random.randint(start, endd)
-    bb =  random.randint(start, endd)
-    strx = "#%02x%02x%02x" % (rr, gg, bb)
-    return strx
 
 # ------------------------------------------------------------------------
 # Remove non printables
@@ -407,39 +394,6 @@ def serial_ports():
     #print ("result", result)
     return result
 '''
-
-# ------------------------------------------------------------------------
-# Get random str
-
-def randstr(lenx):
-
-    strx = ""
-    for aa in range(lenx):
-        ridx = random.randint(0, len(allstr)-1)
-        rr = allstr[ridx]
-        strx += str(rr)
-
-    return strx
-
-def randasc(lenx):
-
-    strx = ""
-    for aa in range(lenx):
-        ridx = random.randint(0, len(allasc)-1)
-        rr = allasc[ridx]
-        strx += str(rr)
-
-    return strx
-
-def randlett(lenx):
-
-    strx = ""
-    for aa in range(lenx):
-        ridx = random.randint(0, len(alllett)-1)
-        rr = alllett[ridx]
-        strx += str(rr)
-
-    return strx
 
 # ------------------------------------------------------------------------
 # Convert octal string to integer
