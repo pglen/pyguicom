@@ -57,6 +57,7 @@ class pgtestwin(testwin):
         tp3 = ("Location of birth: ", "lob", "Location: City / Country", None)
         tp4 = ("Nick Name: ", "nick", "Enter nick name / Alias if available", None)
         lab3, lab4 = pgentry.gridquad(gridx, 0, rowcnt, tp3, tp4)
+        lab2.set_gray(True)
         self.dat_dict['lob'] = lab3
         self.dat_dict['nick'] = lab4
         rowcnt += 1
@@ -66,7 +67,13 @@ class pgtestwin(testwin):
         self.dat_dict['lob'] = lab5
         rowcnt += 1
 
-        tp6x = ("Note_s: ", "", "Text for Notes. Press Shift Enter to advance", None)
+        tp6 = ("Long entr_y (read only)", "nick", "Test Long entry", None)
+        lab6 = pgentry.griddouble(gridx, 0, rowcnt, tp6)
+        lab6.set_gray(True)
+        self.dat_dict['lob'] = lab6
+        rowcnt += 1
+
+        tp6x = ("Note_s: ", "", "Text for Notes. Press Shift Enter to advance Tab", None)
         lab6x = pgentry.gridsingle(gridx, 0, rowcnt, tp6x)
         self.dat_dict['notes'] = lab6x
         rowcnt += 1

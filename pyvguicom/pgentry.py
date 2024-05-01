@@ -31,6 +31,19 @@ class Entryx(Gtk.Entry):
     def set_noemit(self, flag):
         self.noemit = flag
 
+    def set_gray(self, flag):
+        if flag:
+            self.set_editable(False);
+            style = self.get_style_context()
+            color = style.get_background_color(Gtk.StateFlags.NORMAL)
+            color2 = Gdk.RGBA(color.red-.1, color.green-.1, color.blue-.1)
+            self.override_background_color(Gtk.StateFlags.NORMAL, color2)
+        else:
+            self.set_editable(True);
+            style = self.get_style_context()
+            color = style.get_background_color(Gtk.StateFlags.NORMAL)
+            self.override_background_color(Gtk.StateFlags.NORMAL, color)
+
     def  key_press_event(self, arg1, event):
         #print("keypress", event.keyval)
         if event.keyval == Gdk.KEY_Tab or event.keyval == Gdk.KEY_ISO_Left_Tab:
@@ -215,6 +228,27 @@ class   TextViewx(Gtk.TextView):
             else:
                 self.emit("move-focus",  Gtk.DirectionType.TAB_FORWARD)
             return True
+
+        # If reached last line, TAB it
+        if event.keyval == Gdk.KEY_Down:
+            pos = self.buffer.get_property("cursor-position")
+            print("Down", pos)
+            #print(self.buffer.list_properties())
+            sss = self.buffer.get_start_iter()
+            eee = self.buffer.get_end_iter()
+            textx = self.buffer.get_text(sss, eee, True)
+            if pos == len(textx):
+                self.emit("move-focus",  Gtk.DirectionType.TAB_FORWARD)
+                return True
+
+        # If reached first line, TAB it
+        if event.keyval == Gdk.KEY_Up:
+            # Are we at the beginning:
+            pos = self.buffer.get_property("cursor-position")
+            print("Up", pos)
+            if pos == 0:
+                self.emit("move-focus",  Gtk.DirectionType.TAB_BACKWARD)
+                return True
 
         if event.keyval == Gdk.KEY_Return:
             if event.state & Gdk.ModifierType.SHIFT_MASK:
