@@ -143,17 +143,19 @@ class   LetterNumberSel(Gtk.VBox):
         if event.keyval == Gdk.KEY_Down:
             if self.curr == self.simsel:
                 self.curr = self.simsel2
+                self.curr.exec_index(True)
             else:
-                self.curr = self.simsel
-            self.curr.exec_index(True)
+                # Thu 02.May.2024 tab instead
+                self.emit("move-focus",  Gtk.DirectionType.TAB_FORWARD)
             return True
 
         if event.keyval == Gdk.KEY_Up:
-            if self.curr == self.simsel:
-                self.curr = self.simsel2
-            else:
+            if self.curr == self.simsel2:
                 self.curr = self.simsel
-            self.curr.exec_index(True)
+                self.curr.exec_index(True)
+            else:
+                # Thu 02.May.2024 tab instead
+                self.emit("move-focus",  Gtk.DirectionType.TAB_BACKWARD)
             return True
 
         if event.keyval == Gdk.KEY_Home:
