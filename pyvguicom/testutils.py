@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from __future__ import print_function
 
@@ -14,7 +14,31 @@ from gi.repository import GObject
 from gi.repository import Pango
 
 import pgsimp
+import pggui
 import pgutils
+
+def subdialog(arg2):
+
+    def pressed(arg2, arg3):
+        #print("pressed")
+        pggui.message("From sub", parent=arg3)
+    def pressed2(arg2, arg3):
+        #print("pressed2", arg2, arg3)
+        arg3.response(Gtk.ResponseType.OK)
+        arg3.destroy()
+
+    dialog = Gtk.Dialog()
+    dialog.set_size_request(200, 100)
+    dialog.add_button = (Gtk.ButtonsType.CLOSE, Gtk.ResponseType.OK)
+    bbb = Gtk.Button("Message")
+    dialog.vbox.pack_start(bbb, 0, 0, 0)
+    bbb.connect("pressed", pressed, dialog)
+    #buttons=Gtk.ButtonsType.CLOSE)
+    bbb = Gtk.Button.new_with_mnemonic("E_xit Sub")
+    dialog.vbox.pack_start(bbb, 0, 0, 0)
+    bbb.connect("pressed", pressed2, dialog)
+    dialog.show_all()
+    dialog.run()
 
 # ------------------------------------------------------------------------
 class testwin(Gtk.Window):
@@ -72,6 +96,11 @@ class pgtestwin(testwin):
         butt.connect("clicked", self.test_message)
         vbox.pack_start(butt, 0, 0, 2)
 
+        butt = Gtk.Button.new_with_mnemonic("Test Sub Dialog")
+        butt.connect("clicked", subdialog)
+        vbox.pack_start(butt, 0, 0, 2)
+
+
         butt = Gtk.Button.new_with_mnemonic("E_xit")
         butt.connect("clicked", Gtk.main_quit)
         vbox.pack_start(butt, 0, 0, 2)
@@ -83,34 +112,27 @@ class pgtestwin(testwin):
         print(pgutils.about("Tester"))
 
     def test_yes_no_cancel2(self, arg2):
-        print(pgutils.yes_no_cancel2("Yes No Message"))
+        print(pggui.yes_no_cancel2("Yes No Message"))
 
     def test_yes_no_cancel(self, arg2):
-        print(pgutils.yes_no_cancel("Yes No Message"))
+        print(pggui.yes_no_cancel("Yes No Message"))
 
     def test_yes_no(self, arg2):
-        print(pgutils.yes_no("Yes No Message"))
+        print(pggui.yes_no("Yes No Message"))
 
     def test_yes_no2(self, arg2):
-        print(pgutils.yes_no2("Yes No Message"))
+        print(pggui.yes_no2("Yes No Message"))
 
     def test_message2(self, arg2):
-        pgutils.message2("Hello Message")
+        pggui.message2("Hello Message")
 
     def test_message(self, arg2):
-        pgutils.message("Hello Message")
+        pggui.message("Hello Message")
 
 
 tw = pgtestwin()
 
 #print("test")
-
-def fillrand():
-    aaa = []
-    for aa in range(10):
-        aaa.append( (pgutils.randstr(12), pgutils.randstr(12),
-                        pgutils.randstr(12), pgutils.randstr(12)) )
-    return aaa
 
 Gtk.main()
 

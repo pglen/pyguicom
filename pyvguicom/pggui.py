@@ -1343,27 +1343,185 @@ class RCLButt(Gtk.Button):
         #    self.callme(arg1)
 
 
-def message(msg):
-    dialog = Gtk.MessageDialog(None, Gtk.DialogFlags.DESTROY_WITH_PARENT,
-        Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE, text=msg)
+# ------------------------------------------------------------------------
+# Show a regular message:
 
-    #    'Action: "%s" of type "%s"' % (action.get_name(), type(action)))
+def message(strx, parent = None, title = None, icon = Gtk.MessageType.INFO):
+
+    #dialog = Gtk.MessageDialog(parent, Gtk.DialogFlags.DESTROY_WITH_PARENT,
+    #    icon, Gtk.ButtonsType.CLOSE, strx)
+
+    dialog = Gtk.MessageDialog(title=title, buttons=Gtk.ButtonsType.CLOSE,
+                text=strx, destroy_with_parent=True, modal=True,)
+
+    if parent:
+        dialog.set_transient_for(parent)
+
+    if title:
+        dialog.set_title(title)
+    else:
+        dialog.set_title("Message")
 
     # Close dialog on user response
-    dialog.connect ("response", lambda d, r: d.destroy())
+    dialog.connect("response", lambda d, r: d.destroy())
+    dialog.show_all()
     return dialog.run()
 
-def yesno(msg):
-    dialog = Gtk.MessageDialog(None, Gtk.DialogFlags.DESTROY_WITH_PARENT,
-        Gtk.MessageType.INFO, Gtk.ButtonsType.YES_NO, text=msg)
+def yes_no(message, title = "Question", parent=None):
 
-    #    'Action: "%s" of type "%s"' % (action.get_name(), type(action)))
+    dialog = Gtk.MessageDialog(title=title)
+    #if title:
+    #    dialog.set_title(title)
 
-    # Close dialog on user response
-    #dialog.connect ("response", lambda d, r: d.destroy())
-    ret = dialog.run()
+    dialog.set_default_response(Gtk.ResponseType.YES)
+
+    sp = "     "
+    label = Gtk.Label(message)
+    label2 = Gtk.Label(sp)
+    label3 = Gtk.Label(sp)
+    label2a = Gtk.Label(sp)
+    label3a = Gtk.Label(sp)
+
+    hbox = Gtk.HBox()
+
+    hbox.pack_start(label2, 0, 0, 0)
+    hbox.pack_start(label, 1, 1, 0)
+    hbox.pack_start(label3, 0, 0, 0)
+
+    #dialog.vbox.pack_start(label2a, 0, 0, 0)
+    #dialog.vbox.pack_start(hbox, 0, 0, 0)
+    #dialog.vbox.pack_start(label3a, 0, 0, 0)
+
+    img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
+    dialog.set_image(img)
+    dialog.set_markup(message)
+
+    dialog.add_button("_Yes", Gtk.ResponseType.YES)
+    dialog.add_button("_No", Gtk.ResponseType.NO)
+
+    #img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
+    #dialog.set_image(img)
+
+    if parent:
+        dialog.set_transient_for(parent)
+
+    def _yn_key(win, event, cancel):
+        #print("_y_n key", event.keyval)
+        if event.keyval == Gdk.KEY_y or \
+            event.keyval == Gdk.KEY_Y:
+            win.response(Gtk.ResponseType.YES)
+        if event.keyval == Gdk.KEY_n or \
+            event.keyval == Gdk.KEY_N:
+            win.response(Gtk.ResponseType.NO)
+        #if cancel:
+        #    if event.keyval == Gdk.KEY_c or \
+        #        event.keyval == Gdk.KEY_C:
+        #        win.response(Gtk.ResponseType.CANCEL)
+
+    dialog.connect("key-press-event", _yn_key, 0)
+    # Fri 03.May.2024 destroyed return value
+    #dialog.connect("response", lambda d, r: d.destroy())
+    dialog.show_all()
+    response = dialog.run()
     dialog.destroy()
-    return  ret
+    #print("response", response, resp2str(response))
+    return response
+
+# ------------------------------------------------------------------------
+
+def yes_no_cancel(message, title = "Question", cancel = True):
+
+    #warmings.simplefilter("ignore")
+
+    #dialog = Gtk.Dialog(title,
+    #               None,
+    #               Gtk.DialogFlags.MODAL | \
+    #               Gtk.DialogFlags.DESTROY_WITH_PARENT)
+
+    dialog = Gtk.MessageDialog(title=title)
+
+    #dialog.set_default_response(Gtk.ResponseType.YES)
+    #dialog.set_position(Gtk.WindowPosition.CENTER)
+
+    sp = "     "
+    label = Gtk.Label(message)
+    label2 = Gtk.Label(sp)
+    label3 = Gtk.Label(sp)
+    label2a = Gtk.Label(sp)
+    label3a = Gtk.Label(sp)
+
+    hbox = Gtk.HBox()
+    hbox.pack_start(label2, 0, 0, 0)
+    hbox.pack_start(label, 1, 1, 0)
+    hbox.pack_start(label3, 0, 0, 0)
+
+    #dialog.vbox.pack_start(label2a, 0, 0, 0)
+    #dialog.vbox.pack_start(hbox, 0, 0, 0)
+    #dialog.vbox.pack_start(label3a, 0, 0, 0)
+
+    dialog.add_button("_Yes", Gtk.ResponseType.YES)
+    dialog.add_button("_No", Gtk.ResponseType.NO)
+
+    img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
+    dialog.set_image(img)
+    dialog.set_markup(message)
+
+    if cancel:
+        dialog.add_button("_Cancel", Gtk.ResponseType.CANCEL)
+
+    def _yn_keyc(win, event, cancel):
+        #print event
+        if event.keyval == Gdk.KEY_y or \
+            event.keyval == Gdk.KEY_Y:
+            win.response(Gtk.ResponseType.YES)
+        if event.keyval == Gdk.KEY_n or \
+            event.keyval == Gdk.KEY_N:
+            win.response(Gtk.ResponseType.NO)
+        if cancel:
+            if event.keyval == Gdk.KEY_c or \
+                event.keyval == Gdk.KEY_C:
+                win.response(Gtk.ResponseType.CANCEL)
+
+    dialog.connect("key-press-event", _yn_keyc, cancel)
+    dialog.show_all()
+    response = dialog.run()
+
+    # Convert all responses to cancel
+    if  response == Gtk.ResponseType.CANCEL or \
+            response == Gtk.ResponseType.REJECT or \
+                response == Gtk.ResponseType.CLOSE  or \
+                    response == Gtk.ResponseType.DELETE_EVENT:
+        response = Gtk.ResponseType.CANCEL
+
+    dialog.destroy()
+
+    #print("YNC result:", response);
+    return  response
+
+def resp2str(resp):
+
+    ''' Translate response to string '''
+
+    strx = "None"
+    if  resp == Gtk.ResponseType.YES:
+        strx =  "Yes"
+    if  resp == Gtk.ResponseType.NO:
+        strx =  "No"
+    if  resp == Gtk.ResponseType.OK:
+        strx =  "OK"
+    if  resp == Gtk.ResponseType.CANCEL:
+        strx =  "Cancel"
+    if  resp == Gtk.ResponseType.NONE:
+        strx =  "None"
+    if  resp == Gtk.ResponseType.ACCEPT:
+        strx =  "Accept"
+    if resp == Gtk.ResponseType.REJECT:
+        strx =  "Reject"
+    if resp == Gtk.ResponseType.CLOSE:
+        strx =  "CLlose"
+    if resp == Gtk.ResponseType.DELETE_EVENT:
+        strx =  "Delete Event"
+    return strx
 
 # ------------------------------------------------------------------------
 # Highlite test items

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
   This is a test application for driving the pgTextView control;
@@ -18,7 +18,7 @@ import pgutils
 import pgtextview
 
 #deftext = "It puzzles me when I see a person lacking fundamentals is \
-#  able to amass a fortune to the tune of billions. What is even more \
+#  able to amass a fortune to the tune of billions. What is even more \3
 #puzziling is that they beleive their own 'BS' and openly flout all."
 
 # The pango example text
