@@ -26,22 +26,6 @@ from gi.repository import Gdk
 from gi.repository import GObject
 from gi.repository import GdkPixbuf
 
-# Add the new line twice for more balaced string
-
-allcr =    " " + "\r" + "\n" + \
-            "\r" + "\n"
-
-                   #string.punctuation +
-
-allstr =    " " + \
-            string.ascii_lowercase +  string.ascii_uppercase +  \
-                string.digits
-
-allasc =      string.ascii_lowercase +  string.ascii_uppercase +  \
-                string.digits + "_"
-alllett =      string.ascii_lowercase +  string.ascii_uppercase
-testmode = 0
-
 # ------------------------------------------------------------------------
 # Resolve path name
 

@@ -54,9 +54,30 @@ def test_yes_no_cancel(arg2):
     print(mmm)
     lab1.set_text(mmm)
 
+def test_no_yes_cancel(arg2):
+    ret = pggui.yes_no_cancel("Test No Yes Cancel Message\n" \
+                                "Are you sure?", default="No")
+    mmm = pggui.resp2str(ret)
+    print(mmm)
+    lab1.set_text(mmm)
+
+def test_cancel_no_yes(arg2):
+    ret = pggui.yes_no_cancel("Test No Yes Cancel Message\n" \
+                                "Are you sure?", default="Cancel")
+    mmm = pggui.resp2str(ret)
+    print(mmm)
+    lab1.set_text(mmm)
+
 def test_yes_no(arg2):
     ret = pggui.yes_no("Test Yes No Message\n" \
                         "Are You sure?")
+    mmm = pggui.resp2str(ret)
+    print(mmm)
+    lab1.set_text(mmm)
+
+def test_no_yes(arg2):
+    ret = pggui.yes_no("Test No Yes Message\n" \
+                        "Are You sure?", default="No")
     mmm = pggui.resp2str(ret)
     print(mmm)
     lab1.set_text(mmm)
@@ -87,13 +108,26 @@ if __name__ == "__main__":
     butt.connect("clicked", test_message_long)
     vbox.pack_start(butt, 0, 0, 2)
 
-    butt = Gtk.Button.new_with_mnemonic("Test Yes_no _cancel")
+    butt = Gtk.Button.new_with_mnemonic("Test Yes _no")
+    butt.connect("clicked", test_yes_no)
+    vbox.pack_start(butt, 0, 0, 2)
+
+    butt = Gtk.Button.new_with_mnemonic("Test No Yes")
+    butt.connect("clicked", test_no_yes)
+    vbox.pack_start(butt, 0, 0, 2)
+
+    butt = Gtk.Button.new_with_mnemonic("Test Yes _no _cancel")
     butt.connect("clicked", test_yes_no_cancel)
     vbox.pack_start(butt, 0, 0, 2)
 
-    butt = Gtk.Button.new_with_mnemonic("Test Yes_no")
-    butt.connect("clicked", test_yes_no)
+    butt = Gtk.Button.new_with_mnemonic("Test _no Yes _cancel")
+    butt.connect("clicked", test_no_yes_cancel)
     vbox.pack_start(butt, 0, 0, 2)
+
+    butt = Gtk.Button.new_with_mnemonic("Test cancel _Yes Nol")
+    butt.connect("clicked", test_cancel_no_yes)
+    vbox.pack_start(butt, 0, 0, 2)
+
 
     butt = Gtk.Button.new_with_mnemonic("E_xit")
     butt.connect("clicked", Gtk.main_quit)

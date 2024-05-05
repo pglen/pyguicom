@@ -8,7 +8,23 @@ import os, sys, getopt, string,  math
 import random, time, traceback, stat
 import platform, datetime
 
+# Add the new line twice for more balaced string
+
+allcr =    " " + "\r" + "\n" + \
+            "\r" + "\n"
+
+allstr =    " " + \
+            string.ascii_lowercase +  string.ascii_uppercase +  \
+                string.digits
+
+allasc =      string.ascii_lowercase +  string.ascii_uppercase +  \
+                string.digits + "_"
+alllett =      string.ascii_lowercase +  string.ascii_uppercase
+testmode = 0
+
 alllett =   string.ascii_lowercase + string.ascii_uppercase
+
+# ------------------------------------------------------------------------
 
 def randascii(lenx):
 

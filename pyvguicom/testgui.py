@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     vbox = Gtk.VBox();    hbox = Gtk.HBox()
 
-    lab1=Gtk.Label("Test\nText\n Here\n")
+    lab1=Gtk.Label(label="Test\nText\n Here\n")
     hbox.pack_start(lab1, 1, 1, 0)
     vbox.pack_start(hbox, 1, 1, 0)
 
@@ -80,19 +80,20 @@ if __name__ == "__main__":
     hbox3 = Gtk.HBox()
     mb = pggui.MenuButt(marr, _callb, None)
     hbox3.pack_start(mb, 0, 0, 0)
+
     hbox3.pack_start(Gtk.Label(label="  Menu Button "), 0, 0, 0)
     hbox3.pack_start(Gtk.Label(label="  "), 1, 1, 0)
     led = pggui.Led("#fffffff")
     hbox3.pack_start(led, 0, 0, 0)
     hbox3.pack_start(Gtk.Label(label="  "), 1, 1, 0)
-    hbox3.pack_start(led, 1, 1, 0)
+    #hbox3.pack_start(led, 1, 1, 0)
     vbox.pack_start(hbox3, 0, 0, 2)
 
-    hbox4 = Gtk.HBox()
-    hbox4.pack_start(Gtk.Label(label="  "), 1, 1, 0)
-    hbox4.pack_start(led, 0, 0, 0)
-    hbox4.pack_start(Gtk.Label(label="  "), 1, 1, 0)
-    vbox.pack_start(hbox4, 0, 0, 2)
+    #hbox4 = Gtk.HBox()
+    #hbox4.pack_start(Gtk.Label(label="  "), 1, 1, 0)
+    #hbox4.pack_start(led, 0, 0, 0)
+    #hbox4.pack_start(Gtk.Label(label="  "), 1, 1, 0)
+    #vbox.pack_start(hbox4, 0, 0, 2)
 
     rarr = ["One", "Two", "Three", "Four", "Five"]
     rg = pggui.RadioGroup(rarr, _callb, True)

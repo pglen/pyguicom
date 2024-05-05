@@ -1367,40 +1367,22 @@ def message(strx, parent = None, title = None, icon = Gtk.MessageType.INFO):
     dialog.show_all()
     return dialog.run()
 
-def yes_no(message, title = "Question", parent=None):
+def yes_no(message, title = "Question", parent=None, default="Yes"):
 
     dialog = Gtk.MessageDialog(title=title)
-    #if title:
-    #    dialog.set_title(title)
-
-    dialog.set_default_response(Gtk.ResponseType.YES)
-
-    sp = "     "
-    label = Gtk.Label(message)
-    label2 = Gtk.Label(sp)
-    label3 = Gtk.Label(sp)
-    label2a = Gtk.Label(sp)
-    label3a = Gtk.Label(sp)
-
-    hbox = Gtk.HBox()
-
-    hbox.pack_start(label2, 0, 0, 0)
-    hbox.pack_start(label, 1, 1, 0)
-    hbox.pack_start(label3, 0, 0, 0)
-
-    #dialog.vbox.pack_start(label2a, 0, 0, 0)
-    #dialog.vbox.pack_start(hbox, 0, 0, 0)
-    #dialog.vbox.pack_start(label3a, 0, 0, 0)
 
     img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
     dialog.set_image(img)
     dialog.set_markup(message)
 
-    dialog.add_button("_Yes", Gtk.ResponseType.YES)
-    dialog.add_button("_No", Gtk.ResponseType.NO)
-
-    #img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
-    #dialog.set_image(img)
+    if default == "Yes":
+        dialog.set_default_response(Gtk.ResponseType.YES)
+        dialog.add_button("_Yes", Gtk.ResponseType.YES)
+        dialog.add_button("_No", Gtk.ResponseType.NO)
+    else:
+        dialog.set_default_response(Gtk.ResponseType.NO)
+        dialog.add_button("_No", Gtk.ResponseType.NO)
+        dialog.add_button("_Yes", Gtk.ResponseType.YES)
 
     if parent:
         dialog.set_transient_for(parent)
@@ -1425,68 +1407,64 @@ def yes_no(message, title = "Question", parent=None):
     response = dialog.run()
     dialog.destroy()
     #print("response", response, resp2str(response))
+
+    # Convert all other responses to default
+    if response == Gtk.ResponseType.REJECT or \
+          response == Gtk.ResponseType.CLOSE  or \
+             response == Gtk.ResponseType.DELETE_EVENT:
+        response = Gtk.ResponseType.NO
+
+        # Cancel means no
+        #if default == "Yes":
+        #    response = Gtk.ResponseType.YES
+        #else:
+        #    response = Gtk.ResponseType.NO
+
     return response
 
 # ------------------------------------------------------------------------
 
-def yes_no_cancel(message, title = "Question", cancel = True):
-
-    #warmings.simplefilter("ignore")
-
-    #dialog = Gtk.Dialog(title,
-    #               None,
-    #               Gtk.DialogFlags.MODAL | \
-    #               Gtk.DialogFlags.DESTROY_WITH_PARENT)
+def yes_no_cancel(message, title="Question", default="Yes"):
 
     dialog = Gtk.MessageDialog(title=title)
 
-    #dialog.set_default_response(Gtk.ResponseType.YES)
-    #dialog.set_position(Gtk.WindowPosition.CENTER)
-
-    sp = "     "
-    label = Gtk.Label(message)
-    label2 = Gtk.Label(sp)
-    label3 = Gtk.Label(sp)
-    label2a = Gtk.Label(sp)
-    label3a = Gtk.Label(sp)
-
-    hbox = Gtk.HBox()
-    hbox.pack_start(label2, 0, 0, 0)
-    hbox.pack_start(label, 1, 1, 0)
-    hbox.pack_start(label3, 0, 0, 0)
-
-    #dialog.vbox.pack_start(label2a, 0, 0, 0)
-    #dialog.vbox.pack_start(hbox, 0, 0, 0)
-    #dialog.vbox.pack_start(label3a, 0, 0, 0)
-
-    dialog.add_button("_Yes", Gtk.ResponseType.YES)
-    dialog.add_button("_No", Gtk.ResponseType.NO)
+    if default == "Yes":
+        dialog.set_default_response(Gtk.ResponseType.YES)
+        dialog.add_button("_Yes", Gtk.ResponseType.YES)
+        dialog.add_button("_No", Gtk.ResponseType.NO)
+        dialog.add_button("_Cancel", Gtk.ResponseType.CANCEL)
+    elif default == "No":
+        dialog.set_default_response(Gtk.ResponseType.NO)
+        dialog.add_button("_No", Gtk.ResponseType.NO)
+        dialog.add_button("_Yes", Gtk.ResponseType.YES)
+        dialog.add_button("_Cancel", Gtk.ResponseType.CANCEL)
+    else:
+        dialog.set_default_response(Gtk.ResponseType.CANCEL)
+        dialog.add_button("_Cancel", Gtk.ResponseType.CANCEL)
+        dialog.add_button("_Yes", Gtk.ResponseType.YES)
+        dialog.add_button("_No", Gtk.ResponseType.NO)
 
     img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
     dialog.set_image(img)
     dialog.set_markup(message)
 
-    if cancel:
-        dialog.add_button("_Cancel", Gtk.ResponseType.CANCEL)
-
-    def _yn_keyc(win, event, cancel):
-        #print event
+    def _yn_keyc(win, event):
+        #print("key:",  event)
         if event.keyval == Gdk.KEY_y or \
             event.keyval == Gdk.KEY_Y:
             win.response(Gtk.ResponseType.YES)
         if event.keyval == Gdk.KEY_n or \
             event.keyval == Gdk.KEY_N:
             win.response(Gtk.ResponseType.NO)
-        if cancel:
-            if event.keyval == Gdk.KEY_c or \
-                event.keyval == Gdk.KEY_C:
-                win.response(Gtk.ResponseType.CANCEL)
+        if event.keyval == Gdk.KEY_c or \
+            event.keyval == Gdk.KEY_C:
+            win.response(Gtk.ResponseType.CANCEL)
 
-    dialog.connect("key-press-event", _yn_keyc, cancel)
+    dialog.connect("key-press-event", _yn_keyc)
     dialog.show_all()
     response = dialog.run()
 
-    # Convert all responses to cancel
+    # Convert all other responses to cancel
     if  response == Gtk.ResponseType.CANCEL or \
             response == Gtk.ResponseType.REJECT or \
                 response == Gtk.ResponseType.CLOSE  or \
@@ -1495,7 +1473,7 @@ def yes_no_cancel(message, title = "Question", cancel = True):
 
     dialog.destroy()
 
-    #print("YNC result:", response);
+    #print("yes_no_cancel() result:", response);
     return  response
 
 def resp2str(resp):

@@ -15,6 +15,7 @@ from gi.repository import Pango
 
 import pgsimp
 import pgutils
+import pgtests
 
 # ------------------------------------------------------------------------
 class testwin(Gtk.Window):
@@ -71,8 +72,8 @@ tw = pgtestwin()
 def fillrand():
     aaa = []
     for aa in range(10):
-        aaa.append( (pgutils.randstr(12), pgutils.randstr(12),
-                        pgutils.randstr(12), pgutils.randstr(12)) )
+        aaa.append( (pgtests.randstr(12), pgtests.randstr(12),
+                        pgtests.randstr(12), pgtests.randstr(12)) )
     return aaa
 
 aaa = fillrand()
