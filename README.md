@@ -4,7 +4,7 @@
 
  These classes are for python PyGobject (Gtk) development. They are used in
 several projects. They act as a simplification front end for the PyGtk / PyGobject
- classes.
+classes.
 
 A sampler of what is in there (pasted from code, in no particular order):
 
@@ -19,20 +19,15 @@ A sampler of what is in there (pasted from code, in no particular order):
     class Lights(Gtk.Frame):
     class WideButt(Gtk.Button):
     class ScrollListBox(Gtk.Frame):
-    class TextRow(Gtk.HBox):
-    class RadioGroup(Gtk.Frame):
-    class Led(Gtk.DrawingArea):
-    class Lights(Gtk.Frame):
     class FrameTextView(Gtk.TextView):
     class Label(Gtk.Label):
     class Logo(Gtk.VBox):
     class xSpacer(Gtk.HBox):
-    class ScrollListBox(Gtk.Frame):
     class ListBox(Gtk.TreeView):
 
     ... and a lot more ...
 
-## Also includes python / Gtk primitives:
+## Also includes Some Python / Gtk primitives:
 
     def get_screen_wh():
     def get_screen_xy():
@@ -53,12 +48,12 @@ A sampler of what is in there (pasted from code, in no particular order):
 
 ## Example:
 
-The Label Button (smallbutt) takes a constructor, and feeds
+The Label Button (SmallButt) takes a constructor, and feeds
  the arguments with defaults as one would expect.
 
      def __init__(self, textm="", widget=None, tooltip=None, font=None):
 
-The simplification effect allows one to create a smallbutt with no arguments,
+The simplification effect allows one to create a Label Button with no arguments,
 and still have a somewhat reasonable outcome. The label example is trivial,
 the simplification takes a new dimension with classes like SimpleTree.
 
@@ -69,8 +64,10 @@ set on one line. This makes the code look more compact and maintainable.
 
  The test utilities can  confirm correct operation; however being a visual
 set of classes, the real test is seeing the generated UI.
+The test utilities can also be found in the project install directory,
+starting with the text* prefix.
 
- See descendent projects for more examples. (pyedpro; pycal; pggui; ...)
+ See descendent projects for more examples. (pyedpro; pycal; pyvserv; ...)
 
 Peter Glen
 

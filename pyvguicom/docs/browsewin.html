@@ -34,7 +34,8 @@
 import os, sys, getopt, signal, random, time, warnings
 
 realinc = os.path.realpath(os.path.dirname(__file__) + os.sep + &#34;../pycommon&#34;)
-sys.path.append(realinc)
+if realinc not in sys.path:
+    sys.path.append(realinc)
 
 from pgutils import  *
 from pggui import  *
@@ -42,7 +43,6 @@ from pgsimp import  *
 
 import gi
 gi.require_version(&#34;Gtk&#34;, &#34;3.0&#34;)
-#gi.require_version(&#39;WebKit2&#39;, &#39;4.0&#39;)
 
 from gi.repository import Gtk
 from gi.repository import Gdk
@@ -50,15 +50,12 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
 
-ret = &#34;&#34;
+from pedlib import pedconfig
 
-try:
-    import pgwkit
-except:
-    print(&#34;Cannot load WebKit2&#34;, sys.exc_info())
-    sys.exit(1)
+import pgwkit
+#print(&#34;pgwkit:&#34;, pgwkit)
 
-class  brow_win(Gtk.VBox):
+class  browserWin(Gtk.VBox):
 
     &#39;&#39;&#39; Collection of URL bar, toolbar, status bar &#39;&#39;&#39;
 
@@ -84,9 +81,11 @@ class  brow_win(Gtk.VBox):
         try:
             self.webview = pgwkit.pgwebw(self)
         except:
-            print(&#34;Please install webkit2&#34;)
+            print(&#34;Please install WebKit2&#34;, sys.exc_info())
+            #if pedconfig.conf.verbose:
+            put_exception(&#34;start webview&#34;)
             #sys.exit(1)
-            raise
+            #raise
 
         #self.old_html = &#34;&#34;
         self.scroll_win.add(self.webview)
@@ -301,8 +300,8 @@ class  brow_win(Gtk.VBox):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="browsewin.brow_win"><code class="flex name class">
-<span>class <span class="ident">brow_win</span></span>
+<dt id="browsewin.browserWin"><code class="flex name class">
+<span>class <span class="ident">browserWin</span></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Collection of URL bar, toolbar, status bar </p>
@@ -312,7 +311,7 @@ sets through the use of explicit keyword arguments.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class  brow_win(Gtk.VBox):
+<pre><code class="python">class  browserWin(Gtk.VBox):
 
     &#39;&#39;&#39; Collection of URL bar, toolbar, status bar &#39;&#39;&#39;
 
@@ -338,9 +337,11 @@ sets through the use of explicit keyword arguments.</p></div>
         try:
             self.webview = pgwkit.pgwebw(self)
         except:
-            print(&#34;Please install webkit2&#34;)
+            print(&#34;Please install WebKit2&#34;, sys.exc_info())
+            #if pedconfig.conf.verbose:
+            put_exception(&#34;start webview&#34;)
             #sys.exit(1)
-            raise
+            #raise
 
         #self.old_html = &#34;&#34;
         self.scroll_win.add(self.webview)
@@ -563,7 +564,7 @@ sets through the use of explicit keyword arguments.</p></div>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="browsewin.brow_win.backurl"><code class="name flex">
+<dt id="browsewin.browserWin.backurl"><code class="name flex">
 <span>def <span class="ident">backurl</span></span>(<span>self, url, parm, buff)</span>
 </code></dt>
 <dd>
@@ -576,7 +577,7 @@ sets through the use of explicit keyword arguments.</p></div>
     self.webview.go_back()</code></pre>
 </details>
 </dd>
-<dt id="browsewin.brow_win.baseurl"><code class="name flex">
+<dt id="browsewin.browserWin.baseurl"><code class="name flex">
 <span>def <span class="ident">baseurl</span></span>(<span>self, url, parm, buff)</span>
 </code></dt>
 <dd>
@@ -589,7 +590,7 @@ sets through the use of explicit keyword arguments.</p></div>
     self.webview.load_uri(&#34;file://&#34; + self.fname)</code></pre>
 </details>
 </dd>
-<dt id="browsewin.brow_win.copy"><code class="name flex">
+<dt id="browsewin.browserWin.copy"><code class="name flex">
 <span>def <span class="ident">copy</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -603,7 +604,7 @@ sets through the use of explicit keyword arguments.</p></div>
     self.webview.on_action(&#34;copy&#34;)</code></pre>
 </details>
 </dd>
-<dt id="browsewin.brow_win.cut"><code class="name flex">
+<dt id="browsewin.browserWin.cut"><code class="name flex">
 <span>def <span class="ident">cut</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -617,7 +618,7 @@ sets through the use of explicit keyword arguments.</p></div>
     self.webview.on_action(&#34;cut&#34;)</code></pre>
 </details>
 </dd>
-<dt id="browsewin.brow_win.forwurl"><code class="name flex">
+<dt id="browsewin.browserWin.forwurl"><code class="name flex">
 <span>def <span class="ident">forwurl</span></span>(<span>self, url, parm, buff)</span>
 </code></dt>
 <dd>
@@ -630,7 +631,7 @@ sets through the use of explicit keyword arguments.</p></div>
     self.webview.go_forward()</code></pre>
 </details>
 </dd>
-<dt id="browsewin.brow_win.get_content"><code class="name flex">
+<dt id="browsewin.browserWin.get_content"><code class="name flex">
 <span>def <span class="ident">get_content</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -650,7 +651,7 @@ sets through the use of explicit keyword arguments.</p></div>
     return self.ret</code></pre>
 </details>
 </dd>
-<dt id="browsewin.brow_win.go"><code class="name flex">
+<dt id="browsewin.browserWin.go"><code class="name flex">
 <span>def <span class="ident">go</span></span>(<span>self, xstr)</span>
 </code></dt>
 <dd>
@@ -683,7 +684,7 @@ sets through the use of explicit keyword arguments.</p></div>
     self.webview.load_uri(xstr)</code></pre>
 </details>
 </dd>
-<dt id="browsewin.brow_win.gourl"><code class="name flex">
+<dt id="browsewin.browserWin.gourl"><code class="name flex">
 <span>def <span class="ident">gourl</span></span>(<span>self, *url)</span>
 </code></dt>
 <dd>
@@ -697,7 +698,7 @@ sets through the use of explicit keyword arguments.</p></div>
     self.go(self.edit.get_text())</code></pre>
 </details>
 </dd>
-<dt id="browsewin.brow_win.is_modified"><code class="name flex">
+<dt id="browsewin.browserWin.is_modified"><code class="name flex">
 <span>def <span class="ident">is_modified</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -710,7 +711,7 @@ sets through the use of explicit keyword arguments.</p></div>
     return self.webview.modified</code></pre>
 </details>
 </dd>
-<dt id="browsewin.brow_win.load_html"><code class="name flex">
+<dt id="browsewin.browserWin.load_html"><code class="name flex">
 <span>def <span class="ident">load_html</span></span>(<span>self, strx)</span>
 </code></dt>
 <dd>
@@ -723,7 +724,7 @@ sets through the use of explicit keyword arguments.</p></div>
     self.webview.load_html(strx)</code></pre>
 </details>
 </dd>
-<dt id="browsewin.brow_win.open"><code class="name flex">
+<dt id="browsewin.browserWin.open"><code class="name flex">
 <span>def <span class="ident">open</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -751,7 +752,7 @@ sets through the use of explicit keyword arguments.</p></div>
                 self.webview.load_html(fd.read(), &#34;file:///&#34;)</code></pre>
 </details>
 </dd>
-<dt id="browsewin.brow_win.paste"><code class="name flex">
+<dt id="browsewin.browserWin.paste"><code class="name flex">
 <span>def <span class="ident">paste</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -766,7 +767,7 @@ sets through the use of explicit keyword arguments.</p></div>
     #self.webview.on_action(&#34;paste&#34;)</code></pre>
 </details>
 </dd>
-<dt id="browsewin.brow_win.save"><code class="name flex">
+<dt id="browsewin.browserWin.save"><code class="name flex">
 <span>def <span class="ident">save</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -795,7 +796,7 @@ sets through the use of explicit keyword arguments.</p></div>
     self.webview.get_html(completion, &#39;w&#39;)</code></pre>
 </details>
 </dd>
-<dt id="browsewin.brow_win.saveas"><code class="name flex">
+<dt id="browsewin.browserWin.saveas"><code class="name flex">
 <span>def <span class="ident">saveas</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -823,7 +824,7 @@ sets through the use of explicit keyword arguments.</p></div>
     dialog.destroy()</code></pre>
 </details>
 </dd>
-<dt id="browsewin.brow_win.set_status"><code class="name flex">
+<dt id="browsewin.browserWin.set_status"><code class="name flex">
 <span>def <span class="ident">set_status</span></span>(<span>self, xtxt)</span>
 </code></dt>
 <dd>
@@ -837,7 +838,7 @@ sets through the use of explicit keyword arguments.</p></div>
     GLib.timeout_add(3000, self.stattime, self, 0)</code></pre>
 </details>
 </dd>
-<dt id="browsewin.brow_win.stattime"><code class="name flex">
+<dt id="browsewin.browserWin.stattime"><code class="name flex">
 <span>def <span class="ident">stattime</span></span>(<span>self, *arg)</span>
 </code></dt>
 <dd>
@@ -850,7 +851,7 @@ sets through the use of explicit keyword arguments.</p></div>
     self.status.set_text(&#34;Idle.&#34;)</code></pre>
 </details>
 </dd>
-<dt id="browsewin.brow_win.url_callb"><code class="name flex">
+<dt id="browsewin.browserWin.url_callb"><code class="name flex">
 <span>def <span class="ident">url_callb</span></span>(<span>self, xtxt)</span>
 </code></dt>
 <dd>
@@ -863,7 +864,7 @@ sets through the use of explicit keyword arguments.</p></div>
     self.go(xtxt)</code></pre>
 </details>
 </dd>
-<dt id="browsewin.brow_win.urlbar"><code class="name flex">
+<dt id="browsewin.browserWin.urlbar"><code class="name flex">
 <span>def <span class="ident">urlbar</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -921,26 +922,26 @@ sets through the use of explicit keyword arguments.</p></div>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="browsewin.brow_win" href="#browsewin.brow_win">brow_win</a></code></h4>
+<h4><code><a title="browsewin.browserWin" href="#browsewin.browserWin">browserWin</a></code></h4>
 <ul class="two-column">
-<li><code><a title="browsewin.brow_win.backurl" href="#browsewin.brow_win.backurl">backurl</a></code></li>
-<li><code><a title="browsewin.brow_win.baseurl" href="#browsewin.brow_win.baseurl">baseurl</a></code></li>
-<li><code><a title="browsewin.brow_win.copy" href="#browsewin.brow_win.copy">copy</a></code></li>
-<li><code><a title="browsewin.brow_win.cut" href="#browsewin.brow_win.cut">cut</a></code></li>
-<li><code><a title="browsewin.brow_win.forwurl" href="#browsewin.brow_win.forwurl">forwurl</a></code></li>
-<li><code><a title="browsewin.brow_win.get_content" href="#browsewin.brow_win.get_content">get_content</a></code></li>
-<li><code><a title="browsewin.brow_win.go" href="#browsewin.brow_win.go">go</a></code></li>
-<li><code><a title="browsewin.brow_win.gourl" href="#browsewin.brow_win.gourl">gourl</a></code></li>
-<li><code><a title="browsewin.brow_win.is_modified" href="#browsewin.brow_win.is_modified">is_modified</a></code></li>
-<li><code><a title="browsewin.brow_win.load_html" href="#browsewin.brow_win.load_html">load_html</a></code></li>
-<li><code><a title="browsewin.brow_win.open" href="#browsewin.brow_win.open">open</a></code></li>
-<li><code><a title="browsewin.brow_win.paste" href="#browsewin.brow_win.paste">paste</a></code></li>
-<li><code><a title="browsewin.brow_win.save" href="#browsewin.brow_win.save">save</a></code></li>
-<li><code><a title="browsewin.brow_win.saveas" href="#browsewin.brow_win.saveas">saveas</a></code></li>
-<li><code><a title="browsewin.brow_win.set_status" href="#browsewin.brow_win.set_status">set_status</a></code></li>
-<li><code><a title="browsewin.brow_win.stattime" href="#browsewin.brow_win.stattime">stattime</a></code></li>
-<li><code><a title="browsewin.brow_win.url_callb" href="#browsewin.brow_win.url_callb">url_callb</a></code></li>
-<li><code><a title="browsewin.brow_win.urlbar" href="#browsewin.brow_win.urlbar">urlbar</a></code></li>
+<li><code><a title="browsewin.browserWin.backurl" href="#browsewin.browserWin.backurl">backurl</a></code></li>
+<li><code><a title="browsewin.browserWin.baseurl" href="#browsewin.browserWin.baseurl">baseurl</a></code></li>
+<li><code><a title="browsewin.browserWin.copy" href="#browsewin.browserWin.copy">copy</a></code></li>
+<li><code><a title="browsewin.browserWin.cut" href="#browsewin.browserWin.cut">cut</a></code></li>
+<li><code><a title="browsewin.browserWin.forwurl" href="#browsewin.browserWin.forwurl">forwurl</a></code></li>
+<li><code><a title="browsewin.browserWin.get_content" href="#browsewin.browserWin.get_content">get_content</a></code></li>
+<li><code><a title="browsewin.browserWin.go" href="#browsewin.browserWin.go">go</a></code></li>
+<li><code><a title="browsewin.browserWin.gourl" href="#browsewin.browserWin.gourl">gourl</a></code></li>
+<li><code><a title="browsewin.browserWin.is_modified" href="#browsewin.browserWin.is_modified">is_modified</a></code></li>
+<li><code><a title="browsewin.browserWin.load_html" href="#browsewin.browserWin.load_html">load_html</a></code></li>
+<li><code><a title="browsewin.browserWin.open" href="#browsewin.browserWin.open">open</a></code></li>
+<li><code><a title="browsewin.browserWin.paste" href="#browsewin.browserWin.paste">paste</a></code></li>
+<li><code><a title="browsewin.browserWin.save" href="#browsewin.browserWin.save">save</a></code></li>
+<li><code><a title="browsewin.browserWin.saveas" href="#browsewin.browserWin.saveas">saveas</a></code></li>
+<li><code><a title="browsewin.browserWin.set_status" href="#browsewin.browserWin.set_status">set_status</a></code></li>
+<li><code><a title="browsewin.browserWin.stattime" href="#browsewin.browserWin.stattime">stattime</a></code></li>
+<li><code><a title="browsewin.browserWin.url_callb" href="#browsewin.browserWin.url_callb">url_callb</a></code></li>
+<li><code><a title="browsewin.browserWin.urlbar" href="#browsewin.browserWin.urlbar">urlbar</a></code></li>
 </ul>
 </li>
 </ul>

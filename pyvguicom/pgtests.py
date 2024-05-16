@@ -90,6 +90,17 @@ def randstr(lenx):
 
     return strx
 
+def randstrrand(lenmin, lenmax):
+
+    lenx = random.randint(lenmin, lenmax)
+    strx = ""
+    for aa in range(lenx):
+        ridx = random.randint(0, len(allstr)-1)
+        rr = allstr[ridx]
+        strx += str(rr)
+
+    return strx
+
 def randasc(lenx):
 
     strx = ""

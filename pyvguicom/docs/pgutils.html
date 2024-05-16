@@ -28,11 +28,15 @@
 </summary>
 <pre><code class="python">#!/usr/bin/python
 
-from __future__ import absolute_import
-from __future__ import print_function
+# pylint: disable=C0103
+# pylint: disable=C0209
+# pylint: disable=C0321
 
-import os, sys, getopt, signal, string, fnmatch, math, warnings
-import random, time, subprocess, traceback, glob, stat
+import os, sys, getopt, string,  math
+import random, time, traceback, stat
+import platform
+
+#import warmings
 
 if sys.version_info.major &lt; 3:
     pass
@@ -41,171 +45,14 @@ else:
     if inspect.isbuiltin(time.process_time):
         time.clock = time.process_time
 
+&#39;&#39;&#39; General utility fiunctions &#39;&#39;&#39;
+
 import gi
 gi.require_version(&#34;Gtk&#34;, &#34;3.0&#34;)
 from gi.repository import Gtk
 from gi.repository import Gdk
-from gi.repository import GLib
 from gi.repository import GObject
-from gi.repository import Pango
-
-# Add the new line twice for more balaced string
-
-allcr =    &#34; &#34; + &#34;\r&#34; + &#34;\n&#34; + \
-            &#34;\r&#34; + &#34;\n&#34;
-
-                   #string.punctuation +
-
-allstr =    &#34; &#34; + \
-            string.ascii_lowercase +  string.ascii_uppercase +  \
-                string.digits
-
-allasc =      string.ascii_lowercase +  string.ascii_uppercase +  \
-                string.digits + &#34;_&#34;
-alllett =      string.ascii_lowercase +  string.ascii_uppercase
-testmode = 0
-
-# -----------------------------------------------------------------------
-# Sleep just a little, but allow the system to breed
-
-def  usleep2(msec):
-
-    if sys.version_info[0] &lt; 3 or \
-        (sys.version_info[0] == 3 and sys.version_info[1] &lt; 3):
-        timefunc = time.clock
-    else:
-        timefunc = time.process_time
-
-    got_clock = timefunc() + float(msec) / 1000
-    #print( got_clock)
-    while True:
-        if timefunc() &gt; got_clock:
-            break
-        #print (&#34;Sleeping&#34;)
-        Gtk.main_iteration_do(False)
-
-# -----------------------------------------------------------------------
-# Pull up a message box
-
-def message2(strx, title = &#34;Dialog&#34;, parent=None):
-
-        dialog = Gtk.MessageDialog()
-
-        # Close dialog on user response
-        dialog.add_button(&#34;Close&#34;, Gtk.ButtonsType.CLOSE)
-
-        if title:
-            dialog.set_title(title)
-
-        #box = dialog.get_content_area()
-        #box.add(Gtk.Label(strx))
-
-        dialog.set_markup(strx)
-
-        if parent:
-            dialog.set_transient_for(parent)
-
-        dialog.connect (&#34;response&#34;, lambda d, r: d.destroy())
-        dialog.show_all()
-
-
-def yes_no2(message, title = &#34;Question&#34;, parent=None):
-
-        dialog = Gtk.MessageDialog()
-
-        if title:
-            dialog.set_title(title)
-
-        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
-        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
-
-        dialog.set_markup(message)
-
-        img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
-        dialog.set_image(img)
-
-        if parent:
-            dialog.set_transient_for(parent)
-
-        dialog.connect(&#34;key-press-event&#34;, yn_key, 0)
-
-        #dialog.connect (&#34;response&#34;, lambda d, r: d.destroy())
-
-        dialog.show_all()
-        response = dialog.run()
-        dialog.destroy()
-
-        return response
-
-# ------------------------------------------------------------------------
-# Do dialog
-
-def yes_no_cancel2(message, title = &#34;Question&#34;, cancel = True, parent=None):
-
-    warnings.simplefilter(&#34;ignore&#34;)
-
-    dialog = Gtk.Dialog(title,
-                   None,
-                   Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT)
-
-    dialog.set_default_response(Gtk.ResponseType.YES)
-    dialog.set_position(Gtk.WindowPosition.CENTER)
-    #dialog.set_transient_for(pedconfig.conf.pedwin.mywin)
-
-    sp = &#34;     &#34;
-    label = Gtk.Label(message);
-    label2 = Gtk.Label(sp);      label3 = Gtk.Label(sp)
-    label2a = Gtk.Label(sp);     label3a = Gtk.Label(sp)
-
-    hbox = Gtk.HBox() ;
-
-    hbox.pack_start(label2, 0, 0, 0);
-    hbox.pack_start(label, 1, 1, 0);
-    hbox.pack_start(label3, 0, 0, 0)
-
-    dialog.vbox.pack_start(label2a, 0, 0, 0);
-    dialog.vbox.pack_start(hbox, 0, 0, 0)
-    dialog.vbox.pack_start(label3a, 0, 0, 0);
-
-    dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
-    dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
-
-    if cancel:
-        dialog.add_button(&#34;_Cancel&#34;, Gtk.ResponseType.CANCEL)
-
-    dialog.connect(&#34;key-press-event&#34;, _yn_key, cancel)
-    #dialog.connect(&#34;key-release-event&#34;, _yn_key, cancel)
-    warnings.simplefilter(&#34;default&#34;)
-
-    dialog.show_all()
-    response = dialog.run()
-
-    # Convert all responses to cancel
-    if  response == Gtk.ResponseType.CANCEL or \
-            response == Gtk.ResponseType.REJECT or \
-                response == Gtk.ResponseType.CLOSE  or \
-                    response == Gtk.ResponseType.DELETE_EVENT:
-        response = Gtk.ResponseType.CANCEL
-
-    dialog.destroy()
-
-    #print(&#34;YNC result:&#34;, response);
-    return  response
-
-def _yn_key(win, event, cancel):
-    #print event
-    if event.keyval == Gdk.KEY_y or \
-        event.keyval == Gdk.KEY_Y:
-        win.response(Gtk.ResponseType.YES)
-
-    if event.keyval == Gdk.KEY_n or \
-        event.keyval == Gdk.KEY_N:
-        win.response(Gtk.ResponseType.NO)
-
-    if cancel:
-        if event.keyval == Gdk.KEY_c or \
-            event.keyval == Gdk.KEY_C:
-            win.response(Gtk.ResponseType.CANCEL)
+from gi.repository import GdkPixbuf
 
 # ------------------------------------------------------------------------
 # Resolve path name
@@ -221,12 +68,6 @@ def respath(fname):
     except:
         print (&#34;Cannot resolve path&#34;, fname, sys.exc_info())
     return None
-
-# ------------------------------------------------------------------------
-# Random colors
-
-def randcol():
-    return random.randint(0, 255)
 
 # ------------------------------------------------------------------------
 # Color conversions
@@ -291,7 +132,7 @@ def put_debug2(xstr):
         print( &#34;Failed on debug output.&#34;)
         print( sys.exc_info())
 
-def put_exception_old(xstr):
+def put_exception(xstr):
 
     cumm = xstr + &#34; &#34;
     a,b,c = sys.exc_info()
@@ -307,7 +148,7 @@ def put_exception_old(xstr):
         except:
             print( &#34;Could not print trace stack. &#34;, sys.exc_info())
 
-    put_debug2(cumm)
+    print(cumm)
     #syslog.syslog(&#34;%s %s %s&#34; % (xstr, a, b))
 
 def decode_bits(numx):
@@ -323,13 +164,6 @@ def decode_bits(numx):
         mask &gt;&gt;= 1
 
     return retx
-
-def randcolstr(start = 0, endd = 255):
-    rr =  random.randint(start, endd)
-    gg =  random.randint(start, endd)
-    bb =  random.randint(start, endd)
-    strx = &#34;#%02x%02x%02x&#34; % (rr, gg, bb)
-    return strx
 
 # ------------------------------------------------------------------------
 # Remove non printables
@@ -353,7 +187,7 @@ def clean_str2(strx):
     skip = False
     for aa in range(len(strx)):
         if skip:
-            skip = False;
+            skip = False
             continue
         if strx[aa] == &#39;\\&#39; and strx[aa+1] == &#39;r&#39;:
             skip = True
@@ -427,39 +261,6 @@ def serial_ports():
     #print (&#34;result&#34;, result)
     return result
 &#39;&#39;&#39;
-
-# ------------------------------------------------------------------------
-# Get random str
-
-def randstr(lenx):
-
-    strx = &#34;&#34;
-    for aa in range(lenx):
-        ridx = random.randint(0, len(allstr)-1)
-        rr = allstr[ridx]
-        strx += str(rr)
-
-    return strx
-
-def randasc(lenx):
-
-    strx = &#34;&#34;
-    for aa in range(lenx):
-        ridx = random.randint(0, len(allasc)-1)
-        rr = allasc[ridx]
-        strx += str(rr)
-
-    return strx
-
-def randlett(lenx):
-
-    strx = &#34;&#34;
-    for aa in range(lenx):
-        ridx = random.randint(0, len(alllett)-1)
-        rr = alllett[ridx]
-        strx += str(rr)
-
-    return strx
 
 # ------------------------------------------------------------------------
 # Convert octal string to integer
@@ -572,7 +373,7 @@ def unescape(strx):
 
         chh = strx[pos]
 
-        if(chh == &#39;\\&#39;):
+        if chh == &#39;\\&#39;:
             #print &#34;backslash&#34;, strx[pos:]
             pos2 = pos + 1; strx2 = &#34;&#34;
             while True:
@@ -671,58 +472,6 @@ def isfile(fname):
         return True
     return False
 
-
-&#39;&#39;&#39;
-# Append to log
-def logentry(kind, startt, fname):
-    logfname = &#34;account.txt&#34;
-    logfile = pedconfig.conf.log_dir + &#34;/&#34; + logfname
-    try:
-        fp = open(logfile, &#34;a+&#34;)
-    except:
-        try:
-            fp = open(logfile, &#34;w+&#34;)
-            fp.seek(0, os.SEEK_END);
-        except:
-            print(&#34;Cannot open/create log file&#34;, logfile)
-            return
-
-    log_clock = time.time()
-
-    print(&#34;Action:&#34;, &#34;%s %s&#34; % (kind, os.path.realpath(fname)), file=fp)
-    print(&#34;On:&#34;, time.ctime(log_clock), file=fp)
-    print(&#34;Delta:&#34;, &#34;%.0f&#34; % (log_clock - startt), file=fp)
-    print(&#34;Date:&#34;, &#34;%.0f %s %s\n&#34; % \
-                        (log_clock, os.path.basename(fname), kind.split()[0]), file=fp)
-    fp.close()
-
-# Append to timesheet
-def timesheet(kind, startt, endd):
-
-    logfname = &#34;timesheet.txt&#34;
-    logfile = pedconfig.conf.log_dir + &#34;/&#34; + logfname
-    try:
-        fp = open(logfile, &#34;a+&#34;)
-    except:
-        try:
-            fp = open(logfile, &#34;w+&#34;)
-            fp.seek(0, os.SEEK_END);
-        except:
-            print(&#34;Cannot open/create log file&#34;, logfile)
-            return
-
-    log_clock = time.time()
-
-    print(&#34;Action:&#34;, &#34;%s&#34; % (kind), file=fp)
-    print(&#34;On:&#34;, time.ctime(log_clock), file=fp)
-    if endd:
-        td = endd - startt
-        print(&#34;Time diff:&#34;, &#34;%.0f %d:%d&#34; % (td, td / 3600, (td % 3600) / 60), file=fp)
-
-    print(file=fp)
-    fp.close()
-&#39;&#39;&#39;
-
 def put_exception2_old(xstr):
 
     cumm = xstr + &#34; &#34;
@@ -767,7 +516,7 @@ def untab_str(strx, tabstop = 4):
         if  chh == &#34;\t&#34;:
             # Generate string
             spaces = tabstop - (cnt % tabstop)
-            ttt = &#34;&#34;;
+            ttt = &#34;&#34;
             for aa in range(spaces):
                 ttt += &#34; &#34;
             res += ttt
@@ -785,13 +534,11 @@ def ampmstr(bb):
 
     dd = &#34;AM&#34;
     if bb == 12:
-       dd = &#34;PM&#34;
+        dd = &#34;PM&#34;
     elif bb &gt; 12:
         bb -= 12
         dd = &#34;PM&#34;
-
     return &#34;%02d %s&#34; % (bb, dd)
-
 
 # It&#39;s totally optional to do this, you could just manually insert icons
 # and have them not be themeable, especially if you never expect people
@@ -801,7 +548,7 @@ def register_stock_icons():
     &#39;&#39;&#39; This function registers our custom toolbar icons, so they
         can be themed.
     &#39;&#39;&#39;
-    items = [(&#39;demo-gtk-logo&#39;, &#39;_GTK!&#39;, 0, 0, &#39;&#39;)]
+    #items = [(&#39;demo-gtk-logo&#39;, &#39;_GTK!&#39;, 0, 0, &#39;&#39;)]
     # Register our stock items
     #Gtk.stock_add(items)
 
@@ -837,10 +584,6 @@ def register_stock_icons():
 
         except GObject.GError as error:
             print(&#39;failed to load GTK logo for toolbar&#39;)
-
-
-if __name__ == &#39;__main__&#39;:
-    print(&#34;This file was not meant to run directly&#34;)
 
 # ------------------------------------------------------------------------
 # Let the higher level deal with errors.
@@ -886,8 +629,8 @@ def  readfile(strx, sep = None):
     text = []
     for aa in text2:
         #print(&#34;&#39;%s\n&#34; % aa)
-        bb = aa.replace(&#34;\r&#34;, &#34;&#34;);
-        cc = bb.replace(&#34;\n&#34;, &#34;&#34;);
+        bb = aa.replace(&#34;\r&#34;, &#34;&#34;)
+        cc = bb.replace(&#34;\n&#34;, &#34;&#34;)
         text.append(cc)
     #text2 = []
 
@@ -947,116 +690,39 @@ class Config:
                             self.optarr[bb][3]()
         return args
 
-# ------------------------------------------------------------------------
+def  about(progname, verstr = &#34;1.0.0&#34;, imgfile = &#34;icon.png&#34;):
 
-def yes_no_cancel(title, message, cancel = True):
-
-    warnings.simplefilter(&#34;ignore&#34;)
-
-    dialog = Gtk.Dialog(title,
-                   None,
-                   Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT)
-
-    dialog.set_default_response(Gtk.ResponseType.YES)
-    dialog.set_position(Gtk.WindowPosition.CENTER)
-    #dialog.set_transient_for(pedconfig.conf.pedwin.mywin)
-
-    sp = &#34;     &#34;
-    label = Gtk.Label(message);
-    label2 = Gtk.Label(sp);      label3 = Gtk.Label(sp)
-    label2a = Gtk.Label(sp);     label3a = Gtk.Label(sp)
-
-    hbox = Gtk.HBox() ;
-
-    hbox.pack_start(label2, 0, 0, 0);
-    hbox.pack_start(label, 1, 1, 0);
-    hbox.pack_start(label3, 0, 0, 0)
-
-    dialog.vbox.pack_start(label2a, 0, 0, 0);
-    dialog.vbox.pack_start(hbox, 0, 0, 0)
-    dialog.vbox.pack_start(label3a, 0, 0, 0);
-
-    dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
-    dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
-
-    if cancel:
-        dialog.add_button(&#34;_Cancel&#34;, Gtk.ResponseType.CANCEL)
-
-    dialog.connect(&#34;key-press-event&#34;, _yn_key, cancel)
-    #dialog.connect(&#34;key-release-event&#34;, _yn_key, cancel)
-    warnings.simplefilter(&#34;default&#34;)
-
-    dialog.show_all()
-    response = dialog.run()
-
-    # Convert all responses to cancel
-    if  response == Gtk.ResponseType.CANCEL or \
-            response == Gtk.ResponseType.REJECT or \
-                response == Gtk.ResponseType.CLOSE  or \
-                    response == Gtk.ResponseType.DELETE_EVENT:
-        response = Gtk.ResponseType.CANCEL
-
-    dialog.destroy()
-
-    #print(&#34;YNC result:&#34;, response);
-    return  response
-
-def _yn_key(win, event, cancel):
-    #print event
-    if event.keyval == Gdk.KEY_y or \
-        event.keyval == Gdk.KEY_Y:
-        win.response(Gtk.ResponseType.YES)
-
-    if event.keyval == Gdk.KEY_n or \
-        event.keyval == Gdk.KEY_N:
-        win.response(Gtk.ResponseType.NO)
-
-    if cancel:
-        if event.keyval == Gdk.KEY_c or \
-            event.keyval == Gdk.KEY_C:
-            win.response(Gtk.ResponseType.CANCEL)
-
-# ------------------------------------------------------------------------
-# Show About dialog:
-
-import platform
-
-def  about(self2):
+    &#39;&#39;&#39; Show About dialog: &#39;&#39;&#39;
 
     dialog = Gtk.AboutDialog()
-    dialog.set_name(pedconfig.conf.progname +  &#34; - Python Editor &#34;)
+    dialog.set_name(progname)
 
-    dialog.set_version(str(pedconfig.conf.version));
+    dialog.set_version(verstr)
     gver = (Gtk.get_major_version(), \
                         Gtk.get_minor_version(), \
                             Gtk.get_micro_version())
 
     dialog.set_position(Gtk.WindowPosition.CENTER)
-    dialog.set_transient_for(pedconfig.conf.pedwin.mywin)
+    #dialog.set_transient_for(pedconfig.conf.pedwin.mywin)
 
     #&#34;\nRunning PyGObject %d.%d.%d&#34; % GObject.pygobject_version +\
 
-    ddd = os.path.join(os.path.dirname(__file__), &#34;../&#34;)
+    ddd = os.path.join(os.path.dirname(__file__))
 
     # GLib.pyglib_version
     vvv = gi.version_info
-    comm = &#34;Python based easily configurable editor\n&#34;\
-        &#34;with time accounting module, spell &#34;\
-        &#34;check \n and macro recording.\n&#34;\
-        &#34;\nRunning PyGtk %d.%d.%d&#34; % vvv +\
-        &#34;\non GTK %d.%d.%d\n&#34; % gver +\
+    comm = \
+        &#34;Running PyGtk %d.%d.%d&#34; % vvv +\
+        &#34;\non GTK %d.%d.%d&#34; % gver +\
         &#34;\nRunning Python %s&#34; % platform.python_version() +\
-        &#34;\non %s %s\n&#34; % (platform.system(), platform.release()) +\
-        &#34;\nPyedPro Build Date: %s\n&#34; % pedconfig.conf.build_date +\
-        &#34;Exe Path:\n%s\n&#34; % os.path.realpath(ddd)
+        &#34;\non %s %s&#34; % (platform.system(), platform.release()) +\
+        &#34;\nExe Path:\n%s&#34; % os.path.realpath(ddd)
 
-    dialog.set_comments(comm);
-    dialog.set_copyright(pedconfig.conf.progname + &#34; Created by Peter Glen.\n&#34;
+    dialog.set_comments(comm)
+    dialog.set_copyright(progname + &#34; Created by Peter Glen.\n&#34;
                           &#34;Project is in the Public Domain.&#34;)
-    dialog.set_program_name(pedconfig.conf.progname)
-    img_dir = os.path.join(os.path.dirname(__file__), &#39;images&#39;)
-    #img_path = os.path.join(img_dir, &#39;gtk-logo-rgb.gif&#39;)
-    img_path = os.path.join(img_dir, &#39;pyedpro.png&#39;)
+    dialog.set_program_name(progname)
+    img_path = os.path.join(os.path.dirname(__file__), imgfile)
 
     try:
         pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
@@ -1064,18 +730,18 @@ def  about(self2):
         dialog.set_logo(pixbuf)
 
     except:
-        print(&#34;Cannot load logo for about dialog&#34;, img_path);
+        print(&#34;Cannot load logo for about dialog&#34;, img_path)
         print(sys.exc_info())
 
     #dialog.set_website(&#34;&#34;)
 
     ## Close dialog on user response
     dialog.connect (&#34;response&#34;, lambda d, r: d.destroy())
-    dialog.connect(&#34;key-press-event&#34;, about_key)
+    dialog.connect(&#34;key-press-event&#34;, _about_key)
 
     dialog.show()
 
-def about_key(win, event):
+def _about_key(win, event):
     #print &#34;about_key&#34;, event
     if  event.type == Gdk.EventType.KEY_PRESS:
         if event.keyval == Gdk.KEY_x or event.keyval == Gdk.KEY_X:
@@ -1084,30 +750,25 @@ def about_key(win, event):
 
 # ------------------------------------------------------------------------
 # Show a regular message:
-
-def message(strx, title = None):
-
-    #print(&#34;called: message()&#34;, strx)
-
-    icon = Gtk.STOCK_INFO
-    dialog = Gtk.MessageDialog(buttons=Gtk.ButtonsType.CLOSE,
-                               message_type=Gtk.MessageType.INFO)
-
-    dialog.props.text = strx
-
-    #dialog.set_transient_for()
-
-    if title:
-        dialog.set_title(title)
-    else:
-        dialog.set_title(&#34;PyEdPro&#34;)
-
-    dialog.set_position(Gtk.WindowPosition.CENTER)
-
-    # Close dialog on user response
-    dialog.connect(&#34;response&#34;, lambda d, r: d.destroy())
-    dialog.show()
-    dialog.run()
+#
+#def message3(strx, title = None):
+#
+#    #print(&#34;called: message()&#34;, strx)
+#
+#    icon = Gtk.STOCK_INFO
+#    dialog = Gtk.MessageDialog(buttons=Gtk.ButtonsType.CLOSE,
+#                               message_type=Gtk.MessageType.INFO)
+#    dialog.props.text = strx
+#    #dialog.set_transient_for()
+#    if title:
+#        dialog.set_title(title)
+#    else:
+#        dialog.set_title(&#34;PyEdPro&#34;)
+#    dialog.set_position(Gtk.WindowPosition.CENTER)
+#    # Close dialog on user response
+#    dialog.connect(&#34;response&#34;, lambda d, r: d.destroy())
+#    dialog.show()
+#    dialog.run()
 
 # -----------------------------------------------------------------------
 # Call func with all processes, func called with stat as its argument
@@ -1147,15 +808,13 @@ def find(self):
 
     self.dialog = dialog
 
-    # Spacers
-    label1 = Gtk.Label(&#34;   &#34;);  label2 = Gtk.Label(&#34;   &#34;)
     label3 = Gtk.Label(&#34;   &#34;);  label4 = Gtk.Label(&#34;   &#34;)
     label5 = Gtk.Label(&#34;   &#34;);  label6 = Gtk.Label(&#34;   &#34;)
     label7 = Gtk.Label(&#34;   &#34;);  label8 = Gtk.Label(&#34;   &#34;)
 
-    warnings.simplefilter(&#34;ignore&#34;)
-    entry = Gtk.Entry();
-    warnings.simplefilter(&#34;default&#34;)
+    #warmings.simplefilter(&#34;ignore&#34;)
+    entry = Gtk.Entry()
+    #warmings.simplefilter(&#34;default&#34;)
     entry.set_text(self.oldfind)
 
     entry.set_activates_default(True)
@@ -1176,16 +835,14 @@ def find(self):
     hbox = Gtk.HBox()
     #hbox.pack_start(label1);  hbox.pack_start(dialog.checkbox)
     #hbox.pack_start(label2);  hbox.pack_start(dialog.checkbox2)
-    hbox.pack_start(label3);
+    hbox.pack_start(label3)
     dialog.vbox.pack_start(hbox)
     dialog.vbox.pack_start(label8)
 
-    label32 = Gtk.Label(&#34;   &#34;);  label33 = Gtk.Label(&#34;   &#34;)
-    label34 = Gtk.Label(&#34;   &#34;);  label35 = Gtk.Label(&#34;   &#34;)
-
+    label32 = Gtk.Label(&#34;   &#34;)
     hbox4 = Gtk.HBox()
 
-    hbox4.pack_start(label32);
+    hbox4.pack_start(label32)
     dialog.vbox.pack_start(hbox4)
 
     dialog.show_all()
@@ -1200,6 +857,263 @@ def find(self):
     return self.srctxt, dialog.checkbox.get_active(), \
                 dialog.checkbox2.get_active()
 
+disp = Gdk.Display.get_default()
+scr = disp.get_default_screen()
+
+#print( &#34;num_mon&#34;,  scr.get_n_monitors()    )
+#for aa in range(scr.get_n_monitors()):
+#    print( &#34;mon&#34;, aa, scr.get_monitor_geometry(aa);)
+
+# ------------------------------------------------------------------------
+# Get current screen (monitor) width and height
+
+def get_screen_wh():
+
+    ptr = disp.get_pointer()
+    mon = scr.get_monitor_at_point(ptr[1], ptr[2])
+    geo = scr.get_monitor_geometry(mon)
+    www = geo.width; hhh = geo.height
+    if www == 0 or hhh == 0:
+        www = Gdk.get_screen_width()
+        hhh = Gdk.get_screen_height()
+    return www, hhh
+
+# ------------------------------------------------------------------------
+# Get current screen (monitor) upper left corner xx / yy
+
+def get_screen_xy():
+
+    ptr = disp.get_pointer()
+    mon = scr.get_monitor_at_point(ptr[1], ptr[2])
+    geo = scr.get_monitor_geometry(mon)
+    return geo.x, geo.y
+
+# ------------------------------------------------------------------------
+# Print( an exception as the system would print it)
+
+def print_exception(xstr):
+    cumm = xstr + &#34; &#34;
+    a,b,c = sys.exc_info()
+    if a != None:
+        cumm += str(a) + &#34; &#34; + str(b) + &#34;\n&#34;
+        try:
+            #cumm += str(traceback.format_tb(c, 10))
+            ttt = traceback.extract_tb(c)
+            for aa in ttt:
+                cumm += &#34;File: &#34; + os.path.basename(aa[0]) + \
+                        &#34; Line: &#34; + str(aa[1]) + &#34;\n&#34; +  \
+                    &#34;   Context: &#34; + aa[2] + &#34; -&gt; &#34; + aa[3] + &#34;\n&#34;
+        except:
+            print(&#34;Could not print trace stack. &#34;, sys.exc_info())
+    print( cumm)
+
+# -----------------------------------------------------------------------
+# Sleep just a little, but allow the system to breed
+
+def  usleep(msec):
+
+    if sys.version_info[0] &lt; 3 or \
+        (sys.version_info[0] == 3 and sys.version_info[1] &lt; 3):
+        timefunc = time.clock
+    else:
+        timefunc = time.process_time
+
+    got_clock = timefunc() + float(msec) / 1000
+    #print( got_clock)
+    while True:
+        if timefunc() &gt; got_clock:
+            break
+        #print (&#34;Sleeping&#34;)
+        Gtk.main_iteration_do(False)
+
+# ------------------------------------------------------------------------
+# Create temporary file, return name. Empty string (&#34;&#34;) if error.
+
+def tmpname(indir, template):
+
+    fname = &#34;&#34;
+    if not os.access(indir, os.W_OK):
+        print( &#34;Cannot access &#34;, indir)
+        return fname
+
+    cnt = 1
+    while True:
+        tmp = indir + &#34;/&#34; + template + &#34;_&#34; + str(cnt)
+        if not os.access(tmp, os.R_OK):
+            fname = tmp
+            break
+        # Safety valve
+        if cnt &gt; 10000:
+            break
+    return fname
+
+# ------------------------------------------------------------------------
+# Execute man loop
+
+def mainloop():
+    while True:
+        ev = Gdk.event_peek()
+        #print( ev)
+        if ev:
+            if ev.type == Gdk.EventType.DELETE:
+                break
+            if ev.type == Gdk.EventType.UNMAP:
+                break
+        if Gtk.main_iteration_do(True):
+            break
+
+class Unbuffered(object):
+    def __init__(self, stream):
+        self.stream = stream
+
+    def write(self, data):
+        self.stream.write(data)
+        self.stream.flush()
+
+    def writelines(self, datas):
+        self.stream.writelines(datas)
+        self.stream.flush()
+
+    def __getattr__(self, attr):
+        return getattr(self.stream, attr)
+
+# Time to str and str to time
+
+def time_n2s(ttt):
+    sss = time.ctime(ttt)
+    return sss
+
+def time_s2n(sss):
+    rrr = time.strptime(sss)
+    ttt = time.mktime(rrr)
+    return ttt
+
+def opendialog(parent=None):
+
+    # We create an array, so it is passed around by reference
+    fname = [&#34;&#34;]
+
+    def makefilter(mask, name):
+        filter =  Gtk.FileFilter.new()
+        filter.add_pattern(mask)
+        filter.set_name(name)
+        return filter
+
+    def done_open_fc(win, resp, fname):
+        #print &#34;done_open_fc&#34;, win, resp
+        if resp == Gtk.ButtonsType.OK:
+            fname[0] = win.get_filename()
+            if not fname[0]:
+                #print &#34;Must have filename&#34;
+                pass
+            elif os.path.isdir(fname[0]):
+                os.chdir(fname[0])
+                win.set_current_folder(fname[0])
+                return
+            else:
+                #print(&#34;OFD&#34;, fname[0])
+                pass
+        win.destroy()
+
+    but =   &#34;Cancel&#34;, Gtk.ButtonsType.CANCEL,\
+            &#34;Open File&#34;, Gtk.ButtonsType.OK
+
+    fc = Gtk.FileChooserDialog(&#34;Open file&#34;, parent, \
+         Gtk.FileChooserAction.OPEN  \
+        , but)
+
+    filters = []
+    filters.append(makefilter(&#34;*.mup&#34;, &#34;MarkUp files (*.py)&#34;))
+    filters.append(makefilter(&#34;*.*&#34;, &#34;All files (*.*)&#34;))
+
+    if filters:
+        for aa in filters:
+            fc.add_filter(aa)
+
+    fc.set_default_response(Gtk.ButtonsType.OK)
+    fc.set_current_folder(os.getcwd())
+    fc.connect(&#34;response&#34;, done_open_fc, fname)
+    #fc.connect(&#34;current-folder-changed&#34;, self.folder_ch )
+    #fc.set_current_name(self.fname)
+    fc.run()
+    #print(&#34;OFD2&#34;, fname[0])
+    return fname[0]
+
+def savedialog(resp):
+
+    #print &#34;File dialog&#34;
+    fname = [&#34;&#34;]   # So it is passed around as a reference
+
+    def makefilter(mask, name):
+        filterx =  Gtk.FileFilter.new()
+        filterx.add_pattern(mask)
+        filterx.set_name(name)
+        return filterx
+
+    def done_fc(win, resp, fname):
+        #print( &#34;done_fc&#34;, win, resp)
+        if resp == Gtk.ResponseType.OK:
+            fname[0] = win.get_filename()
+            if not fname[0]:
+                print(&#34;Must have filename&#34;)
+            else:
+                pass
+        win.destroy()
+
+    but =   &#34;Cancel&#34;, Gtk.ResponseType.CANCEL,   \
+                    &#34;Save File&#34;, Gtk.ResponseType.OK
+    fc = Gtk.FileChooserDialog(&#34;Save file as ... &#34;, None,
+            Gtk.FileChooserAction.SAVE, but)
+
+    #fc.set_do_overwrite_confirmation(True)
+
+    filters = []
+    filters.append(makefilter(&#34;*.mup&#34;, &#34;MarkUp files (*.py)&#34;))
+    filters.append(makefilter(&#34;*.*&#34;, &#34;All files (*.*)&#34;))
+
+    if filters:
+        for aa in filters:
+            fc.add_filter(aa)
+
+    fc.set_current_name(os.path.basename(fname[0]))
+    fc.set_current_folder(os.path.dirname(fname[0]))
+    fc.set_default_response(Gtk.ResponseType.OK)
+    fc.connect(&#34;response&#34;, done_fc, fname)
+    fc.run()
+    return fname[0]
+
+# ------------------------------------------------------------------------
+
+def leadspace(strx):
+
+    &#39;&#39;&#39; Count lead spaces &#39;&#39;&#39;
+
+    cnt = 0
+    for aa in range(len(strx)):
+        bb = strx[aa]
+        if bb == &#34; &#34;:
+            cnt += 1
+        elif bb == &#34;\t&#34;:
+            cnt += 1
+        elif bb == &#34;\r&#34;:
+            cnt += 1
+        elif bb == &#34;\n&#34;:
+            cnt += 1
+        else:
+            break
+    return cnt
+
+def wrapscroll(what):
+
+    scroll2 = Gtk.ScrolledWindow()
+    scroll2.add(what)
+    frame2 = Gtk.Frame()
+    frame2.add(scroll2)
+    return frame2
+
+if __name__ == &#39;__main__&#39;:
+    print(&#34;This file was not meant to run directly&#34;)
+
 # EOF</code></pre>
 </details>
 </section>
@@ -1211,50 +1125,47 @@ def find(self):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pgutils.about"><code class="name flex">
-<span>def <span class="ident">about</span></span>(<span>self2)</span>
+<span>def <span class="ident">about</span></span>(<span>progname, verstr='1.0.0', imgfile='icon.png')</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Show About dialog:</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def  about(self2):
+<pre><code class="python">def  about(progname, verstr = &#34;1.0.0&#34;, imgfile = &#34;icon.png&#34;):
+
+    &#39;&#39;&#39; Show About dialog: &#39;&#39;&#39;
 
     dialog = Gtk.AboutDialog()
-    dialog.set_name(pedconfig.conf.progname +  &#34; - Python Editor &#34;)
+    dialog.set_name(progname)
 
-    dialog.set_version(str(pedconfig.conf.version));
+    dialog.set_version(verstr)
     gver = (Gtk.get_major_version(), \
                         Gtk.get_minor_version(), \
                             Gtk.get_micro_version())
 
     dialog.set_position(Gtk.WindowPosition.CENTER)
-    dialog.set_transient_for(pedconfig.conf.pedwin.mywin)
+    #dialog.set_transient_for(pedconfig.conf.pedwin.mywin)
 
     #&#34;\nRunning PyGObject %d.%d.%d&#34; % GObject.pygobject_version +\
 
-    ddd = os.path.join(os.path.dirname(__file__), &#34;../&#34;)
+    ddd = os.path.join(os.path.dirname(__file__))
 
     # GLib.pyglib_version
     vvv = gi.version_info
-    comm = &#34;Python based easily configurable editor\n&#34;\
-        &#34;with time accounting module, spell &#34;\
-        &#34;check \n and macro recording.\n&#34;\
-        &#34;\nRunning PyGtk %d.%d.%d&#34; % vvv +\
-        &#34;\non GTK %d.%d.%d\n&#34; % gver +\
+    comm = \
+        &#34;Running PyGtk %d.%d.%d&#34; % vvv +\
+        &#34;\non GTK %d.%d.%d&#34; % gver +\
         &#34;\nRunning Python %s&#34; % platform.python_version() +\
-        &#34;\non %s %s\n&#34; % (platform.system(), platform.release()) +\
-        &#34;\nPyedPro Build Date: %s\n&#34; % pedconfig.conf.build_date +\
-        &#34;Exe Path:\n%s\n&#34; % os.path.realpath(ddd)
+        &#34;\non %s %s&#34; % (platform.system(), platform.release()) +\
+        &#34;\nExe Path:\n%s&#34; % os.path.realpath(ddd)
 
-    dialog.set_comments(comm);
-    dialog.set_copyright(pedconfig.conf.progname + &#34; Created by Peter Glen.\n&#34;
+    dialog.set_comments(comm)
+    dialog.set_copyright(progname + &#34; Created by Peter Glen.\n&#34;
                           &#34;Project is in the Public Domain.&#34;)
-    dialog.set_program_name(pedconfig.conf.progname)
-    img_dir = os.path.join(os.path.dirname(__file__), &#39;images&#39;)
-    #img_path = os.path.join(img_dir, &#39;gtk-logo-rgb.gif&#39;)
-    img_path = os.path.join(img_dir, &#39;pyedpro.png&#39;)
+    dialog.set_program_name(progname)
+    img_path = os.path.join(os.path.dirname(__file__), imgfile)
 
     try:
         pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
@@ -1262,33 +1173,16 @@ def find(self):
         dialog.set_logo(pixbuf)
 
     except:
-        print(&#34;Cannot load logo for about dialog&#34;, img_path);
+        print(&#34;Cannot load logo for about dialog&#34;, img_path)
         print(sys.exc_info())
 
     #dialog.set_website(&#34;&#34;)
 
     ## Close dialog on user response
     dialog.connect (&#34;response&#34;, lambda d, r: d.destroy())
-    dialog.connect(&#34;key-press-event&#34;, about_key)
+    dialog.connect(&#34;key-press-event&#34;, _about_key)
 
     dialog.show()</code></pre>
-</details>
-</dd>
-<dt id="pgutils.about_key"><code class="name flex">
-<span>def <span class="ident">about_key</span></span>(<span>win, event)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def about_key(win, event):
-    #print &#34;about_key&#34;, event
-    if  event.type == Gdk.EventType.KEY_PRESS:
-        if event.keyval == Gdk.KEY_x or event.keyval == Gdk.KEY_X:
-            if event.state &amp; Gdk.ModifierType.MOD1_MASK:
-                win.destroy()</code></pre>
 </details>
 </dd>
 <dt id="pgutils.ampmstr"><code class="name flex">
@@ -1304,11 +1198,10 @@ def find(self):
 
     dd = &#34;AM&#34;
     if bb == 12:
-       dd = &#34;PM&#34;
+        dd = &#34;PM&#34;
     elif bb &gt; 12:
         bb -= 12
         dd = &#34;PM&#34;
-
     return &#34;%02d %s&#34; % (bb, dd)</code></pre>
 </details>
 </dd>
@@ -1350,7 +1243,7 @@ def find(self):
     skip = False
     for aa in range(len(strx)):
         if skip:
-            skip = False;
+            skip = False
             continue
         if strx[aa] == &#39;\\&#39; and strx[aa+1] == &#39;r&#39;:
             skip = True
@@ -1446,15 +1339,13 @@ def find(self):
 
     self.dialog = dialog
 
-    # Spacers
-    label1 = Gtk.Label(&#34;   &#34;);  label2 = Gtk.Label(&#34;   &#34;)
     label3 = Gtk.Label(&#34;   &#34;);  label4 = Gtk.Label(&#34;   &#34;)
     label5 = Gtk.Label(&#34;   &#34;);  label6 = Gtk.Label(&#34;   &#34;)
     label7 = Gtk.Label(&#34;   &#34;);  label8 = Gtk.Label(&#34;   &#34;)
 
-    warnings.simplefilter(&#34;ignore&#34;)
-    entry = Gtk.Entry();
-    warnings.simplefilter(&#34;default&#34;)
+    #warmings.simplefilter(&#34;ignore&#34;)
+    entry = Gtk.Entry()
+    #warmings.simplefilter(&#34;default&#34;)
     entry.set_text(self.oldfind)
 
     entry.set_activates_default(True)
@@ -1475,16 +1366,14 @@ def find(self):
     hbox = Gtk.HBox()
     #hbox.pack_start(label1);  hbox.pack_start(dialog.checkbox)
     #hbox.pack_start(label2);  hbox.pack_start(dialog.checkbox2)
-    hbox.pack_start(label3);
+    hbox.pack_start(label3)
     dialog.vbox.pack_start(hbox)
     dialog.vbox.pack_start(label8)
 
-    label32 = Gtk.Label(&#34;   &#34;);  label33 = Gtk.Label(&#34;   &#34;)
-    label34 = Gtk.Label(&#34;   &#34;);  label35 = Gtk.Label(&#34;   &#34;)
-
+    label32 = Gtk.Label(&#34;   &#34;)
     hbox4 = Gtk.HBox()
 
-    hbox4.pack_start(label32);
+    hbox4.pack_start(label32)
     dialog.vbox.pack_start(hbox4)
 
     dialog.show_all()
@@ -1549,6 +1438,44 @@ def find(self):
     zzz = &#34;%.02f&#34; % frac[0]
     sss = &#34;%s%s&#34; % (time.strftime(&#34;%02I:%02M:%02S&#34;), zzz[1:])
     return sss</code></pre>
+</details>
+</dd>
+<dt id="pgutils.get_screen_wh"><code class="name flex">
+<span>def <span class="ident">get_screen_wh</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_screen_wh():
+
+    ptr = disp.get_pointer()
+    mon = scr.get_monitor_at_point(ptr[1], ptr[2])
+    geo = scr.get_monitor_geometry(mon)
+    www = geo.width; hhh = geo.height
+    if www == 0 or hhh == 0:
+        www = Gdk.get_screen_width()
+        hhh = Gdk.get_screen_height()
+    return www, hhh</code></pre>
+</details>
+</dd>
+<dt id="pgutils.get_screen_xy"><code class="name flex">
+<span>def <span class="ident">get_screen_xy</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_screen_xy():
+
+    ptr = disp.get_pointer()
+    mon = scr.get_monitor_at_point(ptr[1], ptr[2])
+    geo = scr.get_monitor_geometry(mon)
+    return geo.x, geo.y</code></pre>
 </details>
 </dd>
 <dt id="pgutils.get_time"><code class="name flex">
@@ -1687,42 +1614,37 @@ def find(self):
     return str2</code></pre>
 </details>
 </dd>
-<dt id="pgutils.message"><code class="name flex">
-<span>def <span class="ident">message</span></span>(<span>strx, title=None)</span>
+<dt id="pgutils.leadspace"><code class="name flex">
+<span>def <span class="ident">leadspace</span></span>(<span>strx)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Count lead spaces</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def message(strx, title = None):
+<pre><code class="python">def leadspace(strx):
 
-    #print(&#34;called: message()&#34;, strx)
+    &#39;&#39;&#39; Count lead spaces &#39;&#39;&#39;
 
-    icon = Gtk.STOCK_INFO
-    dialog = Gtk.MessageDialog(buttons=Gtk.ButtonsType.CLOSE,
-                               message_type=Gtk.MessageType.INFO)
-
-    dialog.props.text = strx
-
-    #dialog.set_transient_for()
-
-    if title:
-        dialog.set_title(title)
-    else:
-        dialog.set_title(&#34;PyEdPro&#34;)
-
-    dialog.set_position(Gtk.WindowPosition.CENTER)
-
-    # Close dialog on user response
-    dialog.connect(&#34;response&#34;, lambda d, r: d.destroy())
-    dialog.show()
-    dialog.run()</code></pre>
+    cnt = 0
+    for aa in range(len(strx)):
+        bb = strx[aa]
+        if bb == &#34; &#34;:
+            cnt += 1
+        elif bb == &#34;\t&#34;:
+            cnt += 1
+        elif bb == &#34;\r&#34;:
+            cnt += 1
+        elif bb == &#34;\n&#34;:
+            cnt += 1
+        else:
+            break
+    return cnt</code></pre>
 </details>
 </dd>
-<dt id="pgutils.message2"><code class="name flex">
-<span>def <span class="ident">message2</span></span>(<span>strx, title='Dialog', parent=None)</span>
+<dt id="pgutils.mainloop"><code class="name flex">
+<span>def <span class="ident">mainloop</span></span>(<span>)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1730,26 +1652,17 @@ def find(self):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def message2(strx, title = &#34;Dialog&#34;, parent=None):
-
-        dialog = Gtk.MessageDialog()
-
-        # Close dialog on user response
-        dialog.add_button(&#34;Close&#34;, Gtk.ButtonsType.CLOSE)
-
-        if title:
-            dialog.set_title(title)
-
-        #box = dialog.get_content_area()
-        #box.add(Gtk.Label(strx))
-
-        dialog.set_markup(strx)
-
-        if parent:
-            dialog.set_transient_for(parent)
-
-        dialog.connect (&#34;response&#34;, lambda d, r: d.destroy())
-        dialog.show_all()</code></pre>
+<pre><code class="python">def mainloop():
+    while True:
+        ev = Gdk.event_peek()
+        #print( ev)
+        if ev:
+            if ev.type == Gdk.EventType.DELETE:
+                break
+            if ev.type == Gdk.EventType.UNMAP:
+                break
+        if Gtk.main_iteration_do(True):
+            break</code></pre>
 </details>
 </dd>
 <dt id="pgutils.oct2int"><code class="name flex">
@@ -1770,6 +1683,93 @@ def find(self):
         retx &lt;&lt;= 3; retx += num
     #print &#34;oct:&#34;, strx, &#34;int:&#34;, retx
     return retx</code></pre>
+</details>
+</dd>
+<dt id="pgutils.opendialog"><code class="name flex">
+<span>def <span class="ident">opendialog</span></span>(<span>parent=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def opendialog(parent=None):
+
+    # We create an array, so it is passed around by reference
+    fname = [&#34;&#34;]
+
+    def makefilter(mask, name):
+        filter =  Gtk.FileFilter.new()
+        filter.add_pattern(mask)
+        filter.set_name(name)
+        return filter
+
+    def done_open_fc(win, resp, fname):
+        #print &#34;done_open_fc&#34;, win, resp
+        if resp == Gtk.ButtonsType.OK:
+            fname[0] = win.get_filename()
+            if not fname[0]:
+                #print &#34;Must have filename&#34;
+                pass
+            elif os.path.isdir(fname[0]):
+                os.chdir(fname[0])
+                win.set_current_folder(fname[0])
+                return
+            else:
+                #print(&#34;OFD&#34;, fname[0])
+                pass
+        win.destroy()
+
+    but =   &#34;Cancel&#34;, Gtk.ButtonsType.CANCEL,\
+            &#34;Open File&#34;, Gtk.ButtonsType.OK
+
+    fc = Gtk.FileChooserDialog(&#34;Open file&#34;, parent, \
+         Gtk.FileChooserAction.OPEN  \
+        , but)
+
+    filters = []
+    filters.append(makefilter(&#34;*.mup&#34;, &#34;MarkUp files (*.py)&#34;))
+    filters.append(makefilter(&#34;*.*&#34;, &#34;All files (*.*)&#34;))
+
+    if filters:
+        for aa in filters:
+            fc.add_filter(aa)
+
+    fc.set_default_response(Gtk.ButtonsType.OK)
+    fc.set_current_folder(os.getcwd())
+    fc.connect(&#34;response&#34;, done_open_fc, fname)
+    #fc.connect(&#34;current-folder-changed&#34;, self.folder_ch )
+    #fc.set_current_name(self.fname)
+    fc.run()
+    #print(&#34;OFD2&#34;, fname[0])
+    return fname[0]</code></pre>
+</details>
+</dd>
+<dt id="pgutils.print_exception"><code class="name flex">
+<span>def <span class="ident">print_exception</span></span>(<span>xstr)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def print_exception(xstr):
+    cumm = xstr + &#34; &#34;
+    a,b,c = sys.exc_info()
+    if a != None:
+        cumm += str(a) + &#34; &#34; + str(b) + &#34;\n&#34;
+        try:
+            #cumm += str(traceback.format_tb(c, 10))
+            ttt = traceback.extract_tb(c)
+            for aa in ttt:
+                cumm += &#34;File: &#34; + os.path.basename(aa[0]) + \
+                        &#34; Line: &#34; + str(aa[1]) + &#34;\n&#34; +  \
+                    &#34;   Context: &#34; + aa[2] + &#34; -&gt; &#34; + aa[3] + &#34;\n&#34;
+        except:
+            print(&#34;Could not print trace stack. &#34;, sys.exc_info())
+    print( cumm)</code></pre>
 </details>
 </dd>
 <dt id="pgutils.put_debug2"><code class="name flex">
@@ -1793,6 +1793,35 @@ def find(self):
     except:
         print( &#34;Failed on debug output.&#34;)
         print( sys.exc_info())</code></pre>
+</details>
+</dd>
+<dt id="pgutils.put_exception"><code class="name flex">
+<span>def <span class="ident">put_exception</span></span>(<span>xstr)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def put_exception(xstr):
+
+    cumm = xstr + &#34; &#34;
+    a,b,c = sys.exc_info()
+    if a != None:
+        cumm += str(a) + &#34; &#34; + str(b) + &#34;\n&#34;
+        try:
+            #cumm += str(traceback.format_tb(c, 10))
+            ttt = traceback.extract_tb(c)
+            for aa in ttt:
+                cumm += &#34;File: &#34; + os.path.basename(aa[0]) + \
+                        &#34;  Line: &#34; + str(aa[1]) + &#34;\n&#34; +  \
+                        &#34;    Context: &#34; + aa[2] + &#34; -&gt; &#34; + aa[3] + &#34;\n&#34;
+        except:
+            print( &#34;Could not print trace stack. &#34;, sys.exc_info())
+
+    print(cumm)
+    #syslog.syslog(&#34;%s %s %s&#34; % (xstr, a, b))</code></pre>
 </details>
 </dd>
 <dt id="pgutils.put_exception2_old"><code class="name flex">
@@ -1822,125 +1851,6 @@ def find(self):
 
     put_debug2(cumm)
     #syslog.syslog(&#34;%s %s %s&#34; % (xstr, a, b))</code></pre>
-</details>
-</dd>
-<dt id="pgutils.put_exception_old"><code class="name flex">
-<span>def <span class="ident">put_exception_old</span></span>(<span>xstr)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def put_exception_old(xstr):
-
-    cumm = xstr + &#34; &#34;
-    a,b,c = sys.exc_info()
-    if a != None:
-        cumm += str(a) + &#34; &#34; + str(b) + &#34;\n&#34;
-        try:
-            #cumm += str(traceback.format_tb(c, 10))
-            ttt = traceback.extract_tb(c)
-            for aa in ttt:
-                cumm += &#34;File: &#34; + os.path.basename(aa[0]) + \
-                        &#34;  Line: &#34; + str(aa[1]) + &#34;\n&#34; +  \
-                        &#34;    Context: &#34; + aa[2] + &#34; -&gt; &#34; + aa[3] + &#34;\n&#34;
-        except:
-            print( &#34;Could not print trace stack. &#34;, sys.exc_info())
-
-    put_debug2(cumm)
-    #syslog.syslog(&#34;%s %s %s&#34; % (xstr, a, b))</code></pre>
-</details>
-</dd>
-<dt id="pgutils.randasc"><code class="name flex">
-<span>def <span class="ident">randasc</span></span>(<span>lenx)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def randasc(lenx):
-
-    strx = &#34;&#34;
-    for aa in range(lenx):
-        ridx = random.randint(0, len(allasc)-1)
-        rr = allasc[ridx]
-        strx += str(rr)
-
-    return strx</code></pre>
-</details>
-</dd>
-<dt id="pgutils.randcol"><code class="name flex">
-<span>def <span class="ident">randcol</span></span>(<span>)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def randcol():
-    return random.randint(0, 255)</code></pre>
-</details>
-</dd>
-<dt id="pgutils.randcolstr"><code class="name flex">
-<span>def <span class="ident">randcolstr</span></span>(<span>start=0, endd=255)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def randcolstr(start = 0, endd = 255):
-    rr =  random.randint(start, endd)
-    gg =  random.randint(start, endd)
-    bb =  random.randint(start, endd)
-    strx = &#34;#%02x%02x%02x&#34; % (rr, gg, bb)
-    return strx</code></pre>
-</details>
-</dd>
-<dt id="pgutils.randlett"><code class="name flex">
-<span>def <span class="ident">randlett</span></span>(<span>lenx)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def randlett(lenx):
-
-    strx = &#34;&#34;
-    for aa in range(lenx):
-        ridx = random.randint(0, len(alllett)-1)
-        rr = alllett[ridx]
-        strx += str(rr)
-
-    return strx</code></pre>
-</details>
-</dd>
-<dt id="pgutils.randstr"><code class="name flex">
-<span>def <span class="ident">randstr</span></span>(<span>lenx)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def randstr(lenx):
-
-    strx = &#34;&#34;
-    for aa in range(lenx):
-        ridx = random.randint(0, len(allstr)-1)
-        rr = allstr[ridx]
-        strx += str(rr)
-
-    return strx</code></pre>
 </details>
 </dd>
 <dt id="pgutils.readfile"><code class="name flex">
@@ -1993,8 +1903,8 @@ def find(self):
     text = []
     for aa in text2:
         #print(&#34;&#39;%s\n&#34; % aa)
-        bb = aa.replace(&#34;\r&#34;, &#34;&#34;);
-        cc = bb.replace(&#34;\n&#34;, &#34;&#34;);
+        bb = aa.replace(&#34;\r&#34;, &#34;&#34;)
+        cc = bb.replace(&#34;\n&#34;, &#34;&#34;)
         text.append(cc)
     #text2 = []
 
@@ -2015,7 +1925,7 @@ can be themed.</p></div>
     &#39;&#39;&#39; This function registers our custom toolbar icons, so they
         can be themed.
     &#39;&#39;&#39;
-    items = [(&#39;demo-gtk-logo&#39;, &#39;_GTK!&#39;, 0, 0, &#39;&#39;)]
+    #items = [(&#39;demo-gtk-logo&#39;, &#39;_GTK!&#39;, 0, 0, &#39;&#39;)]
     # Register our stock items
     #Gtk.stock_add(items)
 
@@ -2108,6 +2018,59 @@ can be themed.</p></div>
     return strx</code></pre>
 </details>
 </dd>
+<dt id="pgutils.savedialog"><code class="name flex">
+<span>def <span class="ident">savedialog</span></span>(<span>resp)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def savedialog(resp):
+
+    #print &#34;File dialog&#34;
+    fname = [&#34;&#34;]   # So it is passed around as a reference
+
+    def makefilter(mask, name):
+        filterx =  Gtk.FileFilter.new()
+        filterx.add_pattern(mask)
+        filterx.set_name(name)
+        return filterx
+
+    def done_fc(win, resp, fname):
+        #print( &#34;done_fc&#34;, win, resp)
+        if resp == Gtk.ResponseType.OK:
+            fname[0] = win.get_filename()
+            if not fname[0]:
+                print(&#34;Must have filename&#34;)
+            else:
+                pass
+        win.destroy()
+
+    but =   &#34;Cancel&#34;, Gtk.ResponseType.CANCEL,   \
+                    &#34;Save File&#34;, Gtk.ResponseType.OK
+    fc = Gtk.FileChooserDialog(&#34;Save file as ... &#34;, None,
+            Gtk.FileChooserAction.SAVE, but)
+
+    #fc.set_do_overwrite_confirmation(True)
+
+    filters = []
+    filters.append(makefilter(&#34;*.mup&#34;, &#34;MarkUp files (*.py)&#34;))
+    filters.append(makefilter(&#34;*.*&#34;, &#34;All files (*.*)&#34;))
+
+    if filters:
+        for aa in filters:
+            fc.add_filter(aa)
+
+    fc.set_current_name(os.path.basename(fname[0]))
+    fc.set_current_folder(os.path.dirname(fname[0]))
+    fc.set_default_response(Gtk.ResponseType.OK)
+    fc.connect(&#34;response&#34;, done_fc, fname)
+    fc.run()
+    return fname[0]</code></pre>
+</details>
+</dd>
 <dt id="pgutils.str2col"><code class="name flex">
 <span>def <span class="ident">str2col</span></span>(<span>strx)</span>
 </code></dt>
@@ -2137,6 +2100,63 @@ can be themed.</p></div>
                         float(int(col[5:7], base=16)) / 256 )</code></pre>
 </details>
 </dd>
+<dt id="pgutils.time_n2s"><code class="name flex">
+<span>def <span class="ident">time_n2s</span></span>(<span>ttt)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def time_n2s(ttt):
+    sss = time.ctime(ttt)
+    return sss</code></pre>
+</details>
+</dd>
+<dt id="pgutils.time_s2n"><code class="name flex">
+<span>def <span class="ident">time_s2n</span></span>(<span>sss)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def time_s2n(sss):
+    rrr = time.strptime(sss)
+    ttt = time.mktime(rrr)
+    return ttt</code></pre>
+</details>
+</dd>
+<dt id="pgutils.tmpname"><code class="name flex">
+<span>def <span class="ident">tmpname</span></span>(<span>indir, template)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def tmpname(indir, template):
+
+    fname = &#34;&#34;
+    if not os.access(indir, os.W_OK):
+        print( &#34;Cannot access &#34;, indir)
+        return fname
+
+    cnt = 1
+    while True:
+        tmp = indir + &#34;/&#34; + template + &#34;_&#34; + str(cnt)
+        if not os.access(tmp, os.R_OK):
+            fname = tmp
+            break
+        # Safety valve
+        if cnt &gt; 10000:
+            break
+    return fname</code></pre>
+</details>
+</dd>
 <dt id="pgutils.unescape"><code class="name flex">
 <span>def <span class="ident">unescape</span></span>(<span>strx)</span>
 </code></dt>
@@ -2159,7 +2179,7 @@ can be themed.</p></div>
 
         chh = strx[pos]
 
-        if(chh == &#39;\\&#39;):
+        if chh == &#39;\\&#39;:
             #print &#34;backslash&#34;, strx[pos:]
             pos2 = pos + 1; strx2 = &#34;&#34;
             while True:
@@ -2302,7 +2322,7 @@ can be themed.</p></div>
         if  chh == &#34;\t&#34;:
             # Generate string
             spaces = tabstop - (cnt % tabstop)
-            ttt = &#34;&#34;;
+            ttt = &#34;&#34;
             for aa in range(spaces):
                 ttt += &#34; &#34;
             res += ttt
@@ -2314,8 +2334,8 @@ can be themed.</p></div>
     return res</code></pre>
 </details>
 </dd>
-<dt id="pgutils.usleep2"><code class="name flex">
-<span>def <span class="ident">usleep2</span></span>(<span>msec)</span>
+<dt id="pgutils.usleep"><code class="name flex">
+<span>def <span class="ident">usleep</span></span>(<span>msec)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2323,7 +2343,7 @@ can be themed.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def  usleep2(msec):
+<pre><code class="python">def  usleep(msec):
 
     if sys.version_info[0] &lt; 3 or \
         (sys.version_info[0] == 3 and sys.version_info[1] &lt; 3):
@@ -2363,8 +2383,8 @@ can be themed.</p></div>
     return ret</code></pre>
 </details>
 </dd>
-<dt id="pgutils.yes_no2"><code class="name flex">
-<span>def <span class="ident">yes_no2</span></span>(<span>message, title='Question', parent=None)</span>
+<dt id="pgutils.wrapscroll"><code class="name flex">
+<span>def <span class="ident">wrapscroll</span></span>(<span>what)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2372,157 +2392,13 @@ can be themed.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def yes_no2(message, title = &#34;Question&#34;, parent=None):
+<pre><code class="python">def wrapscroll(what):
 
-        dialog = Gtk.MessageDialog()
-
-        if title:
-            dialog.set_title(title)
-
-        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
-        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
-
-        dialog.set_markup(message)
-
-        img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
-        dialog.set_image(img)
-
-        if parent:
-            dialog.set_transient_for(parent)
-
-        dialog.connect(&#34;key-press-event&#34;, yn_key, 0)
-
-        #dialog.connect (&#34;response&#34;, lambda d, r: d.destroy())
-
-        dialog.show_all()
-        response = dialog.run()
-        dialog.destroy()
-
-        return response</code></pre>
-</details>
-</dd>
-<dt id="pgutils.yes_no_cancel"><code class="name flex">
-<span>def <span class="ident">yes_no_cancel</span></span>(<span>title, message, cancel=True)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def yes_no_cancel(title, message, cancel = True):
-
-    warnings.simplefilter(&#34;ignore&#34;)
-
-    dialog = Gtk.Dialog(title,
-                   None,
-                   Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT)
-
-    dialog.set_default_response(Gtk.ResponseType.YES)
-    dialog.set_position(Gtk.WindowPosition.CENTER)
-    #dialog.set_transient_for(pedconfig.conf.pedwin.mywin)
-
-    sp = &#34;     &#34;
-    label = Gtk.Label(message);
-    label2 = Gtk.Label(sp);      label3 = Gtk.Label(sp)
-    label2a = Gtk.Label(sp);     label3a = Gtk.Label(sp)
-
-    hbox = Gtk.HBox() ;
-
-    hbox.pack_start(label2, 0, 0, 0);
-    hbox.pack_start(label, 1, 1, 0);
-    hbox.pack_start(label3, 0, 0, 0)
-
-    dialog.vbox.pack_start(label2a, 0, 0, 0);
-    dialog.vbox.pack_start(hbox, 0, 0, 0)
-    dialog.vbox.pack_start(label3a, 0, 0, 0);
-
-    dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
-    dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
-
-    if cancel:
-        dialog.add_button(&#34;_Cancel&#34;, Gtk.ResponseType.CANCEL)
-
-    dialog.connect(&#34;key-press-event&#34;, _yn_key, cancel)
-    #dialog.connect(&#34;key-release-event&#34;, _yn_key, cancel)
-    warnings.simplefilter(&#34;default&#34;)
-
-    dialog.show_all()
-    response = dialog.run()
-
-    # Convert all responses to cancel
-    if  response == Gtk.ResponseType.CANCEL or \
-            response == Gtk.ResponseType.REJECT or \
-                response == Gtk.ResponseType.CLOSE  or \
-                    response == Gtk.ResponseType.DELETE_EVENT:
-        response = Gtk.ResponseType.CANCEL
-
-    dialog.destroy()
-
-    #print(&#34;YNC result:&#34;, response);
-    return  response</code></pre>
-</details>
-</dd>
-<dt id="pgutils.yes_no_cancel2"><code class="name flex">
-<span>def <span class="ident">yes_no_cancel2</span></span>(<span>message, title='Question', cancel=True, parent=None)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def yes_no_cancel2(message, title = &#34;Question&#34;, cancel = True, parent=None):
-
-    warnings.simplefilter(&#34;ignore&#34;)
-
-    dialog = Gtk.Dialog(title,
-                   None,
-                   Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT)
-
-    dialog.set_default_response(Gtk.ResponseType.YES)
-    dialog.set_position(Gtk.WindowPosition.CENTER)
-    #dialog.set_transient_for(pedconfig.conf.pedwin.mywin)
-
-    sp = &#34;     &#34;
-    label = Gtk.Label(message);
-    label2 = Gtk.Label(sp);      label3 = Gtk.Label(sp)
-    label2a = Gtk.Label(sp);     label3a = Gtk.Label(sp)
-
-    hbox = Gtk.HBox() ;
-
-    hbox.pack_start(label2, 0, 0, 0);
-    hbox.pack_start(label, 1, 1, 0);
-    hbox.pack_start(label3, 0, 0, 0)
-
-    dialog.vbox.pack_start(label2a, 0, 0, 0);
-    dialog.vbox.pack_start(hbox, 0, 0, 0)
-    dialog.vbox.pack_start(label3a, 0, 0, 0);
-
-    dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
-    dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
-
-    if cancel:
-        dialog.add_button(&#34;_Cancel&#34;, Gtk.ResponseType.CANCEL)
-
-    dialog.connect(&#34;key-press-event&#34;, _yn_key, cancel)
-    #dialog.connect(&#34;key-release-event&#34;, _yn_key, cancel)
-    warnings.simplefilter(&#34;default&#34;)
-
-    dialog.show_all()
-    response = dialog.run()
-
-    # Convert all responses to cancel
-    if  response == Gtk.ResponseType.CANCEL or \
-            response == Gtk.ResponseType.REJECT or \
-                response == Gtk.ResponseType.CLOSE  or \
-                    response == Gtk.ResponseType.DELETE_EVENT:
-        response = Gtk.ResponseType.CANCEL
-
-    dialog.destroy()
-
-    #print(&#34;YNC result:&#34;, response);
-    return  response</code></pre>
+    scroll2 = Gtk.ScrolledWindow()
+    scroll2.add(what)
+    frame2 = Gtk.Frame()
+    frame2.add(scroll2)
+    return frame2</code></pre>
 </details>
 </dd>
 </dl>
@@ -2647,6 +2523,63 @@ can be themed.</p></div>
 </dd>
 </dl>
 </dd>
+<dt id="pgutils.Unbuffered"><code class="flex name class">
+<span>class <span class="ident">Unbuffered</span></span>
+<span>(</span><span>stream)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Unbuffered(object):
+    def __init__(self, stream):
+        self.stream = stream
+
+    def write(self, data):
+        self.stream.write(data)
+        self.stream.flush()
+
+    def writelines(self, datas):
+        self.stream.writelines(datas)
+        self.stream.flush()
+
+    def __getattr__(self, attr):
+        return getattr(self.stream, attr)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="pgutils.Unbuffered.write"><code class="name flex">
+<span>def <span class="ident">write</span></span>(<span>self, data)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write(self, data):
+    self.stream.write(data)
+    self.stream.flush()</code></pre>
+</details>
+</dd>
+<dt id="pgutils.Unbuffered.writelines"><code class="name flex">
+<span>def <span class="ident">writelines</span></span>(<span>self, datas)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def writelines(self, datas):
+    self.stream.writelines(datas)
+    self.stream.flush()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 </dl>
 </section>
 </article>
@@ -2659,7 +2592,6 @@ can be themed.</p></div>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="pgutils.about" href="#pgutils.about">about</a></code></li>
-<li><code><a title="pgutils.about_key" href="#pgutils.about_key">about_key</a></code></li>
 <li><code><a title="pgutils.ampmstr" href="#pgutils.ampmstr">ampmstr</a></code></li>
 <li><code><a title="pgutils.clean_str" href="#pgutils.clean_str">clean_str</a></code></li>
 <li><code><a title="pgutils.clean_str2" href="#pgutils.clean_str2">clean_str2</a></code></li>
@@ -2670,38 +2602,39 @@ can be themed.</p></div>
 <li><code><a title="pgutils.float2col" href="#pgutils.float2col">float2col</a></code></li>
 <li><code><a title="pgutils.float2str" href="#pgutils.float2str">float2str</a></code></li>
 <li><code><a title="pgutils.get_realtime" href="#pgutils.get_realtime">get_realtime</a></code></li>
+<li><code><a title="pgutils.get_screen_wh" href="#pgutils.get_screen_wh">get_screen_wh</a></code></li>
+<li><code><a title="pgutils.get_screen_xy" href="#pgutils.get_screen_xy">get_screen_xy</a></code></li>
 <li><code><a title="pgutils.get_time" href="#pgutils.get_time">get_time</a></code></li>
 <li><code><a title="pgutils.hash_name" href="#pgutils.hash_name">hash_name</a></code></li>
 <li><code><a title="pgutils.isTrue" href="#pgutils.isTrue">isTrue</a></code></li>
 <li><code><a title="pgutils.is_ascii" href="#pgutils.is_ascii">is_ascii</a></code></li>
 <li><code><a title="pgutils.isfile" href="#pgutils.isfile">isfile</a></code></li>
 <li><code><a title="pgutils.kill_non_ascii" href="#pgutils.kill_non_ascii">kill_non_ascii</a></code></li>
-<li><code><a title="pgutils.message" href="#pgutils.message">message</a></code></li>
-<li><code><a title="pgutils.message2" href="#pgutils.message2">message2</a></code></li>
+<li><code><a title="pgutils.leadspace" href="#pgutils.leadspace">leadspace</a></code></li>
+<li><code><a title="pgutils.mainloop" href="#pgutils.mainloop">mainloop</a></code></li>
 <li><code><a title="pgutils.oct2int" href="#pgutils.oct2int">oct2int</a></code></li>
+<li><code><a title="pgutils.opendialog" href="#pgutils.opendialog">opendialog</a></code></li>
+<li><code><a title="pgutils.print_exception" href="#pgutils.print_exception">print_exception</a></code></li>
 <li><code><a title="pgutils.put_debug2" href="#pgutils.put_debug2">put_debug2</a></code></li>
+<li><code><a title="pgutils.put_exception" href="#pgutils.put_exception">put_exception</a></code></li>
 <li><code><a title="pgutils.put_exception2_old" href="#pgutils.put_exception2_old">put_exception2_old</a></code></li>
-<li><code><a title="pgutils.put_exception_old" href="#pgutils.put_exception_old">put_exception_old</a></code></li>
-<li><code><a title="pgutils.randasc" href="#pgutils.randasc">randasc</a></code></li>
-<li><code><a title="pgutils.randcol" href="#pgutils.randcol">randcol</a></code></li>
-<li><code><a title="pgutils.randcolstr" href="#pgutils.randcolstr">randcolstr</a></code></li>
-<li><code><a title="pgutils.randlett" href="#pgutils.randlett">randlett</a></code></li>
-<li><code><a title="pgutils.randstr" href="#pgutils.randstr">randstr</a></code></li>
 <li><code><a title="pgutils.readfile" href="#pgutils.readfile">readfile</a></code></li>
 <li><code><a title="pgutils.register_stock_icons" href="#pgutils.register_stock_icons">register_stock_icons</a></code></li>
 <li><code><a title="pgutils.respath" href="#pgutils.respath">respath</a></code></li>
 <li><code><a title="pgutils.rgb2col" href="#pgutils.rgb2col">rgb2col</a></code></li>
 <li><code><a title="pgutils.rgb2str" href="#pgutils.rgb2str">rgb2str</a></code></li>
+<li><code><a title="pgutils.savedialog" href="#pgutils.savedialog">savedialog</a></code></li>
 <li><code><a title="pgutils.str2col" href="#pgutils.str2col">str2col</a></code></li>
 <li><code><a title="pgutils.str2float" href="#pgutils.str2float">str2float</a></code></li>
+<li><code><a title="pgutils.time_n2s" href="#pgutils.time_n2s">time_n2s</a></code></li>
+<li><code><a title="pgutils.time_s2n" href="#pgutils.time_s2n">time_s2n</a></code></li>
+<li><code><a title="pgutils.tmpname" href="#pgutils.tmpname">tmpname</a></code></li>
 <li><code><a title="pgutils.unescape" href="#pgutils.unescape">unescape</a></code></li>
 <li><code><a title="pgutils.uni" href="#pgutils.uni">uni</a></code></li>
 <li><code><a title="pgutils.untab_str" href="#pgutils.untab_str">untab_str</a></code></li>
-<li><code><a title="pgutils.usleep2" href="#pgutils.usleep2">usleep2</a></code></li>
+<li><code><a title="pgutils.usleep" href="#pgutils.usleep">usleep</a></code></li>
 <li><code><a title="pgutils.withps" href="#pgutils.withps">withps</a></code></li>
-<li><code><a title="pgutils.yes_no2" href="#pgutils.yes_no2">yes_no2</a></code></li>
-<li><code><a title="pgutils.yes_no_cancel" href="#pgutils.yes_no_cancel">yes_no_cancel</a></code></li>
-<li><code><a title="pgutils.yes_no_cancel2" href="#pgutils.yes_no_cancel2">yes_no_cancel2</a></code></li>
+<li><code><a title="pgutils.wrapscroll" href="#pgutils.wrapscroll">wrapscroll</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
@@ -2710,6 +2643,13 @@ can be themed.</p></div>
 <h4><code><a title="pgutils.Config" href="#pgutils.Config">Config</a></code></h4>
 <ul class="">
 <li><code><a title="pgutils.Config.comline" href="#pgutils.Config.comline">comline</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pgutils.Unbuffered" href="#pgutils.Unbuffered">Unbuffered</a></code></h4>
+<ul class="">
+<li><code><a title="pgutils.Unbuffered.write" href="#pgutils.Unbuffered.write">write</a></code></li>
+<li><code><a title="pgutils.Unbuffered.writelines" href="#pgutils.Unbuffered.writelines">writelines</a></code></li>
 </ul>
 </li>
 </ul>

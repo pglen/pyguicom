@@ -52,6 +52,8 @@ import pgsimp
 
 IDXERR = &#34;Index is larger than the available number of controls.&#34;
 
+VERSION = &#34;1.1.1&#34;
+
 gui_testmode = 0
 
 def randcol():
@@ -74,6 +76,8 @@ for st in (gtk.STATE_NORMAL, gtk.STATE_INSENSITIVE,
     a[st] = gtk.gdk.Color(0, 34251, 0)
 &#39;&#39;&#39;
 
+def version():
+    return VERSION
 
 # ------------------------------------------------------------------------
 # Bemd some of the parameters for us
@@ -145,6 +149,8 @@ class CairoHelper():
         self.cr.line_to(rect[0], rect[1])
 
 class   TextTable(Gtk.Table):
+
+    &#39;&#39;&#39; YTable of text entries &#39;&#39;&#39;
 
     def __init__(self, confarr, main = None, textwidth = 24):
         GObject.GObject.__init__(self)
@@ -219,7 +225,6 @@ class   TextRow(Gtk.HBox):
             #super().foreach(self.callb)
             &#39;&#39;&#39;
             pass
-
 
     def callb(self, arg1):
         #print (&#34;callb arg1&#34;, arg1)
@@ -313,6 +318,7 @@ class Led(Gtk.DrawingArea):
         self.set_size_request(size + border, size + border)
         self.connect(&#34;draw&#34;, self.draw)
         self.color =  color
+        self.orgcolor =  color
 
     def set_color(self, col):
         self.color = col
@@ -449,19 +455,23 @@ class WideButt(Gtk.Button):
         if callme:
             self.connect(&#34;clicked&#34;, callme)
 
-class FrameTextView(Gtk.TextView):
+class FrameTextView(Gtk.Frame):
 
     def __init__(self, callme = None):
 
         GObject.GObject.__init__(self)
+        #super().__init__(self)
+
+        self.tview = Gtk.TextView()
+        #self.tview.set_buffer(Gtk.TextBuffer())
+
         self.scroll = Gtk.ScrolledWindow()
         self.scroll.set_size_request(100, 100)
-        self.scroll.add_with_viewport(self)
-        self.frame = Gtk.Frame()
-        self.frame.add(self.scroll)
+        self.scroll.add_with_viewport(self.tview)
+        #self.frame = Gtk.Frame()
+        self.add(self.scroll)
 
-        self.set_buffer(Gtk.TextBuffer())
-        self.set_size_request(150, 150)
+        #self.set_size_request(150, 150)
         ls = self.get_style_context()
         fd = ls.get_font(Gtk.StateFlags.NORMAL)
         #newfd = fd.to_string() + &#34; &#34; + str(fd.get_size() / Pango.SCALE + 4)
@@ -469,16 +479,16 @@ class FrameTextView(Gtk.TextView):
         self.modify_font(Pango.FontDescription(&#34;Sans 13&#34;))
 
     def append(self, strx):
-        buff = self.get_buffer()
+        buff = self.tview.get_buffer()
         old = buff.get_text(buff.get_start_iter(), buff.get_end_iter(), False)
-        buff.set_text(old + &#34;\n&#34; +  strx)
+        buff.set_text(old + strx)
         pgutils.usleep(20)
         #mainwin.statb2.scroll_to_iter(buff.get_end_iter(), 1.0, True, 0.1, 0.1)
         sb = self.scroll.get_vscrollbar()
         sb.set_value(2000000)
 
 class Label(Gtk.Label):
-    def __init__(self, textm = &#34;&#34;, widget = None, tooltip=None, font = None):
+    def __init__(self, textm = &#34;&#34;, widget = None, tooltip=None, font=None):
         GObject.GObject.__init__(self)
         self.set_text_with_mnemonic(textm)
         if widget:
@@ -490,7 +500,7 @@ class Label(Gtk.Label):
 
 class Logo(Gtk.VBox):
 
-    def __init__(self, labelx, tooltip = None, callme = None):
+    def __init__(self, labelx, tooltip=None, callme=None, font=&#34;Times 45&#34;):
 
         GObject.GObject.__init__(self)
 
@@ -505,7 +515,7 @@ class Logo(Gtk.VBox):
         if callme:
             self.logolab.connect(&#34;button-press-event&#34;, callme)
 
-        self.logolab.modify_font(Pango.FontDescription(&#39;Times 45&#39;))
+        self.logolab.modify_font(Pango.FontDescription(font))
 
         #self.pack_start(Spacer(), 0, 0, False)
         self.pack_start(self.logolab, 0, 0, False)
@@ -525,7 +535,7 @@ class Logo(Gtk.VBox):
 
 class ListBox(Gtk.TreeView):
 
-    def __init__(self, limit = -1, colname = &#39;&#39;):
+    def __init__(self, callb = None, limit = -1, colname = &#39;&#39;):
 
         self.limit = limit
         self.treestore = Gtk.TreeStore(str)
@@ -544,7 +554,7 @@ class ListBox(Gtk.TreeView):
         self.append_column(tvcolumn)
         self.set_activate_on_single_click (True)
 
-        self.callb = None
+        self.callb = callb
         self.connect(&#34;row-activated&#34;,  self.tree_sel)
 
     def tree_sel(self, xtree, xiter, xpath):
@@ -689,38 +699,9 @@ def set_testmode(flag):
     gui_testmode = flag
 
 # ------------------------------------------------------------------------
-# An N pixel horizontal spacer. Defaults to X pix  get_center
-
-def vspacer(sp = 8):
-    lab = Gtk.VBox()
-    lab.set_size_request(sp, sp)
-
-    if gui_testmode:
-        lab.override_background_color(
-                    Gtk.StateFlags.NORMAL, Gdk.RGBA(1, .5, .5) )
-    return lab
-
-# ------------------------------------------------------------------------
-# An N pixel horizontal spacer. Defaults to X pix  get_center
-
-class xSpacer(Gtk.HBox):
-
-    def __init__(self, sp = None):
-        GObject.GObject.__init__(self)
-        #self.pack_start()
-        if gui_testmode:
-            col = randcolstr(100, 200)
-            self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(col))
-        if sp == None:
-            sp = 6
-        self.set_size_request(sp, sp)
-
-# ------------------------------------------------------------------------
 # An N pixel spacer. Defaults to 1 char height / width
 
 class Spacer(Gtk.Label):
-
-    global gui_testmode
 
     def __init__(self, sp = 1, title=None, left=False, bottom=False, test=False):
 
@@ -752,6 +733,35 @@ class Spacer(Gtk.Label):
         #self.set_property(&#34;attributes&#34;, attr)
         #self.set_property(&#34;label&#34;, &#34;wtf&#34;)
         #self.set_property(&#34;background-set&#34;, True)
+
+# ------------------------------------------------------------------------
+# An N pixel horizontal spacer. Defaults to X pix  get_center
+
+class xSpacer(Gtk.HBox):
+
+    def __init__(self, sp = None):
+        GObject.GObject.__init__(self)
+        #self.pack_start()
+        if gui_testmode:
+            col = randcolstr(100, 200)
+            self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(col))
+        if sp == None:
+            sp = 6
+        self.set_size_request(sp, sp)
+
+# An N pixel vertical spacer. Defaults to X pix  get_center
+
+class ySpacer(Gtk.VBox):
+
+    def __init__(self, sp = None):
+        GObject.GObject.__init__(self)
+        #self.pack_start()
+        if gui_testmode:
+            col = randcolstr(100, 200)
+            self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(col))
+        if sp == None:
+            sp = 6
+        self.set_size_request(sp, sp)
 
 # ------------------------------------------------------------------------
 # Added convenience methods
@@ -796,13 +806,21 @@ class   xHBox(Gtk.HBox):
 
 class   RadioGroup(Gtk.Frame):
 
-    def __init__(self, rad_arr, call_me):
+    def __init__(self, rad_arr, call_me = None, horiz = False):
 
         GObject.GObject.__init__(self)
         self.buttons = []
         self.callme = call_me
-        vbox6 = Gtk.VBox(); vbox6.set_spacing(4);
-        vbox6.set_border_width(6)
+        if horiz:
+            vbox6 = Gtk.HBox();
+            vbox6.set_spacing(6);
+            vbox6.set_border_width(4)
+        else:
+            vbox6 = Gtk.VBox();
+            vbox6.set_spacing(4);
+            vbox6.set_border_width(6)
+
+
 
         if gui_testmode:
             self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(&#34;#778888&#34;))
@@ -863,7 +881,6 @@ class   RadioGroup(Gtk.Frame):
                 return aa.get_label()
         # Nothing selected ... empty str
         return &#34;&#34;
-
 
 # Bug fix in Gtk
 
@@ -1027,11 +1044,12 @@ class ScrollListBox(Gtk.Frame):
 
 class   ComboBox(Gtk.ComboBox):
 
-    def __init__(self, init_cont = [], callme = None):
+    def __init__(self, init_cont, callme = None):
+
+        self.callme = callme
 
         self.store = Gtk.ListStore(str)
         Gtk.ComboBox.__init__(self)
-
         self.set_model(self.store)
         cell = Gtk.CellRendererText()
 
@@ -1039,9 +1057,6 @@ class   ComboBox(Gtk.ComboBox):
         #cell.set_property(&#34;background&#34;, &#34;#ffff00&#34;)
         #cell.set_property(&#34;background-set&#34;, True)
         cell.set_padding(10, 0)
-
-        if callme:
-            self.connect(&#34;changed&#34;, callme)
 
         #cell.set_property(&#34;foreground&#34;, &#34;#ffff00&#34;)
         #cell.set_property(&#34;foreground-set&#34;, True)
@@ -1072,6 +1087,9 @@ class   ComboBox(Gtk.ComboBox):
                 #print(&#34;Entered: %s&#34; % name)
         except:
             pass
+
+        if self.callme:
+            self.callme(name)
 
         #print(&#34;Combo new selection / entry: &#39;%s&#39;&#34; % name)
 
@@ -1352,6 +1370,165 @@ class RCLButt(Gtk.Button):
         #if self.callme:
         #    self.callme(arg1)
 
+
+# ------------------------------------------------------------------------
+# Show a regular message:
+
+def message(strx, parent = None, title = None, icon = Gtk.MessageType.INFO):
+
+    #dialog = Gtk.MessageDialog(parent, Gtk.DialogFlags.DESTROY_WITH_PARENT,
+    #    icon, Gtk.ButtonsType.CLOSE, strx)
+
+    dialog = Gtk.MessageDialog(title=title, buttons=Gtk.ButtonsType.CLOSE,
+                text=strx, destroy_with_parent=True, modal=True,)
+
+    if parent:
+        dialog.set_transient_for(parent)
+
+    if title:
+        dialog.set_title(title)
+    else:
+        dialog.set_title(&#34;Message&#34;)
+
+    # Close dialog on user response
+    dialog.connect(&#34;response&#34;, lambda d, r: d.destroy())
+    dialog.show_all()
+    return dialog.run()
+
+def yes_no(message, title = &#34;Question&#34;, parent=None, default=&#34;Yes&#34;):
+
+    dialog = Gtk.MessageDialog(title=title)
+
+    img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
+    dialog.set_image(img)
+    dialog.set_markup(message)
+
+    if default == &#34;Yes&#34;:
+        dialog.set_default_response(Gtk.ResponseType.YES)
+        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
+        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
+    else:
+        dialog.set_default_response(Gtk.ResponseType.NO)
+        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
+        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
+
+    if parent:
+        dialog.set_transient_for(parent)
+
+    def _yn_key(win, event, cancel):
+        #print(&#34;_y_n key&#34;, event.keyval)
+        if event.keyval == Gdk.KEY_y or \
+            event.keyval == Gdk.KEY_Y:
+            win.response(Gtk.ResponseType.YES)
+        if event.keyval == Gdk.KEY_n or \
+            event.keyval == Gdk.KEY_N:
+            win.response(Gtk.ResponseType.NO)
+        #if cancel:
+        #    if event.keyval == Gdk.KEY_c or \
+        #        event.keyval == Gdk.KEY_C:
+        #        win.response(Gtk.ResponseType.CANCEL)
+
+    dialog.connect(&#34;key-press-event&#34;, _yn_key, 0)
+    # Fri 03.May.2024 destroyed return value
+    #dialog.connect(&#34;response&#34;, lambda d, r: d.destroy())
+    dialog.show_all()
+    response = dialog.run()
+    dialog.destroy()
+    #print(&#34;response&#34;, response, resp2str(response))
+
+    # Convert all other responses to default
+    if response == Gtk.ResponseType.REJECT or \
+          response == Gtk.ResponseType.CLOSE  or \
+             response == Gtk.ResponseType.DELETE_EVENT:
+        response = Gtk.ResponseType.NO
+
+        # Cancel means no
+        #if default == &#34;Yes&#34;:
+        #    response = Gtk.ResponseType.YES
+        #else:
+        #    response = Gtk.ResponseType.NO
+
+    return response
+
+# ------------------------------------------------------------------------
+
+def yes_no_cancel(message, title=&#34;Question&#34;, default=&#34;Yes&#34;):
+
+    dialog = Gtk.MessageDialog(title=title)
+
+    if default == &#34;Yes&#34;:
+        dialog.set_default_response(Gtk.ResponseType.YES)
+        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
+        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
+        dialog.add_button(&#34;_Cancel&#34;, Gtk.ResponseType.CANCEL)
+    elif default == &#34;No&#34;:
+        dialog.set_default_response(Gtk.ResponseType.NO)
+        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
+        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
+        dialog.add_button(&#34;_Cancel&#34;, Gtk.ResponseType.CANCEL)
+    else:
+        dialog.set_default_response(Gtk.ResponseType.CANCEL)
+        dialog.add_button(&#34;_Cancel&#34;, Gtk.ResponseType.CANCEL)
+        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
+        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
+
+    img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
+    dialog.set_image(img)
+    dialog.set_markup(message)
+
+    def _yn_keyc(win, event):
+        #print(&#34;key:&#34;,  event)
+        if event.keyval == Gdk.KEY_y or \
+            event.keyval == Gdk.KEY_Y:
+            win.response(Gtk.ResponseType.YES)
+        if event.keyval == Gdk.KEY_n or \
+            event.keyval == Gdk.KEY_N:
+            win.response(Gtk.ResponseType.NO)
+        if event.keyval == Gdk.KEY_c or \
+            event.keyval == Gdk.KEY_C:
+            win.response(Gtk.ResponseType.CANCEL)
+
+    dialog.connect(&#34;key-press-event&#34;, _yn_keyc)
+    dialog.show_all()
+    response = dialog.run()
+
+    # Convert all other responses to cancel
+    if  response == Gtk.ResponseType.CANCEL or \
+            response == Gtk.ResponseType.REJECT or \
+                response == Gtk.ResponseType.CLOSE  or \
+                    response == Gtk.ResponseType.DELETE_EVENT:
+        response = Gtk.ResponseType.CANCEL
+
+    dialog.destroy()
+
+    #print(&#34;yes_no_cancel() result:&#34;, response);
+    return  response
+
+def resp2str(resp):
+
+    &#39;&#39;&#39; Translate response to string &#39;&#39;&#39;
+
+    strx = &#34;None&#34;
+    if  resp == Gtk.ResponseType.YES:
+        strx =  &#34;Yes&#34;
+    if  resp == Gtk.ResponseType.NO:
+        strx =  &#34;No&#34;
+    if  resp == Gtk.ResponseType.OK:
+        strx =  &#34;OK&#34;
+    if  resp == Gtk.ResponseType.CANCEL:
+        strx =  &#34;Cancel&#34;
+    if  resp == Gtk.ResponseType.NONE:
+        strx =  &#34;None&#34;
+    if  resp == Gtk.ResponseType.ACCEPT:
+        strx =  &#34;Accept&#34;
+    if resp == Gtk.ResponseType.REJECT:
+        strx =  &#34;Reject&#34;
+    if resp == Gtk.ResponseType.CLOSE:
+        strx =  &#34;CLlose&#34;
+    if resp == Gtk.ResponseType.DELETE_EVENT:
+        strx =  &#34;Delete Event&#34;
+    return strx
+
 # ------------------------------------------------------------------------
 # Highlite test items
 
@@ -1372,6 +1549,37 @@ if __name__ == &#39;__main__&#39;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="pggui.message"><code class="name flex">
+<span>def <span class="ident">message</span></span>(<span>strx, parent=None, title=None, icon=&lt;enum GTK_MESSAGE_INFO of type Gtk.MessageType&gt;)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def message(strx, parent = None, title = None, icon = Gtk.MessageType.INFO):
+
+    #dialog = Gtk.MessageDialog(parent, Gtk.DialogFlags.DESTROY_WITH_PARENT,
+    #    icon, Gtk.ButtonsType.CLOSE, strx)
+
+    dialog = Gtk.MessageDialog(title=title, buttons=Gtk.ButtonsType.CLOSE,
+                text=strx, destroy_with_parent=True, modal=True,)
+
+    if parent:
+        dialog.set_transient_for(parent)
+
+    if title:
+        dialog.set_title(title)
+    else:
+        dialog.set_title(&#34;Message&#34;)
+
+    # Close dialog on user response
+    dialog.connect(&#34;response&#34;, lambda d, r: d.destroy())
+    dialog.show_all()
+    return dialog.run()</code></pre>
+</details>
+</dd>
 <dt id="pggui.randcol"><code class="name flex">
 <span>def <span class="ident">randcol</span></span>(<span>)</span>
 </code></dt>
@@ -1399,6 +1607,41 @@ if __name__ == &#39;__main__&#39;:
     gg =  random.randint(start, endd)
     bb =  random.randint(start, endd)
     strx = &#34;#%02x%02x%02x&#34; % (rr, gg, bb)
+    return strx</code></pre>
+</details>
+</dd>
+<dt id="pggui.resp2str"><code class="name flex">
+<span>def <span class="ident">resp2str</span></span>(<span>resp)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Translate response to string</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def resp2str(resp):
+
+    &#39;&#39;&#39; Translate response to string &#39;&#39;&#39;
+
+    strx = &#34;None&#34;
+    if  resp == Gtk.ResponseType.YES:
+        strx =  &#34;Yes&#34;
+    if  resp == Gtk.ResponseType.NO:
+        strx =  &#34;No&#34;
+    if  resp == Gtk.ResponseType.OK:
+        strx =  &#34;OK&#34;
+    if  resp == Gtk.ResponseType.CANCEL:
+        strx =  &#34;Cancel&#34;
+    if  resp == Gtk.ResponseType.NONE:
+        strx =  &#34;None&#34;
+    if  resp == Gtk.ResponseType.ACCEPT:
+        strx =  &#34;Accept&#34;
+    if resp == Gtk.ResponseType.REJECT:
+        strx =  &#34;Reject&#34;
+    if resp == Gtk.ResponseType.CLOSE:
+        strx =  &#34;CLlose&#34;
+    if resp == Gtk.ResponseType.DELETE_EVENT:
+        strx =  &#34;Delete Event&#34;
     return strx</code></pre>
 </details>
 </dd>
@@ -1430,8 +1673,8 @@ if __name__ == &#39;__main__&#39;:
     gui_testmode = flag</code></pre>
 </details>
 </dd>
-<dt id="pggui.vspacer"><code class="name flex">
-<span>def <span class="ident">vspacer</span></span>(<span>sp=8)</span>
+<dt id="pggui.version"><code class="name flex">
+<span>def <span class="ident">version</span></span>(<span>)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1439,14 +1682,135 @@ if __name__ == &#39;__main__&#39;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def vspacer(sp = 8):
-    lab = Gtk.VBox()
-    lab.set_size_request(sp, sp)
+<pre><code class="python">def version():
+    return VERSION</code></pre>
+</details>
+</dd>
+<dt id="pggui.yes_no"><code class="name flex">
+<span>def <span class="ident">yes_no</span></span>(<span>message, title='Question', parent=None, default='Yes')</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def yes_no(message, title = &#34;Question&#34;, parent=None, default=&#34;Yes&#34;):
 
-    if gui_testmode:
-        lab.override_background_color(
-                    Gtk.StateFlags.NORMAL, Gdk.RGBA(1, .5, .5) )
-    return lab</code></pre>
+    dialog = Gtk.MessageDialog(title=title)
+
+    img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
+    dialog.set_image(img)
+    dialog.set_markup(message)
+
+    if default == &#34;Yes&#34;:
+        dialog.set_default_response(Gtk.ResponseType.YES)
+        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
+        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
+    else:
+        dialog.set_default_response(Gtk.ResponseType.NO)
+        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
+        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
+
+    if parent:
+        dialog.set_transient_for(parent)
+
+    def _yn_key(win, event, cancel):
+        #print(&#34;_y_n key&#34;, event.keyval)
+        if event.keyval == Gdk.KEY_y or \
+            event.keyval == Gdk.KEY_Y:
+            win.response(Gtk.ResponseType.YES)
+        if event.keyval == Gdk.KEY_n or \
+            event.keyval == Gdk.KEY_N:
+            win.response(Gtk.ResponseType.NO)
+        #if cancel:
+        #    if event.keyval == Gdk.KEY_c or \
+        #        event.keyval == Gdk.KEY_C:
+        #        win.response(Gtk.ResponseType.CANCEL)
+
+    dialog.connect(&#34;key-press-event&#34;, _yn_key, 0)
+    # Fri 03.May.2024 destroyed return value
+    #dialog.connect(&#34;response&#34;, lambda d, r: d.destroy())
+    dialog.show_all()
+    response = dialog.run()
+    dialog.destroy()
+    #print(&#34;response&#34;, response, resp2str(response))
+
+    # Convert all other responses to default
+    if response == Gtk.ResponseType.REJECT or \
+          response == Gtk.ResponseType.CLOSE  or \
+             response == Gtk.ResponseType.DELETE_EVENT:
+        response = Gtk.ResponseType.NO
+
+        # Cancel means no
+        #if default == &#34;Yes&#34;:
+        #    response = Gtk.ResponseType.YES
+        #else:
+        #    response = Gtk.ResponseType.NO
+
+    return response</code></pre>
+</details>
+</dd>
+<dt id="pggui.yes_no_cancel"><code class="name flex">
+<span>def <span class="ident">yes_no_cancel</span></span>(<span>message, title='Question', default='Yes')</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def yes_no_cancel(message, title=&#34;Question&#34;, default=&#34;Yes&#34;):
+
+    dialog = Gtk.MessageDialog(title=title)
+
+    if default == &#34;Yes&#34;:
+        dialog.set_default_response(Gtk.ResponseType.YES)
+        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
+        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
+        dialog.add_button(&#34;_Cancel&#34;, Gtk.ResponseType.CANCEL)
+    elif default == &#34;No&#34;:
+        dialog.set_default_response(Gtk.ResponseType.NO)
+        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
+        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
+        dialog.add_button(&#34;_Cancel&#34;, Gtk.ResponseType.CANCEL)
+    else:
+        dialog.set_default_response(Gtk.ResponseType.CANCEL)
+        dialog.add_button(&#34;_Cancel&#34;, Gtk.ResponseType.CANCEL)
+        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
+        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
+
+    img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
+    dialog.set_image(img)
+    dialog.set_markup(message)
+
+    def _yn_keyc(win, event):
+        #print(&#34;key:&#34;,  event)
+        if event.keyval == Gdk.KEY_y or \
+            event.keyval == Gdk.KEY_Y:
+            win.response(Gtk.ResponseType.YES)
+        if event.keyval == Gdk.KEY_n or \
+            event.keyval == Gdk.KEY_N:
+            win.response(Gtk.ResponseType.NO)
+        if event.keyval == Gdk.KEY_c or \
+            event.keyval == Gdk.KEY_C:
+            win.response(Gtk.ResponseType.CANCEL)
+
+    dialog.connect(&#34;key-press-event&#34;, _yn_keyc)
+    dialog.show_all()
+    response = dialog.run()
+
+    # Convert all other responses to cancel
+    if  response == Gtk.ResponseType.CANCEL or \
+            response == Gtk.ResponseType.REJECT or \
+                response == Gtk.ResponseType.CLOSE  or \
+                    response == Gtk.ResponseType.DELETE_EVENT:
+        response = Gtk.ResponseType.CANCEL
+
+    dialog.destroy()
+
+    #print(&#34;yes_no_cancel() result:&#34;, response);
+    return  response</code></pre>
 </details>
 </dd>
 </dl>
@@ -1635,7 +1999,7 @@ if __name__ == &#39;__main__&#39;:
 </dd>
 <dt id="pggui.ComboBox"><code class="flex name class">
 <span>class <span class="ident">ComboBox</span></span>
-<span>(</span><span>init_cont=[], callme=None)</span>
+<span>(</span><span>init_cont, callme=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:Constructors:</p>
@@ -1654,11 +2018,12 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
 </summary>
 <pre><code class="python">class   ComboBox(Gtk.ComboBox):
 
-    def __init__(self, init_cont = [], callme = None):
+    def __init__(self, init_cont, callme = None):
+
+        self.callme = callme
 
         self.store = Gtk.ListStore(str)
         Gtk.ComboBox.__init__(self)
-
         self.set_model(self.store)
         cell = Gtk.CellRendererText()
 
@@ -1666,9 +2031,6 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
         #cell.set_property(&#34;background&#34;, &#34;#ffff00&#34;)
         #cell.set_property(&#34;background-set&#34;, True)
         cell.set_padding(10, 0)
-
-        if callme:
-            self.connect(&#34;changed&#34;, callme)
 
         #cell.set_property(&#34;foreground&#34;, &#34;#ffff00&#34;)
         #cell.set_property(&#34;foreground-set&#34;, True)
@@ -1699,6 +2061,9 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
                 #print(&#34;Entered: %s&#34; % name)
         except:
             pass
+
+        if self.callme:
+            self.callme(name)
 
         #print(&#34;Combo new selection / entry: &#39;%s&#39;&#34; % name)
 
@@ -1789,6 +2154,9 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
     except:
         pass
 
+    if self.callme:
+        self.callme(name)
+
     #print(&#34;Combo new selection / entry: &#39;%s&#39;&#34; % name)</code></pre>
 </details>
 </dd>
@@ -1872,27 +2240,30 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
 <dd>
 <div class="desc"><p>:Constructors:</p>
 <p>::</p>
-<pre><code>TextView(**properties)
-new() -&gt; Gtk.Widget
-new_with_buffer(buffer:Gtk.TextBuffer) -&gt; Gtk.Widget
+<pre><code>Frame(**properties)
+new(label:str=None) -&gt; Gtk.Widget
 </code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class FrameTextView(Gtk.TextView):
+<pre><code class="python">class FrameTextView(Gtk.Frame):
 
     def __init__(self, callme = None):
 
         GObject.GObject.__init__(self)
+        #super().__init__(self)
+
+        self.tview = Gtk.TextView()
+        #self.tview.set_buffer(Gtk.TextBuffer())
+
         self.scroll = Gtk.ScrolledWindow()
         self.scroll.set_size_request(100, 100)
-        self.scroll.add_with_viewport(self)
-        self.frame = Gtk.Frame()
-        self.frame.add(self.scroll)
+        self.scroll.add_with_viewport(self.tview)
+        #self.frame = Gtk.Frame()
+        self.add(self.scroll)
 
-        self.set_buffer(Gtk.TextBuffer())
-        self.set_size_request(150, 150)
+        #self.set_size_request(150, 150)
         ls = self.get_style_context()
         fd = ls.get_font(Gtk.StateFlags.NORMAL)
         #newfd = fd.to_string() + &#34; &#34; + str(fd.get_size() / Pango.SCALE + 4)
@@ -1900,9 +2271,9 @@ new_with_buffer(buffer:Gtk.TextBuffer) -&gt; Gtk.Widget
         self.modify_font(Pango.FontDescription(&#34;Sans 13&#34;))
 
     def append(self, strx):
-        buff = self.get_buffer()
+        buff = self.tview.get_buffer()
         old = buff.get_text(buff.get_start_iter(), buff.get_end_iter(), False)
-        buff.set_text(old + &#34;\n&#34; +  strx)
+        buff.set_text(old + strx)
         pgutils.usleep(20)
         #mainwin.statb2.scroll_to_iter(buff.get_end_iter(), 1.0, True, 0.1, 0.1)
         sb = self.scroll.get_vscrollbar()
@@ -1910,7 +2281,8 @@ new_with_buffer(buffer:Gtk.TextBuffer) -&gt; Gtk.Widget
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>gi.repository.Gtk.TextView</li>
+<li>gi.repository.Gtk.Frame</li>
+<li>gi.repository.Gtk.Bin</li>
 <li>gi.overrides.Gtk.Container</li>
 <li>gi.repository.Gtk.Container</li>
 <li>gi.overrides.Gtk.Widget</li>
@@ -1921,7 +2293,6 @@ new_with_buffer(buffer:Gtk.TextBuffer) -&gt; Gtk.Widget
 <li>gi._gi.GObject</li>
 <li>gi.repository.Atk.ImplementorIface</li>
 <li>gi.repository.Gtk.Buildable</li>
-<li>gi.repository.Gtk.Scrollable</li>
 <li>gobject.GInterface</li>
 </ul>
 <h3>Methods</h3>
@@ -1936,9 +2307,9 @@ new_with_buffer(buffer:Gtk.TextBuffer) -&gt; Gtk.Widget
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def append(self, strx):
-    buff = self.get_buffer()
+    buff = self.tview.get_buffer()
     old = buff.get_text(buff.get_start_iter(), buff.get_end_iter(), False)
-    buff.set_text(old + &#34;\n&#34; +  strx)
+    buff.set_text(old + strx)
     pgutils.usleep(20)
     #mainwin.statb2.scroll_to_iter(buff.get_end_iter(), 1.0, True, 0.1, 0.1)
     sb = self.scroll.get_vscrollbar()
@@ -1965,7 +2336,7 @@ sets through the use of explicit keyword arguments.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Label(Gtk.Label):
-    def __init__(self, textm = &#34;&#34;, widget = None, tooltip=None, font = None):
+    def __init__(self, textm = &#34;&#34;, widget = None, tooltip=None, font=None):
         GObject.GObject.__init__(self)
         self.set_text_with_mnemonic(textm)
         if widget:
@@ -2171,6 +2542,7 @@ new() -&gt; Gtk.Widget
         self.set_size_request(size + border, size + border)
         self.connect(&#34;draw&#34;, self.draw)
         self.color =  color
+        self.orgcolor =  color
 
     def set_color(self, col):
         self.color = col
@@ -2462,7 +2834,7 @@ new(label:str=None) -&gt; Gtk.Widget
 </dd>
 <dt id="pggui.ListBox"><code class="flex name class">
 <span>class <span class="ident">ListBox</span></span>
-<span>(</span><span>limit=-1, colname='')</span>
+<span>(</span><span>callb=None, limit=-1, colname='')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:Constructors:</p>
@@ -2479,7 +2851,7 @@ sets through the use of explicit keyword arguments.</p></div>
 </summary>
 <pre><code class="python">class ListBox(Gtk.TreeView):
 
-    def __init__(self, limit = -1, colname = &#39;&#39;):
+    def __init__(self, callb = None, limit = -1, colname = &#39;&#39;):
 
         self.limit = limit
         self.treestore = Gtk.TreeStore(str)
@@ -2498,7 +2870,7 @@ sets through the use of explicit keyword arguments.</p></div>
         self.append_column(tvcolumn)
         self.set_activate_on_single_click (True)
 
-        self.callb = None
+        self.callb = callb
         self.connect(&#34;row-activated&#34;,  self.tree_sel)
 
     def tree_sel(self, xtree, xiter, xpath):
@@ -2842,7 +3214,7 @@ sets through the use of explicit keyword arguments.</p></div>
 </dd>
 <dt id="pggui.Logo"><code class="flex name class">
 <span>class <span class="ident">Logo</span></span>
-<span>(</span><span>labelx, tooltip=None, callme=None)</span>
+<span>(</span><span>labelx, tooltip=None, callme=None, font='Times 45')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:Constructors:</p>
@@ -2858,7 +3230,7 @@ sets through the use of explicit keyword arguments.</p></div>
 </summary>
 <pre><code class="python">class Logo(Gtk.VBox):
 
-    def __init__(self, labelx, tooltip = None, callme = None):
+    def __init__(self, labelx, tooltip=None, callme=None, font=&#34;Times 45&#34;):
 
         GObject.GObject.__init__(self)
 
@@ -2873,7 +3245,7 @@ sets through the use of explicit keyword arguments.</p></div>
         if callme:
             self.logolab.connect(&#34;button-press-event&#34;, callme)
 
-        self.logolab.modify_font(Pango.FontDescription(&#39;Times 45&#39;))
+        self.logolab.modify_font(Pango.FontDescription(font))
 
         #self.pack_start(Spacer(), 0, 0, False)
         self.pack_start(self.logolab, 0, 0, False)
@@ -3415,7 +3787,7 @@ new_with_mnemonic(label:str) -&gt; Gtk.Widget
 </dd>
 <dt id="pggui.RadioGroup"><code class="flex name class">
 <span>class <span class="ident">RadioGroup</span></span>
-<span>(</span><span>rad_arr, call_me)</span>
+<span>(</span><span>rad_arr, call_me=None, horiz=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:Constructors:</p>
@@ -3429,13 +3801,21 @@ new(label:str=None) -&gt; Gtk.Widget
 </summary>
 <pre><code class="python">class   RadioGroup(Gtk.Frame):
 
-    def __init__(self, rad_arr, call_me):
+    def __init__(self, rad_arr, call_me = None, horiz = False):
 
         GObject.GObject.__init__(self)
         self.buttons = []
         self.callme = call_me
-        vbox6 = Gtk.VBox(); vbox6.set_spacing(4);
-        vbox6.set_border_width(6)
+        if horiz:
+            vbox6 = Gtk.HBox();
+            vbox6.set_spacing(6);
+            vbox6.set_border_width(4)
+        else:
+            vbox6 = Gtk.VBox();
+            vbox6.set_spacing(4);
+            vbox6.set_border_width(6)
+
+
 
         if gui_testmode:
             self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(&#34;#778888&#34;))
@@ -4155,8 +4535,6 @@ sets through the use of explicit keyword arguments.</p></div>
 </summary>
 <pre><code class="python">class Spacer(Gtk.Label):
 
-    global gui_testmode
-
     def __init__(self, sp = 1, title=None, left=False, bottom=False, test=False):
 
         GObject.GObject.__init__(self)
@@ -4346,7 +4724,6 @@ sets through the use of explicit keyword arguments.</p></div>
             &#39;&#39;&#39;
             pass
 
-
     def callb(self, arg1):
         #print (&#34;callb arg1&#34;, arg1)
         pass
@@ -4507,11 +4884,7 @@ sets through the use of explicit keyword arguments.</p></div>
 <span>(</span><span>confarr, main=None, textwidth=24)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>:Constructors:</p>
-<p>::</p>
-<pre><code>Table(**properties)
-new(rows:int, columns:int, homogeneous:bool) -&gt; Gtk.Widget
-</code></pre>
+<div class="desc"><p>YTable of text entries </p>
 <p>Initializer for a GObject based classes with support for property
 sets through the use of explicit keyword arguments.</p></div>
 <details class="source">
@@ -4519,6 +4892,8 @@ sets through the use of explicit keyword arguments.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class   TextTable(Gtk.Table):
+
+    &#39;&#39;&#39; YTable of text entries &#39;&#39;&#39;
 
     def __init__(self, confarr, main = None, textwidth = 24):
         GObject.GObject.__init__(self)
@@ -4831,6 +5206,53 @@ sets through the use of explicit keyword arguments.</p></div>
 </dd>
 </dl>
 </dd>
+<dt id="pggui.ySpacer"><code class="flex name class">
+<span>class <span class="ident">ySpacer</span></span>
+<span>(</span><span>sp=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:Constructors:</p>
+<p>::</p>
+<pre><code>VBox(**properties)
+new(homogeneous:bool, spacing:int) -&gt; Gtk.Widget
+</code></pre>
+<p>Initializer for a GObject based classes with support for property
+sets through the use of explicit keyword arguments.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ySpacer(Gtk.VBox):
+
+    def __init__(self, sp = None):
+        GObject.GObject.__init__(self)
+        #self.pack_start()
+        if gui_testmode:
+            col = randcolstr(100, 200)
+            self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(col))
+        if sp == None:
+            sp = 6
+        self.set_size_request(sp, sp)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>gi.repository.Gtk.VBox</li>
+<li>gi.overrides.Gtk.Box</li>
+<li>gi.repository.Gtk.Box</li>
+<li>gi.overrides.Gtk.Container</li>
+<li>gi.repository.Gtk.Container</li>
+<li>gi.overrides.Gtk.Widget</li>
+<li>gi.repository.Gtk.Widget</li>
+<li>gi.repository.GObject.InitiallyUnowned</li>
+<li>gi.overrides.GObject.Object</li>
+<li>gi.repository.GObject.Object</li>
+<li>gi._gi.GObject</li>
+<li>gi.repository.Atk.ImplementorIface</li>
+<li>gi.repository.Gtk.Buildable</li>
+<li>gi.repository.Gtk.Orientable</li>
+<li>gobject.GInterface</li>
+</ul>
+</dd>
 </dl>
 </section>
 </article>
@@ -4841,12 +5263,16 @@ sets through the use of explicit keyword arguments.</p></div>
 </div>
 <ul id="index">
 <li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
+<ul class="two-column">
+<li><code><a title="pggui.message" href="#pggui.message">message</a></code></li>
 <li><code><a title="pggui.randcol" href="#pggui.randcol">randcol</a></code></li>
 <li><code><a title="pggui.randcolstr" href="#pggui.randcolstr">randcolstr</a></code></li>
+<li><code><a title="pggui.resp2str" href="#pggui.resp2str">resp2str</a></code></li>
 <li><code><a title="pggui.set_gui_testmode" href="#pggui.set_gui_testmode">set_gui_testmode</a></code></li>
 <li><code><a title="pggui.set_testmode" href="#pggui.set_testmode">set_testmode</a></code></li>
-<li><code><a title="pggui.vspacer" href="#pggui.vspacer">vspacer</a></code></li>
+<li><code><a title="pggui.version" href="#pggui.version">version</a></code></li>
+<li><code><a title="pggui.yes_no" href="#pggui.yes_no">yes_no</a></code></li>
+<li><code><a title="pggui.yes_no_cancel" href="#pggui.yes_no_cancel">yes_no_cancel</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
@@ -5034,6 +5460,9 @@ sets through the use of explicit keyword arguments.</p></div>
 <li><code><a title="pggui.xVBox.pack" href="#pggui.xVBox.pack">pack</a></code></li>
 <li><code><a title="pggui.xVBox.set_padding" href="#pggui.xVBox.set_padding">set_padding</a></code></li>
 </ul>
+</li>
+<li>
+<h4><code><a title="pggui.ySpacer" href="#pggui.ySpacer">ySpacer</a></code></h4>
 </li>
 </ul>
 </li>

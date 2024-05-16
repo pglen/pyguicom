@@ -83,7 +83,7 @@ class   LetterNumberSel(Gtk.VBox):
 
         vbox = Gtk.VBox()
         vbox.pack_start(hbox3a, 0, 0, False)
-        vbox.pack_start(pggui.ySpacer(4), 0, 0, False)
+        #vbox.pack_start(pggui.ySpacer(), 0, 0, False)
         vbox.pack_start(hbox3b, 0, 0, False)
 
         self.frame = Gtk.Frame()

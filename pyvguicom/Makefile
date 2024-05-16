@@ -5,4 +5,5 @@ clean:
 	rm -rf __pycache__
 	rm -rf pydbase.p*
 
-# eof
+# EOF
+

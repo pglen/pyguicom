@@ -24,7 +24,7 @@ import pgsimp
 
 IDXERR = "Index is larger than the available number of controls."
 
-VERSION = "1.1.1"
+VERSION = "1.1.2"
 
 gui_testmode = 0
 

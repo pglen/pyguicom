@@ -16,6 +16,16 @@ from gi.repository import PangoCairo
 
 import pgtests
 
+def test_randstr(arg2, arg3):
+    rrr = pgtests.randstr(12)
+    print(rrr)
+    arg3.set_text(rrr)
+
+def test_randstrrand(arg2, arg3):
+    rrr = pgtests.randstrrand(6, 18)
+    print(rrr)
+    arg3.set_text(rrr)
+
 def test_rand(arg2, arg3):
     rrr = pgtests.randascii(12)
     print(rrr)
@@ -48,6 +58,14 @@ if __name__ == "__main__":
     lab1 = Gtk.Label(label="Test Label")
     hbox.pack_start(lab1, 1, 1, 0)
     vbox.pack_start(hbox, 1, 1, 0)
+
+    butt = Gtk.Button.new_with_mnemonic("Test Rand Str")
+    butt.connect("clicked", test_randstr, lab1)
+    vbox.pack_start(butt, 0, 0, 2)
+
+    butt = Gtk.Button.new_with_mnemonic("Test Rand Rand")
+    butt.connect("clicked", test_randstrrand, lab1)
+    vbox.pack_start(butt, 0, 0, 2)
 
     butt = Gtk.Button.new_with_mnemonic("Test Rand")
     butt.connect("clicked", test_rand, lab1)

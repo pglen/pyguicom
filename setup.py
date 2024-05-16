@@ -1,3 +1,4 @@
+import os, sys
 import setuptools
 
 descx = '''
@@ -5,6 +6,13 @@ descx = '''
     several projects. They act as a simplification front end for the PyGtk / PyGobject
     classes.
     '''
+
+doclist = []; droot = "pyvguicom/docs/"
+doclistx = os.listdir(droot)
+for aa in doclistx:
+    doclist.append("docs/" + aa)
+#print("doclist", doclist)
+#sys.exit()
 
 includex = ["*", "pyvguicom"]
 
@@ -48,6 +56,7 @@ setuptools.setup(
     url="https://github.com/pglen/pyguicom.git",
     classifiers= classx,
     include_package_data=True,
+    package_data = {    "pyvguicom" :  doclist, },
     packages=setuptools.find_packages(include=includex),
     package_dir = {
                     'pyvguicom':           'pyvguicom',

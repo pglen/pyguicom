@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-''' This encapsulates the webkit '''
+''' This encapsulates the webkit import and failure thereof '''
 
 import os, sys, getopt, signal, random, time, warnings
 import inspect
 
-realinc = os.path.realpath(os.path.dirname(__file__) + os.sep + "../pycommon")
-sys.path.append(realinc)
+#realinc = os.path.realpath(os.path.dirname(__file__) + os.sep + "../pycommon")
+#sys.path.append(realinc)
 
 from pgutils import  *
 from pggui import  *
@@ -22,25 +22,48 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
 
-class dummywebview():
+WebKit2 = None
+
+class dummywebview(Gtk.VBox):
+
+    def __int__(self):
+        super().__init__(self)
+        #self.pack_start(Gtk.Label(label="No WebView"), 1, 1, 0)
     def set_editable(self, flag):
+        self.pack_start(Gtk.Label(label="No WebView Available"), 1, 1, 0)
         pass
-    def load_html(self, ff, kk):
+    def load_html(self, ff, kk = None):
         pass
     def connect(self, aa, bb):
         pass
 
 class dummywebkit():
     WebView = dummywebview
-    def __init(self):
-        pass
 
-# Here is where / how the toolbar is constructed
-
-#    <toolitem action="new" />
-#    <toolitem action="open" />
-#    <toolitem action="save" tooltip="Hello" accelarator="<Ctrl>s"/>
-#    <separator />
+try:
+    gi.require_version("WebKit2", '4.1')
+    from gi.repository import WebKit2
+    #present = 1
+except:
+    try:
+        #print("Trying V 4.0:", sys.exc_info())
+        gi.require_version("WebKit2", '4.0')
+        from gi.repository import WebKit2
+    except:
+        try:
+            #print("Trying with jno qualifier")
+            #gi.require_version("WebKit2", '4.0')
+            from gi.repository import WebKit2
+        except:
+            # Giving up, patch fake one
+            print("Cannot import:", sys.exc_info())
+            print("WebWiew is not available.")
+            try:
+                WebKit2 = dummywebkit
+            except:
+                print("Fake kit Exc:", sys.exc_info())
+            #print("Fake kit:", WebKit2)
+            #raise
 
 ui_def = """
         <ui>
@@ -79,20 +102,6 @@ ui_def = """
             </toolbar>
         </ui>
         """
-
-try:
-    gi.require_version('WebKit2', '4.0')
-    from gi.repository import WebKit2
-
-    #print(WebKit2)
-    #print("Webkit ver", WebKit2.get_major_version(), WebKit2.get_minor_version(), WebKit2.get_micro_version())
-    present = 1
-
-except:
-    print("Cannot import webkit2, web functions may not be available.")
-    present = 0
-    WebKit2 = dummywebkit
-    #raise
 
 #unmask_reserved =   Gdk.ModifierType.GDK_MODIFIER_RESERVED_13_MASK | \
 #                    Gdk.ModifierType.GDK_MODIFIER_RESERVED_14_MASK | \

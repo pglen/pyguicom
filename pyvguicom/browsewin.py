@@ -5,7 +5,8 @@
 import os, sys, getopt, signal, random, time, warnings
 
 realinc = os.path.realpath(os.path.dirname(__file__) + os.sep + "../pycommon")
-sys.path.append(realinc)
+if realinc not in sys.path:
+    sys.path.append(realinc)
 
 from pgutils import  *
 from pggui import  *
@@ -13,7 +14,6 @@ from pgsimp import  *
 
 import gi
 gi.require_version("Gtk", "3.0")
-#gi.require_version('WebKit2', '4.0')
 
 from gi.repository import Gtk
 from gi.repository import Gdk
@@ -21,15 +21,12 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
 
-ret = ""
+from pedlib import pedconfig
 
-try:
-    import pgwkit
-except:
-    print("Cannot load WebKit2", sys.exc_info())
-    sys.exit(1)
+import pgwkit
+#print("pgwkit:", pgwkit)
 
-class  brow_win(Gtk.VBox):
+class  browserWin(Gtk.VBox):
 
     ''' Collection of URL bar, toolbar, status bar '''
 
@@ -55,9 +52,11 @@ class  brow_win(Gtk.VBox):
         try:
             self.webview = pgwkit.pgwebw(self)
         except:
-            print("Please install webkit2")
+            print("Please install WebKit2", sys.exc_info())
+            #if pedconfig.conf.verbose:
+            put_exception("start webview")
             #sys.exit(1)
-            raise
+            #raise
 
         #self.old_html = ""
         self.scroll_win.add(self.webview)

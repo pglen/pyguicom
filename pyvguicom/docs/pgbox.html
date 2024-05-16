@@ -28,11 +28,7 @@
 </summary>
 <pre><code class="python">#!/usr/bin/python
 
-from __future__ import absolute_import
-from __future__ import print_function
-
-import os, sys, getopt, signal, string, fnmatch, math
-import random, time, subprocess, traceback, glob
+import  sys
 
 import gi
 gi.require_version(&#34;Gtk&#34;, &#34;3.0&#34;)
@@ -40,12 +36,13 @@ gi.require_version(&#39;PangoCairo&#39;, &#39;1.0&#39;)
 
 from gi.repository import Gtk
 from gi.repository import Gdk
-from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
 from gi.repository import PangoCairo
 
-import sutil
+import pgutils
+
+&#39;&#39;&#39;  PgGui documentaation &#39;&#39;&#39;
 
 #sys.path.append(&#39;..&#39;)
 #import pycommon.pgutils
@@ -95,8 +92,9 @@ class Rectangle():
                 idx += 1
         else:
             for aaa in rrr:
-                self.x = aaa[0]; self.y =  aaa[1]
-                self.w =  aaa[2];
+                self.x = aaa[0]
+                self.y =  aaa[1]
+                self.w =  aaa[2]
                 #self.width =  aaa[2];
                 self.h =  aaa[3]
                 #self.height =  aaa[3]
@@ -164,17 +162,17 @@ class Rectangle():
 
         # X intersect
         if rect2.x &gt;= self.x and rect2.x &lt;= urx:
-            inter += 1;
+            inter += 1
         # Y intersect
         if rect2.y &gt;= self.y and rect2.y &lt;= lry:
-            inter += 1;
+            inter += 1
 
         # X intersect rev
         if self.x &gt;= rect2.x and self.x &lt;= urx2:
-            inter += 1;
+            inter += 1
         # Y intersect rev
         if self.y &gt;= rect2.y and self.y &lt;= lry2:
-            inter += 1;
+            inter += 1
 
         #print(&#34;inter&#34;, inter, str(self), &#34;-&gt;&#34;, str(rect2))
         return (inter &gt;= 2, self.x)
@@ -186,10 +184,10 @@ class Rectangle():
         inter = 0
         # X intersect
         if rect2.x &gt;= self.x and rect2.x + rect2.w &lt;= self.x + self.w:
-            inter += 1;
+            inter += 1
         # Y intersect
         if rect2.y &gt;= self.y and rect2.y + rect2.h &lt;= self.y + self.h:
-            inter += 1;
+            inter += 1
         #print(&#34;inter&#34;, inter)
         return (inter == 2, self.x)
 
@@ -204,7 +202,7 @@ class Rectangle():
         elif key == 3:
             return self.h
         else:
-            raise IndexError;
+            raise IndexError
 
     def dump(self):
         return (self.x, self.y, self.w, self.h)
@@ -230,59 +228,6 @@ class Rectangle():
 
     def __str__(self):
         return &#34;R: x=%d y=%d w=%d h=%d&#34; % (self.x, self.y, self.w, self.h)
-
-# ------------------------------------------------------------------------
-# An N pixel horizontal spacer. Defaults to X pix
-
-class xSpacer(Gtk.HBox):
-
-    def __init__(self, sp = None):
-        GObject.GObject.__init__(self)
-        #self.pack_start()
-        if box_testmode:
-            col = pgutils.randcolstr(100, 200)
-            self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(col))
-        if sp == None:
-            sp = 6
-        self.set_size_request(sp, sp)
-
-# ------------------------------------------------------------------------
-# An N pixel spacer. Defaults to 1 char height / width
-
-class Spacer(Gtk.Label):
-
-    global box_testmode
-
-    def __init__(self, sp = 1, title=None, left=False, bottom=False, test=False):
-
-        GObject.GObject.__init__(self)
-
-        #sp *= 1000
-        #self.set_markup(&#34;&lt;span  size=\&#34;&#34; + str(sp) + &#34;\&#34;&gt; &lt;/span&gt;&#34;)
-        #self.set_text(&#34; &#34; * sp)
-
-        if title:
-            self.set_text(title)
-        else:
-            self.set_text(&#34; &#34; * sp)
-
-        if left:
-            self.set_xalign(0)
-
-        if bottom:
-            self.set_yalign(1)
-
-        if test or box_testmode:
-            self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(&#34;#888888&#34;))
-
-        #self.set_property(&#34;angle&#34;, 15)
-        #attr = self.get_property(&#34;attributes&#34;)
-        #attr2 = Pango.AttrList()
-        #print (&#34;attr&#34;, dir(attr))
-        #attr.
-        #self.set_property(&#34;attributes&#34;, attr)
-        #self.set_property(&#34;label&#34;, &#34;wtf&#34;)
-        #self.set_property(&#34;background-set&#34;, True)
 
 # ------------------------------------------------------------------------
 # This override covers / hides the complexity of the treeview and the
@@ -348,42 +293,42 @@ class ListBox(Gtk.TreeView):
         if idx == -1:
             ts.unselect_all()
             return
-        iter = self.treestore.get_iter_first()
+        iterx = self.treestore.get_iter_first()
         for aa in range(idx):
-            iter = self.treestore.iter_next(iter)
-            if not iter:
+            iterx = self.treestore.iter_next(iter)
+            if not iterx:
                 break
-        if not iter:
+        if not iterx:
             pass
             #raise ValueError(&#34;Invalid selection index.&#34;)
-        ts.select_iter(iter)
+        ts.select_iter(iterx)
 
     # Return the number of list items
     def get_size(self):
         cnt = 0
-        iter = self.treestore.get_iter_first()
-        if not iter:
+        iterx = self.treestore.get_iter_first()
+        if not iterx:
             return cnt
         cnt = 1
         while True:
-            iter = self.treestore.iter_next(iter)
-            if not iter:
+            iterx = self.treestore.iter_next(iter)
+            if not iterx:
                 break
             cnt += 1
         return cnt
 
     def get_item(self, idx):
         cnt = 0; res = &#34;&#34;
-        iter = self.treestore.get_iter_first()
-        if not iter:
+        iterx = self.treestore.get_iter_first()
+        if not iterx:
             return &#34;&#34;
         cnt = 1
         while True:
-            iter = self.treestore.iter_next(iter)
-            if not iter:
+            iterx = self.treestore.iter_next(iter)
+            if not iterx:
                 break
             if cnt == idx:
-                res = self.treestore.get_value(iter, 0)
+                res = self.treestore.get_value(iterx, 0)
                 break
             cnt += 1
         return res
@@ -394,11 +339,11 @@ class ListBox(Gtk.TreeView):
             cnt = self.get_size()
             #print(&#34;limiting cnt=&#34;, cnt, &#34;limit=&#34;, self.limit)
             for aa in range(cnt - self.limit):
-                iter = self.treestore.get_iter_first()
-                if not iter:
+                iterx = self.treestore.get_iter_first()
+                if not iterx:
                     break
                 try:
-                    self.treestore.remove(iter)
+                    self.treestore.remove(iterx)
                 except:
                     print(&#34;except: treestore remove lim&#34;)
 
@@ -479,7 +424,7 @@ class   ComboBox(Gtk.ComboBox):
                     self.callme(name)
                 except:
                     print(&#34;Callback:&#34;, sys.exc_info())
-                    sutil.print_exception(&#34;callb&#34;)
+                    pgutils.print_exception(&#34;callb&#34;)
 
             else:
                 entry = combo.get_child()
@@ -512,26 +457,26 @@ class   ComboBox(Gtk.ComboBox):
         #print(&#34;Sel combo text&#34;)
 
         model = self.get_model()
-        iter = model.get_iter_first()
-        if iter:
+        iterx = model.get_iter_first()
+        if iterx:
             cnt = 0
             while True:
 
-                #print(&#34;entry %d&#34; % cnt, model[iter][0], txt)
-                if  model[iter][0] == txt:
-                    #print(&#34;Found %d&#34; % cnt, model[iter][0])
-                    self.set_active_iter(iter)
+                #print(&#34;entry %d&#34; % cnt, model[iterx][0], txt)
+                if  model[iterx][0] == txt:
+                    #print(&#34;Found %d&#34; % cnt, model[iterx][0])
+                    self.set_active_iter(iterx)
                     break
 
-                iter = model.iter_next(iter)
-                if not iter:
+                iterx = model.iter_next(iterx)
+                if not iterx:
                     break
                 cnt += 1
 
     def     sel_first(self):
         model = self.get_model()
-        iter = model.get_iter_first()
-        self.set_active_iter(iter)
+        iterx = model.get_iter_first()
+        self.set_active_iter(iterx)
 
 # ------------------------------------------------------------------------
 # Gtk.TreeView simpler combo for color selection
@@ -597,7 +542,7 @@ class   ColorRenderer(Gtk.CellRenderer):
         cr.set_source_rgba (*ddd)
 
         (pr, lr) = layout.get_extents()
-        xx = lr.width / Pango.SCALE; yy = lr.height / Pango.SCALE;
+        xx = lr.width / Pango.SCALE; yy = lr.height / Pango.SCALE
 
         cr.move_to((background_area.width - xx)/2, (background_area.height - yy)/2)
         PangoCairo.show_layout (cr, layout)
@@ -647,10 +592,10 @@ class   ColorCombo(Gtk.ComboBox):
         print(&#34;Focus&#34;, arg1, arg2)
 
     #def data_func(self, arg1, arg2, arg3, arg4):
-    &#39;&#39;&#39;def data_func(self, column, renderer, model, iter):
+    &#39;&#39;&#39;def data_func(self, column, renderer, model, iterx):
         #print(&#34;data_func called&#34;, arg1, arg2, arg3, arg4)
-        #print(&#34;data_func &#34;, model, iter)
-        val = model.get_value(iter, 0)
+        #print(&#34;data_func &#34;, model, iterx)
+        val = model.get_value(iterx, 0)
         #print(&#34;val&#34;, val)
         #renderer.set_property(&#34;cell-background&#34;, val)
         renderer.set_property(&#34;background&#34;, val)
@@ -712,26 +657,26 @@ class   ColorCombo(Gtk.ComboBox):
         #print(&#34;Sel combo text&#34;)
 
         model = self.get_model()
-        iter = model.get_iter_first()
-        if iter:
+        iterx = model.get_iter_first()
+        if iterx:
             cnt = 0
             while True:
 
-                #print(&#34;entry %d&#34; % cnt, model[iter][0], txt)
-                if  model[iter][0] == txt:
-                    #print(&#34;Found %d&#34; % cnt, model[iter][0])
-                    self.set_active_iter(iter)
+                #print(&#34;entry %d&#34; % cnt, model[iterx][0], txt)
+                if  model[iterx][0] == txt:
+                    #print(&#34;Found %d&#34; % cnt, model[iterx][0])
+                    self.set_active_iter(iterx)
                     break
 
-                iter = model.iter_next(iter)
-                if not iter:
+                iterx = model.iter_next(iterx)
+                if not iterx:
                     break
                 cnt += 1
 
     def     sel_first(self):
         model = self.get_model()
-        iter = model.get_iter_first()
-        self.set_active_iter(iter)
+        iterx = model.get_iter_first()
+        self.set_active_iter(iterx)
 
 
 # ------------------------------------------------------------------------
@@ -772,7 +717,6 @@ class   xHBox(Gtk.HBox):
         if pad == 0:
             pad = self.pad
         self.pack_start(obj, expand, expand, pad)
-
 
 # EOF</code></pre>
 </details>
@@ -879,10 +823,10 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
         print(&#34;Focus&#34;, arg1, arg2)
 
     #def data_func(self, arg1, arg2, arg3, arg4):
-    &#39;&#39;&#39;def data_func(self, column, renderer, model, iter):
+    &#39;&#39;&#39;def data_func(self, column, renderer, model, iterx):
         #print(&#34;data_func called&#34;, arg1, arg2, arg3, arg4)
-        #print(&#34;data_func &#34;, model, iter)
-        val = model.get_value(iter, 0)
+        #print(&#34;data_func &#34;, model, iterx)
+        val = model.get_value(iterx, 0)
         #print(&#34;val&#34;, val)
         #renderer.set_property(&#34;cell-background&#34;, val)
         renderer.set_property(&#34;background&#34;, val)
@@ -944,26 +888,26 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
         #print(&#34;Sel combo text&#34;)
 
         model = self.get_model()
-        iter = model.get_iter_first()
-        if iter:
+        iterx = model.get_iter_first()
+        if iterx:
             cnt = 0
             while True:
 
-                #print(&#34;entry %d&#34; % cnt, model[iter][0], txt)
-                if  model[iter][0] == txt:
-                    #print(&#34;Found %d&#34; % cnt, model[iter][0])
-                    self.set_active_iter(iter)
+                #print(&#34;entry %d&#34; % cnt, model[iterx][0], txt)
+                if  model[iterx][0] == txt:
+                    #print(&#34;Found %d&#34; % cnt, model[iterx][0])
+                    self.set_active_iter(iterx)
                     break
 
-                iter = model.iter_next(iter)
-                if not iter:
+                iterx = model.iter_next(iterx)
+                if not iterx:
                     break
                 cnt += 1
 
     def     sel_first(self):
         model = self.get_model()
-        iter = model.get_iter_first()
-        self.set_active_iter(iter)</code></pre>
+        iterx = model.get_iter_first()
+        self.set_active_iter(iterx)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1089,8 +1033,8 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
 </summary>
 <pre><code class="python">def     sel_first(self):
     model = self.get_model()
-    iter = model.get_iter_first()
-    self.set_active_iter(iter)</code></pre>
+    iterx = model.get_iter_first()
+    self.set_active_iter(iterx)</code></pre>
 </details>
 </dd>
 <dt id="pgbox.ColorCombo.sel_text"><code class="name flex">
@@ -1107,19 +1051,19 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
     #print(&#34;Sel combo text&#34;)
 
     model = self.get_model()
-    iter = model.get_iter_first()
-    if iter:
+    iterx = model.get_iter_first()
+    if iterx:
         cnt = 0
         while True:
 
-            #print(&#34;entry %d&#34; % cnt, model[iter][0], txt)
-            if  model[iter][0] == txt:
-                #print(&#34;Found %d&#34; % cnt, model[iter][0])
-                self.set_active_iter(iter)
+            #print(&#34;entry %d&#34; % cnt, model[iterx][0], txt)
+            if  model[iterx][0] == txt:
+                #print(&#34;Found %d&#34; % cnt, model[iterx][0])
+                self.set_active_iter(iterx)
                 break
 
-            iter = model.iter_next(iter)
-            if not iter:
+            iterx = model.iter_next(iterx)
+            if not iterx:
                 break
             cnt += 1</code></pre>
 </details>
@@ -1199,7 +1143,7 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
         cr.set_source_rgba (*ddd)
 
         (pr, lr) = layout.get_extents()
-        xx = lr.width / Pango.SCALE; yy = lr.height / Pango.SCALE;
+        xx = lr.width / Pango.SCALE; yy = lr.height / Pango.SCALE
 
         cr.move_to((background_area.width - xx)/2, (background_area.height - yy)/2)
         PangoCairo.show_layout (cr, layout)
@@ -1298,7 +1242,7 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
     cr.set_source_rgba (*ddd)
 
     (pr, lr) = layout.get_extents()
-    xx = lr.width / Pango.SCALE; yy = lr.height / Pango.SCALE;
+    xx = lr.width / Pango.SCALE; yy = lr.height / Pango.SCALE
 
     cr.move_to((background_area.width - xx)/2, (background_area.height - yy)/2)
     PangoCairo.show_layout (cr, layout)
@@ -1391,7 +1335,7 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
                     self.callme(name)
                 except:
                     print(&#34;Callback:&#34;, sys.exc_info())
-                    sutil.print_exception(&#34;callb&#34;)
+                    pgutils.print_exception(&#34;callb&#34;)
 
             else:
                 entry = combo.get_child()
@@ -1424,26 +1368,26 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
         #print(&#34;Sel combo text&#34;)
 
         model = self.get_model()
-        iter = model.get_iter_first()
-        if iter:
+        iterx = model.get_iter_first()
+        if iterx:
             cnt = 0
             while True:
 
-                #print(&#34;entry %d&#34; % cnt, model[iter][0], txt)
-                if  model[iter][0] == txt:
-                    #print(&#34;Found %d&#34; % cnt, model[iter][0])
-                    self.set_active_iter(iter)
+                #print(&#34;entry %d&#34; % cnt, model[iterx][0], txt)
+                if  model[iterx][0] == txt:
+                    #print(&#34;Found %d&#34; % cnt, model[iterx][0])
+                    self.set_active_iter(iterx)
                     break
 
-                iter = model.iter_next(iter)
-                if not iter:
+                iterx = model.iter_next(iterx)
+                if not iterx:
                     break
                 cnt += 1
 
     def     sel_first(self):
         model = self.get_model()
-        iter = model.get_iter_first()
-        self.set_active_iter(iter)</code></pre>
+        iterx = model.get_iter_first()
+        self.set_active_iter(iterx)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1489,7 +1433,7 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
                 self.callme(name)
             except:
                 print(&#34;Callback:&#34;, sys.exc_info())
-                sutil.print_exception(&#34;callb&#34;)
+                pgutils.print_exception(&#34;callb&#34;)
 
         else:
             entry = combo.get_child()
@@ -1538,8 +1482,8 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
 </summary>
 <pre><code class="python">def     sel_first(self):
     model = self.get_model()
-    iter = model.get_iter_first()
-    self.set_active_iter(iter)</code></pre>
+    iterx = model.get_iter_first()
+    self.set_active_iter(iterx)</code></pre>
 </details>
 </dd>
 <dt id="pgbox.ComboBox.sel_text"><code class="name flex">
@@ -1556,19 +1500,19 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
     #print(&#34;Sel combo text&#34;)
 
     model = self.get_model()
-    iter = model.get_iter_first()
-    if iter:
+    iterx = model.get_iter_first()
+    if iterx:
         cnt = 0
         while True:
 
-            #print(&#34;entry %d&#34; % cnt, model[iter][0], txt)
-            if  model[iter][0] == txt:
-                #print(&#34;Found %d&#34; % cnt, model[iter][0])
-                self.set_active_iter(iter)
+            #print(&#34;entry %d&#34; % cnt, model[iterx][0], txt)
+            if  model[iterx][0] == txt:
+                #print(&#34;Found %d&#34; % cnt, model[iterx][0])
+                self.set_active_iter(iterx)
                 break
 
-            iter = model.iter_next(iter)
-            if not iter:
+            iterx = model.iter_next(iterx)
+            if not iterx:
                 break
             cnt += 1</code></pre>
 </details>
@@ -1652,42 +1596,42 @@ sets through the use of explicit keyword arguments.</p></div>
         if idx == -1:
             ts.unselect_all()
             return
-        iter = self.treestore.get_iter_first()
+        iterx = self.treestore.get_iter_first()
         for aa in range(idx):
-            iter = self.treestore.iter_next(iter)
-            if not iter:
+            iterx = self.treestore.iter_next(iter)
+            if not iterx:
                 break
-        if not iter:
+        if not iterx:
             pass
             #raise ValueError(&#34;Invalid selection index.&#34;)
-        ts.select_iter(iter)
+        ts.select_iter(iterx)
 
     # Return the number of list items
     def get_size(self):
         cnt = 0
-        iter = self.treestore.get_iter_first()
-        if not iter:
+        iterx = self.treestore.get_iter_first()
+        if not iterx:
             return cnt
         cnt = 1
         while True:
-            iter = self.treestore.iter_next(iter)
-            if not iter:
+            iterx = self.treestore.iter_next(iter)
+            if not iterx:
                 break
             cnt += 1
         return cnt
 
     def get_item(self, idx):
         cnt = 0; res = &#34;&#34;
-        iter = self.treestore.get_iter_first()
-        if not iter:
+        iterx = self.treestore.get_iter_first()
+        if not iterx:
             return &#34;&#34;
         cnt = 1
         while True:
-            iter = self.treestore.iter_next(iter)
-            if not iter:
+            iterx = self.treestore.iter_next(iter)
+            if not iterx:
                 break
             if cnt == idx:
-                res = self.treestore.get_value(iter, 0)
+                res = self.treestore.get_value(iterx, 0)
                 break
             cnt += 1
         return res
@@ -1698,11 +1642,11 @@ sets through the use of explicit keyword arguments.</p></div>
             cnt = self.get_size()
             #print(&#34;limiting cnt=&#34;, cnt, &#34;limit=&#34;, self.limit)
             for aa in range(cnt - self.limit):
-                iter = self.treestore.get_iter_first()
-                if not iter:
+                iterx = self.treestore.get_iter_first()
+                if not iterx:
                     break
                 try:
-                    self.treestore.remove(iter)
+                    self.treestore.remove(iterx)
                 except:
                     print(&#34;except: treestore remove lim&#34;)
 
@@ -1766,11 +1710,11 @@ sets through the use of explicit keyword arguments.</p></div>
         cnt = self.get_size()
         #print(&#34;limiting cnt=&#34;, cnt, &#34;limit=&#34;, self.limit)
         for aa in range(cnt - self.limit):
-            iter = self.treestore.get_iter_first()
-            if not iter:
+            iterx = self.treestore.get_iter_first()
+            if not iterx:
                 break
             try:
-                self.treestore.remove(iter)
+                self.treestore.remove(iterx)
             except:
                 print(&#34;except: treestore remove lim&#34;)
 
@@ -1840,16 +1784,16 @@ sets through the use of explicit keyword arguments.</p></div>
 </summary>
 <pre><code class="python">def get_item(self, idx):
     cnt = 0; res = &#34;&#34;
-    iter = self.treestore.get_iter_first()
-    if not iter:
+    iterx = self.treestore.get_iter_first()
+    if not iterx:
         return &#34;&#34;
     cnt = 1
     while True:
-        iter = self.treestore.iter_next(iter)
-        if not iter:
+        iterx = self.treestore.iter_next(iter)
+        if not iterx:
             break
         if cnt == idx:
-            res = self.treestore.get_value(iter, 0)
+            res = self.treestore.get_value(iterx, 0)
             break
         cnt += 1
     return res</code></pre>
@@ -1866,13 +1810,13 @@ sets through the use of explicit keyword arguments.</p></div>
 </summary>
 <pre><code class="python">def get_size(self):
     cnt = 0
-    iter = self.treestore.get_iter_first()
-    if not iter:
+    iterx = self.treestore.get_iter_first()
+    if not iterx:
         return cnt
     cnt = 1
     while True:
-        iter = self.treestore.iter_next(iter)
-        if not iter:
+        iterx = self.treestore.iter_next(iter)
+        if not iterx:
             break
         cnt += 1
     return cnt</code></pre>
@@ -1908,15 +1852,15 @@ sets through the use of explicit keyword arguments.</p></div>
     if idx == -1:
         ts.unselect_all()
         return
-    iter = self.treestore.get_iter_first()
+    iterx = self.treestore.get_iter_first()
     for aa in range(idx):
-        iter = self.treestore.iter_next(iter)
-        if not iter:
+        iterx = self.treestore.iter_next(iter)
+        if not iterx:
             break
-    if not iter:
+    if not iterx:
         pass
         #raise ValueError(&#34;Invalid selection index.&#34;)
-    ts.select_iter(iter)</code></pre>
+    ts.select_iter(iterx)</code></pre>
 </details>
 </dd>
 <dt id="pgbox.ListBox.set_callback"><code class="name flex">
@@ -1989,8 +1933,9 @@ sets through the use of explicit keyword arguments.</p></div>
                 idx += 1
         else:
             for aaa in rrr:
-                self.x = aaa[0]; self.y =  aaa[1]
-                self.w =  aaa[2];
+                self.x = aaa[0]
+                self.y =  aaa[1]
+                self.w =  aaa[2]
                 #self.width =  aaa[2];
                 self.h =  aaa[3]
                 #self.height =  aaa[3]
@@ -2058,17 +2003,17 @@ sets through the use of explicit keyword arguments.</p></div>
 
         # X intersect
         if rect2.x &gt;= self.x and rect2.x &lt;= urx:
-            inter += 1;
+            inter += 1
         # Y intersect
         if rect2.y &gt;= self.y and rect2.y &lt;= lry:
-            inter += 1;
+            inter += 1
 
         # X intersect rev
         if self.x &gt;= rect2.x and self.x &lt;= urx2:
-            inter += 1;
+            inter += 1
         # Y intersect rev
         if self.y &gt;= rect2.y and self.y &lt;= lry2:
-            inter += 1;
+            inter += 1
 
         #print(&#34;inter&#34;, inter, str(self), &#34;-&gt;&#34;, str(rect2))
         return (inter &gt;= 2, self.x)
@@ -2080,10 +2025,10 @@ sets through the use of explicit keyword arguments.</p></div>
         inter = 0
         # X intersect
         if rect2.x &gt;= self.x and rect2.x + rect2.w &lt;= self.x + self.w:
-            inter += 1;
+            inter += 1
         # Y intersect
         if rect2.y &gt;= self.y and rect2.y + rect2.h &lt;= self.y + self.h:
-            inter += 1;
+            inter += 1
         #print(&#34;inter&#34;, inter)
         return (inter == 2, self.x)
 
@@ -2098,7 +2043,7 @@ sets through the use of explicit keyword arguments.</p></div>
         elif key == 3:
             return self.h
         else:
-            raise IndexError;
+            raise IndexError
 
     def dump(self):
         return (self.x, self.y, self.w, self.h)
@@ -2142,10 +2087,10 @@ sets through the use of explicit keyword arguments.</p></div>
     inter = 0
     # X intersect
     if rect2.x &gt;= self.x and rect2.x + rect2.w &lt;= self.x + self.w:
-        inter += 1;
+        inter += 1
     # Y intersect
     if rect2.y &gt;= self.y and rect2.y + rect2.h &lt;= self.y + self.h:
-        inter += 1;
+        inter += 1
     #print(&#34;inter&#34;, inter)
     return (inter == 2, self.x)</code></pre>
 </details>
@@ -2223,17 +2168,17 @@ sets through the use of explicit keyword arguments.</p></div>
 
     # X intersect
     if rect2.x &gt;= self.x and rect2.x &lt;= urx:
-        inter += 1;
+        inter += 1
     # Y intersect
     if rect2.y &gt;= self.y and rect2.y &lt;= lry:
-        inter += 1;
+        inter += 1
 
     # X intersect rev
     if self.x &gt;= rect2.x and self.x &lt;= urx2:
-        inter += 1;
+        inter += 1
     # Y intersect rev
     if self.y &gt;= rect2.y and self.y &lt;= lry2:
-        inter += 1;
+        inter += 1
 
     #print(&#34;inter&#34;, inter, str(self), &#34;-&gt;&#34;, str(rect2))
     return (inter &gt;= 2, self.x)</code></pre>
@@ -2260,74 +2205,6 @@ sets through the use of explicit keyword arguments.</p></div>
 </details>
 </dd>
 </dl>
-</dd>
-<dt id="pgbox.Spacer"><code class="flex name class">
-<span>class <span class="ident">Spacer</span></span>
-<span>(</span><span>sp=1, title=None, left=False, bottom=False, test=False)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>:Constructors:</p>
-<p>::</p>
-<pre><code>Label(**properties)
-new(str:str=None) -&gt; Gtk.Widget
-new_with_mnemonic(str:str=None) -&gt; Gtk.Widget
-</code></pre>
-<p>Initializer for a GObject based classes with support for property
-sets through the use of explicit keyword arguments.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Spacer(Gtk.Label):
-
-    global box_testmode
-
-    def __init__(self, sp = 1, title=None, left=False, bottom=False, test=False):
-
-        GObject.GObject.__init__(self)
-
-        #sp *= 1000
-        #self.set_markup(&#34;&lt;span  size=\&#34;&#34; + str(sp) + &#34;\&#34;&gt; &lt;/span&gt;&#34;)
-        #self.set_text(&#34; &#34; * sp)
-
-        if title:
-            self.set_text(title)
-        else:
-            self.set_text(&#34; &#34; * sp)
-
-        if left:
-            self.set_xalign(0)
-
-        if bottom:
-            self.set_yalign(1)
-
-        if test or box_testmode:
-            self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(&#34;#888888&#34;))
-
-        #self.set_property(&#34;angle&#34;, 15)
-        #attr = self.get_property(&#34;attributes&#34;)
-        #attr2 = Pango.AttrList()
-        #print (&#34;attr&#34;, dir(attr))
-        #attr.
-        #self.set_property(&#34;attributes&#34;, attr)
-        #self.set_property(&#34;label&#34;, &#34;wtf&#34;)
-        #self.set_property(&#34;background-set&#34;, True)</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>gi.overrides.Gtk.Label</li>
-<li>gi.repository.Gtk.Label</li>
-<li>gi.repository.Gtk.Misc</li>
-<li>gi.overrides.Gtk.Widget</li>
-<li>gi.repository.Gtk.Widget</li>
-<li>gi.repository.GObject.InitiallyUnowned</li>
-<li>gi.overrides.GObject.Object</li>
-<li>gi.repository.GObject.Object</li>
-<li>gi._gi.GObject</li>
-<li>gi.repository.Atk.ImplementorIface</li>
-<li>gi.repository.Gtk.Buildable</li>
-<li>gobject.GInterface</li>
-</ul>
 </dd>
 <dt id="pgbox.xHBox"><code class="flex name class">
 <span>class <span class="ident">xHBox</span></span>
@@ -2412,53 +2289,6 @@ sets through the use of explicit keyword arguments.</p></div>
 </details>
 </dd>
 </dl>
-</dd>
-<dt id="pgbox.xSpacer"><code class="flex name class">
-<span>class <span class="ident">xSpacer</span></span>
-<span>(</span><span>sp=None)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>:Constructors:</p>
-<p>::</p>
-<pre><code>HBox(**properties)
-new(homogeneous:bool, spacing:int) -&gt; Gtk.Widget
-</code></pre>
-<p>Initializer for a GObject based classes with support for property
-sets through the use of explicit keyword arguments.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class xSpacer(Gtk.HBox):
-
-    def __init__(self, sp = None):
-        GObject.GObject.__init__(self)
-        #self.pack_start()
-        if box_testmode:
-            col = pgutils.randcolstr(100, 200)
-            self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(col))
-        if sp == None:
-            sp = 6
-        self.set_size_request(sp, sp)</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>gi.repository.Gtk.HBox</li>
-<li>gi.overrides.Gtk.Box</li>
-<li>gi.repository.Gtk.Box</li>
-<li>gi.overrides.Gtk.Container</li>
-<li>gi.repository.Gtk.Container</li>
-<li>gi.overrides.Gtk.Widget</li>
-<li>gi.repository.Gtk.Widget</li>
-<li>gi.repository.GObject.InitiallyUnowned</li>
-<li>gi.overrides.GObject.Object</li>
-<li>gi.repository.GObject.Object</li>
-<li>gi._gi.GObject</li>
-<li>gi.repository.Atk.ImplementorIface</li>
-<li>gi.repository.Gtk.Buildable</li>
-<li>gi.repository.Gtk.Orientable</li>
-<li>gobject.GInterface</li>
-</ul>
 </dd>
 <dt id="pgbox.xVBox"><code class="flex name class">
 <span>class <span class="ident">xVBox</span></span>
@@ -2615,17 +2445,11 @@ sets through the use of explicit keyword arguments.</p></div>
 </ul>
 </li>
 <li>
-<h4><code><a title="pgbox.Spacer" href="#pgbox.Spacer">Spacer</a></code></h4>
-</li>
-<li>
 <h4><code><a title="pgbox.xHBox" href="#pgbox.xHBox">xHBox</a></code></h4>
 <ul class="">
 <li><code><a title="pgbox.xHBox.pack" href="#pgbox.xHBox.pack">pack</a></code></li>
 <li><code><a title="pgbox.xHBox.set_padding" href="#pgbox.xHBox.set_padding">set_padding</a></code></li>
 </ul>
-</li>
-<li>
-<h4><code><a title="pgbox.xSpacer" href="#pgbox.xSpacer">xSpacer</a></code></h4>
 </li>
 <li>
 <h4><code><a title="pgbox.xVBox" href="#pgbox.xVBox">xVBox</a></code></h4>
