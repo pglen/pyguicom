@@ -41,10 +41,27 @@ def randascii(lenx):
             strx += " "
     return strx
 
+desig = (   "St", "RD", "Valley", "Terrace", "Ave", "Hw",
+            "Rd", "Lane", "Alley", "Bvld", "Boulevard",
+            "Crest", "Ridge", "Hill", )
+
+def simaddr(lenx):
+
+    strx =  randnumstr(random.randint(2, 5)) + ". "
+    strx += randupper(1)
+    strx += randlower(random.randint(4, lenx // 2)) + " "
+
+    strx += randupper(1)
+    strx += randlower(random.randint(4, lenx // 2)) + " "
+    strx += desig[random.randint(0, len(desig)-1)]  + "."
+
+    return strx
+
+
 def simname(lenx):
     strx = ""
     lenz = len(alllett)-1
-    spidx = random.randint(0, lenx - 4)
+    spidx = random.randint(3, lenx - 4)
     ridx = random.randint(0, len(string.ascii_uppercase)-1)
     strx += string.ascii_uppercase[ridx]
     for aa in range(spidx):
@@ -79,6 +96,33 @@ def randate():
 
 # ------------------------------------------------------------------------
 # Get random str
+
+def randnumstr(lenx):
+
+    strx = ""
+    for aa in range(lenx):
+        ridx = random.randint(0, len(string.digits)-1)
+        rr = string.digits[ridx]
+        strx += str(rr)
+
+    return strx
+
+def randphone():
+
+    strx = "1+ " + randnumstr(2)
+    strx += " (" + randnumstr(3) + ") "
+    strx += randnumstr(3) + " "
+    strx += randnumstr(4)
+
+    return strx
+
+def randemail():
+
+    strx =   randlower(random.randint(3, 9))  + "@"
+    strx +=  randlower(random.randint(4, 12)) + "."
+    strx +=  randlower(random.randint(2, 3))
+
+    return strx
 
 def randstr(lenx):
 
@@ -121,12 +165,32 @@ def randlett(lenx):
 
     return strx
 
+def randlower(lenx):
+
+    strx = ""
+    for aa in range(lenx):
+        ridx = random.randint(0, len(string.ascii_lowercase)-1)
+        rr = string.ascii_lowercase[ridx]
+        strx += str(rr)
+
+    return strx
+
+def randupper(lenx):
+
+    strx = ""
+    for aa in range(lenx):
+        ridx = random.randint(0, len(string.ascii_uppercase)-1)
+        rr = string.ascii_uppercase[ridx]
+        strx += str(rr)
+
+    return strx
+
+
 # ------------------------------------------------------------------------
 # Random colors
 
 def randcol():
     return random.randint(0, 255)
-
 
 def randcolstr(start = 0, endd = 255):
     rr =  random.randint(start, endd)

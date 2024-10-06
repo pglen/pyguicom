@@ -37,12 +37,32 @@ def test_rand2(arg2, arg3):
     arg3.set_text(rrr)
 
 def test_rand3(arg2, arg3):
-    rrr = pgtests.simname(12)
+    rrr = pgtests.simname(random.randint(9, 18))
     print(rrr)
     arg3.set_text(rrr)
 
 def test_rand4(arg2, arg3):
     rrr = pgtests.randate()
+    print(rrr)
+    arg3.set_text(rrr)
+
+def test_rand5(arg2, arg3):
+    rrr = pgtests.randnumstr(8)
+    print(rrr)
+    arg3.set_text(rrr)
+
+def test_rand6(arg2, arg3):
+    rrr = pgtests.randphone()
+    print(rrr)
+    arg3.set_text(rrr)
+
+def test_rand7(arg2, arg3):
+    rrr = pgtests.randemail()
+    print(rrr)
+    arg3.set_text(rrr)
+
+def test_rand8(arg2, arg3):
+    rrr = pgtests.simaddr(12)
     print(rrr)
     arg3.set_text(rrr)
 
@@ -81,6 +101,18 @@ if __name__ == "__main__":
 
     butt = Gtk.Button.new_with_mnemonic("Test randdate")
     butt.connect("clicked", test_rand4, lab1)
+    vbox.pack_start(butt, 0, 0, 2)
+
+    butt = Gtk.Button.new_with_mnemonic("Test randnumstr")
+    butt.connect("clicked", test_rand5, lab1)
+    vbox.pack_start(butt, 0, 0, 2)
+
+    butt = Gtk.Button.new_with_mnemonic("Test randemail")
+    butt.connect("clicked", test_rand7, lab1)
+    vbox.pack_start(butt, 0, 0, 2)
+
+    butt = Gtk.Button.new_with_mnemonic("Test simaddr")
+    butt.connect("clicked", test_rand8, lab1)
     vbox.pack_start(butt, 0, 0, 2)
 
     butt = Gtk.Button.new_with_mnemonic("E_xit")

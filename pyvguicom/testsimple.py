@@ -69,18 +69,23 @@ tw = pgtestwin()
 
 #print("test")
 
-def fillrand():
+def fillrand(size = 10):
     aaa = []
-    for aa in range(10):
+    for aa in range(size):
         aaa.append( (pgtests.randstr(12), pgtests.randstr(12),
                         pgtests.randstr(12), pgtests.randstr(12)) )
     return aaa
 
-aaa = fillrand()
 tw.treeview.clear()
+
+aaa = fillrand(6)
 for aa in aaa:
     try:
-        tw.treeview.append(aa)
+        to = tw.treeview.append(aa)
+        bbb = fillrand(5)
+        for bb in bbb:
+            to2 = tw.treeview.append(bb, to)
+
     except:
         print(sys.exc_info())
 

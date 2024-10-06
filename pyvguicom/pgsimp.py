@@ -106,14 +106,16 @@ class   SimpleTree(Gtk.TreeView):
     def setActcallb(self, callb):
         self.actcallb = callb
 
-    def append(self, args):
+    def append(self, args, parent = None):
         #print("append", args)
-        piter = self.treestore.append(None, args)
+        piter = self.treestore.append(parent, args)
+        return piter
 
     # TreeStore
     def insert(self, parent, pos, args):
         print("insert", parent, pos, args)
         piter = self.treestore.insert(parent, pos, args)
+        return piter
 
     def sel_first(self):
         #print("sel first ...")

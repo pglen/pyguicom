@@ -160,6 +160,39 @@ def textviewpair(arr, vbox, labtext, labname, tip, defval=None, expand=False):
     vbox.pack_start(hbox2, True, True, 0)
     return lab2
 
+def gridhexa(gridxx, left, top, entry1, entry2, butt = None, butt2 = None):
+
+    lab1 = Gtk.Label.new_with_mnemonic(entry1[0] + "  ")
+    lab1.set_alignment(1, 0)
+    lab1.set_tooltip_text(entry1[2])
+    gridxx.attach(lab1, left, top, 1, 1)
+
+    headx = Entryx();
+    lab1.set_mnemonic_widget(headx)
+    headx.set_width_chars(20)
+    if entry1[3] != None:
+        headx.set_text(entry1[3])
+    gridxx.attach(headx, left+1, top, 1, 1)
+
+    if butt:
+        gridxx.attach(butt, left+2, top, 1, 1)
+
+    lab2 = Gtk.Label.new_with_mnemonic("  " + entry2[0] + "  ")
+    lab2.set_alignment(1, 0)
+    lab2.set_tooltip_text(entry2[2])
+    gridxx.attach(lab2, left+3, top, 1, 1)
+
+    headx2 = Entryx();
+    lab2.set_mnemonic_widget(headx2)
+
+    headx2.set_width_chars(20)
+    if entry2[3] != None:
+        headx2.set_text(entry2[3])
+    gridxx.attach(headx2, left+4, top, 1, 1)
+    if butt2:
+        gridxx.attach(butt2, left+5, top, 1, 1)
+    return headx, headx2
+
 def gridquad(gridx, left, top, entry1, entry2, butt = None):
     lab1 = Gtk.Label.new_with_mnemonic(entry1[0] + "  ")
     lab1.set_alignment(1, 0)
