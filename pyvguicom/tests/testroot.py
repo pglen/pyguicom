@@ -11,8 +11,7 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
 
-#gi.require_version('WebKit2', '4.0')
-#from gi.repository import WebKit2
+sys.path.append(".")
 
 from pgbutt import *
 import pggui

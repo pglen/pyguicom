@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
-
-import os, sys, getopt, signal, select, string, time
-import struct, stat, base64, random, zlib
+import os, sys
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -12,10 +9,10 @@ from gi.repository import Gdk
 from gi.repository import GObject
 from gi.repository import GLib
 
+sys.path.append(".")
+
 from pgsel import *
-from pgutils import *
 from pggui import *
-from pgbox import *
 
 #def OnExit(arg1, arg2):
 #    #print("Exiting", arg1, arg2)

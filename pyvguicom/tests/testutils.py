@@ -2,8 +2,8 @@
 
 from __future__ import print_function
 
-import os, sys, getopt, signal, select, string, time
-import struct, stat, base64, random, zlib
+import os, sys #, getopt, signal, select, string, time
+#import struct, stat, base64, random, zlib
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -12,6 +12,8 @@ from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
+
+sys.path.append(".")
 
 import pgsimp
 import pggui
@@ -30,7 +32,7 @@ def subdialog(arg2):
     dialog = Gtk.Dialog()
     dialog.set_size_request(200, 100)
     dialog.add_button = (Gtk.ButtonsType.CLOSE, Gtk.ResponseType.OK)
-    bbb = Gtk.Button("Message")
+    bbb = Gtk.Button(label="Message")
     dialog.vbox.pack_start(bbb, 0, 0, 0)
     bbb.connect("pressed", pressed, dialog)
     #buttons=Gtk.ButtonsType.CLOSE)
@@ -40,7 +42,6 @@ def subdialog(arg2):
     dialog.show_all()
     dialog.run()
 
-# ------------------------------------------------------------------------
 class testwin(Gtk.Window):
 
     def __init__(self):
@@ -48,8 +49,6 @@ class testwin(Gtk.Window):
         #self.set_default_size(800, 600)
         self.set_position(Gtk.WindowPosition.CENTER)
         self.connect("unmap", Gtk.main_quit)
-
-# ------------------------------------------------------------------------
 
 class pgtestwin(testwin):
 

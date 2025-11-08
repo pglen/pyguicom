@@ -134,14 +134,16 @@ class   SimpleTree(Gtk.TreeView):
     def setActcallb(self, callb):
         self.actcallb = callb
 
-    def append(self, args):
+    def append(self, args, parent = None):
         #print(&#34;append&#34;, args)
-        piter = self.treestore.append(None, args)
+        piter = self.treestore.append(parent, args)
+        return piter
 
     # TreeStore
     def insert(self, parent, pos, args):
         print(&#34;insert&#34;, parent, pos, args)
         piter = self.treestore.insert(parent, pos, args)
+        return piter
 
     def sel_first(self):
         #print(&#34;sel first ...&#34;)
@@ -686,14 +688,16 @@ sets through the use of explicit keyword arguments.</p></div>
     def setActcallb(self, callb):
         self.actcallb = callb
 
-    def append(self, args):
+    def append(self, args, parent = None):
         #print(&#34;append&#34;, args)
-        piter = self.treestore.append(None, args)
+        piter = self.treestore.append(parent, args)
+        return piter
 
     # TreeStore
     def insert(self, parent, pos, args):
         print(&#34;insert&#34;, parent, pos, args)
         piter = self.treestore.insert(parent, pos, args)
+        return piter
 
     def sel_first(self):
         #print(&#34;sel first ...&#34;)
@@ -789,7 +793,7 @@ sets through the use of explicit keyword arguments.</p></div>
 </details>
 </dd>
 <dt id="pgsimp.SimpleTree.append"><code class="name flex">
-<span>def <span class="ident">append</span></span>(<span>self, args)</span>
+<span>def <span class="ident">append</span></span>(<span>self, args, parent=None)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -797,9 +801,10 @@ sets through the use of explicit keyword arguments.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def append(self, args):
+<pre><code class="python">def append(self, args, parent = None):
     #print(&#34;append&#34;, args)
-    piter = self.treestore.append(None, args)</code></pre>
+    piter = self.treestore.append(parent, args)
+    return piter</code></pre>
 </details>
 </dd>
 <dt id="pgsimp.SimpleTree.clear"><code class="name flex">
@@ -857,7 +862,8 @@ sets through the use of explicit keyword arguments.</p></div>
 </summary>
 <pre><code class="python">def insert(self, parent, pos, args):
     print(&#34;insert&#34;, parent, pos, args)
-    piter = self.treestore.insert(parent, pos, args)</code></pre>
+    piter = self.treestore.insert(parent, pos, args)
+    return piter</code></pre>
 </details>
 </dd>
 <dt id="pgsimp.SimpleTree.sel_first"><code class="name flex">

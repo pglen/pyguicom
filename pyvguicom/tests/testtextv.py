@@ -14,6 +14,8 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
 
+sys.path.append(".")
+
 import pgutils
 import pgtextview
 

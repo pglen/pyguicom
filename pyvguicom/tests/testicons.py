@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
-import os, sys, getopt, signal, random, time, warnings
+import os, sys #, getopt, signal, random, time, warnings
 
 realinc = os.path.realpath(os.path.dirname(__file__) + os.sep + "../pycommon")
 sys.path.append(realinc)
+
+sys.path.append(".")
 
 from pgutils import  *
 from pggui import  *
@@ -338,29 +340,36 @@ if __name__ == '__main__':
 
     win = IconViewWindow()
     win.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
+    #print(dir(win))
 
     #ic = Gtk.Image(); ic.set_from_stock(Gtk.STOCK_DIALOG, Gtk.ICON_SIZE_BUTTON)
     #window.set_icon(ic.get_pixbuf())
 
+    www = 800; hhh = 600
     #www = Gdk.Screen.width(); hhh = Gdk.Screen.height();
-    disp2 = Gdk.Display()
-    disp = disp2.get_default()
+    disp = Gdk.Display().get_default()
     #print( disp)
-    scr = disp.get_default_screen()
-    ptr = disp.get_pointer()
-    mon = scr.get_monitor_at_point(ptr[1], ptr[2])
-    geo = scr.get_monitor_geometry(mon)
+    #scr = disp.get_default_screen()
+    mon = disp.get_primary_monitor()
+    #ptr = disp.get_pointer()
+    #dev = Gdk.Device.get_display()
+    #scr, ptr = dev.get_position()
+    #mon =  scr.get_monitor_at_point(ptr[1], ptr[2])
+    #mon = disp.get_monitor_at_window(win.get_parent_window())
+    #geo = scr.get_monitor_geometry(mon)
+    geo = mon.get_geometry()
+
     www = geo.width; hhh = geo.height
     xxx = geo.x;     yyy = geo.y
 
     # Resort to old means of getting screen w / h
-    if www == 0 or hhh == 0:
-        www = Gdk.screen_width(); hhh = Gdk.screen_height();
+    #if www == 0 or hhh == 0:
+    #    www = Gdk.screen_width(); hhh = Gdk.screen_height();
 
     if www / hhh > 2:
-        win.set_default_size(5*www/8, 7*hhh/8)
+        win.set_default_size(5*www/8, 5*hhh/8)
     else:
-        win.set_default_size(7*www/8, 7*hhh/8)
+        win.set_default_size(5*www/8, 5*hhh/8)
 
     win.connect("delete-event", Gtk.main_quit)
     win.show_all()

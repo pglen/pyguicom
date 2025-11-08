@@ -19,8 +19,10 @@ help:
 	@echo "	 make pack       -- package  "
 	@echo
 
-install:
-	@python3 ./install.py
+local-install:
+	@pip install .
+
+#@python3 ./install.py
 
 pack:
 	@./pack.sh
@@ -28,6 +30,7 @@ pack:
 clean:
 	rm -f *.pyc
 	rm -rf __pycache__
+	rm -rf pyvguicom/__pycache__
 	rm -rf build/*
 	rm -rf dist/*
 
@@ -41,7 +44,7 @@ XPATH=PYTHONPATH=../pyvcommon:../  python -W ignore::DeprecationWarning `which p
 docs:
 	@${XPATH}   -o pyvguicom/docs pyvguicom/pgbox.py
 	@${XPATH}   -o pyvguicom/docs pyvguicom/pgsel.py
-	@${XPATH}   -o pyvguicom/docs pyvguicom/browsewin.py
+	#@${XPATH}   -o pyvguicom/docs pyvguicom/browsewin.py
 	@${XPATH}   -o pyvguicom/docs pyvguicom/pgbutt.py
 	@${XPATH}   -o pyvguicom/docs pyvguicom/pgutils.py
 	@${XPATH}   -o pyvguicom/docs pyvguicom/htmledit.py

@@ -3,7 +3,7 @@
 #from __future__ import absolute_import
 #from __future__ import print_function
 
-import signal, os, time, sys, pickle, subprocess, random, warnings
+import signal, os, time, sys, pickle, subprocess, random
 import math, copy
 
 import gi
@@ -24,7 +24,7 @@ import pgsimp
 
 IDXERR = "Index is larger than the available number of controls."
 
-VERSION = "1.3.3"
+VERSION = "1.3.5"
 
 gui_testmode = 0
 
@@ -335,7 +335,7 @@ class MenuButt(Gtk.DrawingArea):
     def __init__(self, menarr, callb, tooltip = "Menu", size = 20, border = 2):
         GObject.GObject.__init__(self)
 
-        warnings.simplefilter("ignore")
+        #warnings.simplefilter("ignore")
 
         self.border = border
         self.callb = callb
@@ -873,7 +873,7 @@ class Menu():
 
         #GObject.GObject.__init__(self)
 
-        warnings.simplefilter("ignore")
+        #warnings.simplefilter("ignore")
 
         self.callb   = callb
         self.menarr  = menarr

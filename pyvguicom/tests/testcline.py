@@ -2,8 +2,9 @@
 
 from __future__ import print_function
 
-import os, sys, string, time,  traceback, getopt
-import random, glob, warnings
+import os, sys
+
+sys.path.append(".")
 
 import comline
 

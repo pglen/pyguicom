@@ -14,7 +14,9 @@ from gi.repository import Pango
 gi.require_version('PangoCairo', '1.0')
 from gi.repository import PangoCairo
 
-import pgtests, pggui
+sys.path.append(".")
+
+import pggui # pgtests,
 
 def subdialog(arg2):
 

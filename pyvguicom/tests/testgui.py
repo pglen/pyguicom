@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-import os, sys, getopt, signal, select, string, time
-import struct, stat, base64, random, zlib
+import sys
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -11,8 +10,7 @@ from gi.repository import GObject
 from gi.repository import GLib
 from gi.repository import Pango
 
-gi.require_version('PangoCairo', '1.0')
-from gi.repository import PangoCairo
+sys.path.append(".")
 
 import pggui
 
@@ -76,7 +74,6 @@ if __name__ == "__main__":
 
     marr = ["First Menu Item","Second Menu Item","Third Menu Item",
             "Fourth Menu Item",  ]
-
     hbox3 = Gtk.HBox()
     mb = pggui.MenuButt(marr, _callb, None)
     hbox3.pack_start(mb, 0, 0, 0)

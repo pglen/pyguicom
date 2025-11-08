@@ -52,7 +52,7 @@ import pgsimp
 
 IDXERR = &#34;Index is larger than the available number of controls.&#34;
 
-VERSION = &#34;1.1.1&#34;
+VERSION = &#34;1.3.5&#34;
 
 gui_testmode = 0
 
@@ -363,7 +363,7 @@ class MenuButt(Gtk.DrawingArea):
     def __init__(self, menarr, callb, tooltip = &#34;Menu&#34;, size = 20, border = 2):
         GObject.GObject.__init__(self)
 
-        warnings.simplefilter(&#34;ignore&#34;)
+        #warnings.simplefilter(&#34;ignore&#34;)
 
         self.border = border
         self.callb = callb
@@ -901,7 +901,7 @@ class Menu():
 
         #GObject.GObject.__init__(self)
 
-        warnings.simplefilter(&#34;ignore&#34;)
+        #warnings.simplefilter(&#34;ignore&#34;)
 
         self.callb   = callb
         self.menarr  = menarr
@@ -3323,7 +3323,7 @@ sets through the use of explicit keyword arguments.</p></div>
 
         #GObject.GObject.__init__(self)
 
-        warnings.simplefilter(&#34;ignore&#34;)
+        #warnings.simplefilter(&#34;ignore&#34;)
 
         self.callb   = callb
         self.menarr  = menarr
@@ -3431,7 +3431,7 @@ new() -&gt; Gtk.Widget
     def __init__(self, menarr, callb, tooltip = &#34;Menu&#34;, size = 20, border = 2):
         GObject.GObject.__init__(self)
 
-        warnings.simplefilter(&#34;ignore&#34;)
+        #warnings.simplefilter(&#34;ignore&#34;)
 
         self.border = border
         self.callb = callb

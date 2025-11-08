@@ -14,6 +14,7 @@ from gi.repository import Pango
 gi.require_version('PangoCairo', '1.0')
 from gi.repository import PangoCairo
 
+sys.path.append(".")
 import custwidg
 
 if __name__ == "__main__":

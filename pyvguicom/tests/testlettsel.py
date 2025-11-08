@@ -2,8 +2,10 @@
 
 from __future__ import print_function
 
-import os, sys, getopt, signal, select, string, time
-import struct, stat, base64, random, zlib
+import os, sys #, getopt, signal, select, string, time
+#import struct, stat, base64, random, zlib
+
+sys.path.append(".")
 
 from pgsel import *
 from pgutils import *
