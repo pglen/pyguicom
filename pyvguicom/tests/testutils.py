@@ -108,7 +108,7 @@ class pgtestwin(testwin):
         self.show_all()
 
     def test_about(self, arg2):
-        print(pgutils.about("Tester"))
+        print(pggui.about("Tester"))
 
     def test_yes_no_cancel2(self, arg2):
         print(pggui.yes_no_cancel2("Yes No Message"))

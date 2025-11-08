@@ -15,9 +15,10 @@ sys.path.append(".")
 import pgsimp
 import pggui
 import pgutils
+import pggui
 
 timex = time.time()
-pgutils.usleep(100)
+pggui.usleep(100)
 timex2 = time.time()
 
 print("Delay:", timex2-timex)

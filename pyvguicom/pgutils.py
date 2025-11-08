@@ -4,27 +4,20 @@
 # pylint: disable=C0209
 # pylint: disable=C0321
 
-import os, sys, getopt, string,  math
-import random, time, traceback, stat
-import platform
+import os, sys, time #, getopt, string,  math
+#import random, traceback, stat
+#import platform
 
-#import warmings
+''' General utility fiunctions '''
 
 if sys.version_info.major < 3:
     pass
 else:
-    import inspect
-    if inspect.isbuiltin(time.process_time):
+    #import inspect
+    #if inspect.isbuiltin(time.process_time):
+    if not hasattr(time, "clock"):
+        #print("updating time.clock()")
         time.clock = time.process_time
-
-''' General utility fiunctions '''
-
-import gi
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk
-from gi.repository import Gdk
-from gi.repository import GObject
-from gi.repository import GdkPixbuf
 
 # ------------------------------------------------------------------------
 # Resolve path name
@@ -512,51 +505,6 @@ def ampmstr(bb):
         dd = "PM"
     return "%02d %s" % (bb, dd)
 
-# It's totally optional to do this, you could just manually insert icons
-# and have them not be themeable, especially if you never expect people
-# to theme your app.
-
-def register_stock_icons():
-    ''' This function registers our custom toolbar icons, so they
-        can be themed.
-    '''
-    #items = [('demo-gtk-logo', '_GTK!', 0, 0, '')]
-    # Register our stock items
-    #Gtk.stock_add(items)
-
-    # Add our custom icon factory to the list of defaults
-    factory = Gtk.IconFactory()
-    factory.add_default()
-
-    img_dir = os.path.join(os.path.dirname(__file__), 'images')
-    img_path = os.path.join(img_dir, 'gtk-logo-rgb.gif')
-
-    #print( img_path)
-    try:
-        #pixbuf = Gdk.pixbuf_new_from_file(img_path)
-        # Register icon to accompany stock item
-
-        # The gtk-logo-rgb icon has a white background, make it transparent
-        # the call is wrapped to (gboolean, guchar, guchar, guchar)
-        #transparent = pixbuf.add_alpha(True, chr(255), chr(255),chr(255))
-        #icon_set = Gtk.IconSet(transparent)
-        #factory.add('demo-gtk-logo', icon_set)
-        pass
-    except GObject.GError as error:
-        #print( 'failed to load GTK logo ... trying local')
-        try:
-            #img_path = os.path.join(img_dir, 'gtk-logo-rgb.gif')
-            xbuf = Gdk.pixbuf_new_from_file('gtk-logo-rgb.gif')
-            #Register icon to accompany stock item
-            #The gtk-logo-rgb icon has a white background, make it transparent
-            #the call is wrapped to (gboolean, guchar, guchar, guchar)
-            transparent = xbuf.add_alpha(True, chr(255), chr(255),chr(255))
-            icon_set = Gtk.IconSet(transparent)
-            factory.add('demo-gtk-logo', icon_set)
-
-        except GObject.GError as error:
-            print('failed to load GTK logo for toolbar')
-
 # ------------------------------------------------------------------------
 # Let the higher level deal with errors.
 
@@ -608,86 +556,6 @@ def  readfile(strx, sep = None):
 
     return text
 
-def  about(progname, verstr = "1.0.0", imgfile = "icon.png"):
-
-    ''' Show About dialog: '''
-
-    dialog = Gtk.AboutDialog()
-    dialog.set_name(progname)
-
-    dialog.set_version(verstr)
-    gver = (Gtk.get_major_version(), \
-                        Gtk.get_minor_version(), \
-                            Gtk.get_micro_version())
-
-    dialog.set_position(Gtk.WindowPosition.CENTER)
-    #dialog.set_transient_for(pedconfig.conf.pedwin.mywin)
-
-    #"\nRunning PyGObject %d.%d.%d" % GObject.pygobject_version +\
-
-    ddd = os.path.join(os.path.dirname(__file__))
-
-    # GLib.pyglib_version
-    vvv = gi.version_info
-    comm = \
-        "Running PyGtk %d.%d.%d" % vvv +\
-        "\non GTK %d.%d.%d" % gver +\
-        "\nRunning Python %s" % platform.python_version() +\
-        "\non %s %s" % (platform.system(), platform.release()) +\
-        "\nExe Path:\n%s" % os.path.realpath(ddd)
-
-    dialog.set_comments(comm)
-    dialog.set_copyright(progname + " Created by Peter Glen.\n"
-                          "Project is in the Public Domain.")
-    dialog.set_program_name(progname)
-    img_path = os.path.join(os.path.dirname(__file__), imgfile)
-
-    try:
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
-        #print "loaded pixbuf"
-        dialog.set_logo(pixbuf)
-
-    except:
-        print("Cannot load logo for about dialog", img_path)
-        print(sys.exc_info())
-
-    #dialog.set_website("")
-
-    ## Close dialog on user response
-    dialog.connect ("response", lambda d, r: d.destroy())
-    dialog.connect("key-press-event", _about_key)
-
-    dialog.show()
-
-def _about_key(win, event):
-    #print "about_key", event
-    if  event.type == Gdk.EventType.KEY_PRESS:
-        if event.keyval == Gdk.KEY_x or event.keyval == Gdk.KEY_X:
-            if event.state & Gdk.ModifierType.MOD1_MASK:
-                win.destroy()
-
-# ------------------------------------------------------------------------
-# Show a regular message:
-#
-#def message3(strx, title = None):
-#
-#    #print("called: message()", strx)
-#
-#    icon = Gtk.STOCK_INFO
-#    dialog = Gtk.MessageDialog(buttons=Gtk.ButtonsType.CLOSE,
-#                               message_type=Gtk.MessageType.INFO)
-#    dialog.props.text = strx
-#    #dialog.set_transient_for()
-#    if title:
-#        dialog.set_title(title)
-#    else:
-#        dialog.set_title("PyEdPro")
-#    dialog.set_position(Gtk.WindowPosition.CENTER)
-#    # Close dialog on user response
-#    dialog.connect("response", lambda d, r: d.destroy())
-#    dialog.show()
-#    dialog.run()
-
 # -----------------------------------------------------------------------
 # Call func with all processes, func called with stat as its argument
 # Function may return True to stop iteration
@@ -704,107 +572,6 @@ def withps(func, opt = None):
         if ret:
             break
     return ret
-
-# ------------------------------------------------------------------------
-# Find
-
-def find(self):
-
-    head = "Find in text"
-
-    dialog = Gtk.Dialog(head,
-                   None,
-                   Gtk.DIALOG_MODAL | Gtk.DIALOG_DESTROY_WITH_PARENT,
-                   (Gtk.STOCK_CANCEL, Gtk.RESPONSE_REJECT,
-                    Gtk.STOCK_OK, Gtk.RESPONSE_ACCEPT))
-    dialog.set_default_response(Gtk.RESPONSE_ACCEPT)
-
-    try:
-        dialog.set_icon_from_file("epub.png")
-    except:
-        print ("Cannot load find dialog icon", sys.exc_info())
-
-    self.dialog = dialog
-
-    label3 = Gtk.Label("   ");  label4 = Gtk.Label("   ")
-    label5 = Gtk.Label("   ");  label6 = Gtk.Label("   ")
-    label7 = Gtk.Label("   ");  label8 = Gtk.Label("   ")
-
-    #warmings.simplefilter("ignore")
-    entry = Gtk.Entry()
-    #warmings.simplefilter("default")
-    entry.set_text(self.oldfind)
-
-    entry.set_activates_default(True)
-
-    dialog.vbox.pack_start(label4)
-
-    hbox2 = Gtk.HBox()
-    hbox2.pack_start(label6, False)
-    hbox2.pack_start(entry)
-    hbox2.pack_start(label7, False)
-
-    dialog.vbox.pack_start(hbox2)
-
-    dialog.checkbox = Gtk.CheckButton("Search _Backwards")
-    dialog.checkbox2 = Gtk.CheckButton("Case In_sensitive")
-    dialog.vbox.pack_start(label5)
-
-    hbox = Gtk.HBox()
-    #hbox.pack_start(label1);  hbox.pack_start(dialog.checkbox)
-    #hbox.pack_start(label2);  hbox.pack_start(dialog.checkbox2)
-    hbox.pack_start(label3)
-    dialog.vbox.pack_start(hbox)
-    dialog.vbox.pack_start(label8)
-
-    label32 = Gtk.Label("   ")
-    hbox4 = Gtk.HBox()
-
-    hbox4.pack_start(label32)
-    dialog.vbox.pack_start(hbox4)
-
-    dialog.show_all()
-    response = dialog.run()
-    self.srctxt = entry.get_text()
-
-    dialog.destroy()
-
-    if response != Gtk.RESPONSE_ACCEPT:
-        return None
-
-    return self.srctxt, dialog.checkbox.get_active(), \
-                dialog.checkbox2.get_active()
-
-disp = Gdk.Display.get_default()
-scr = disp.get_default_screen()
-
-#print( "num_mon",  scr.get_n_monitors()    )
-#for aa in range(scr.get_n_monitors()):
-#    print( "mon", aa, scr.get_monitor_geometry(aa);)
-
-# ------------------------------------------------------------------------
-# Get current screen (monitor) width and height
-
-def get_screen_wh():
-
-    ptr = disp.get_pointer()
-    mon = scr.get_monitor_at_point(ptr[1], ptr[2])
-    geo = scr.get_monitor_geometry(mon)
-    www = geo.width; hhh = geo.height
-    if www == 0 or hhh == 0:
-        www = Gdk.get_screen_width()
-        hhh = Gdk.get_screen_height()
-    return www, hhh
-
-# ------------------------------------------------------------------------
-# Get current screen (monitor) upper left corner xx / yy
-
-def get_screen_xy():
-
-    ptr = disp.get_pointer()
-    mon = scr.get_monitor_at_point(ptr[1], ptr[2])
-    geo = scr.get_monitor_geometry(mon)
-    return geo.x, geo.y
 
 # ------------------------------------------------------------------------
 # Print( an exception as the system would print it)
@@ -826,15 +593,6 @@ def print_exception(xstr):
     print( cumm)
 
 # -----------------------------------------------------------------------
-# Allow the system to breed, no wait
-
-def  ubreed():
-
-    while True:
-        if not Gtk.main_iteration_do(False):
-            break
-
-# -----------------------------------------------------------------------
 # Sleep just a little, but allow the system to breed
 
 if sys.version_info[0] < 3 or \
@@ -842,16 +600,6 @@ if sys.version_info[0] < 3 or \
     timefunc = time.clock
 else:
     timefunc = time.process_time
-
-def  usleep(msec):
-
-    got_clock = timefunc() + float(msec) / 1000
-    #print( got_clock)
-    while True:
-        if timefunc() > got_clock:
-            break
-        #print ("Sleeping")
-        Gtk.main_iteration_do(False)
 
 # ------------------------------------------------------------------------
 # Create temporary file, return name. Empty string ("") if error.
@@ -873,21 +621,6 @@ def tmpname(indir, template):
         if cnt > 10000:
             break
     return fname
-
-# ------------------------------------------------------------------------
-# Execute man loop
-
-def mainloop():
-    while True:
-        ev = Gdk.event_peek()
-        #print( ev)
-        if ev:
-            if ev.type == Gdk.EventType.DELETE:
-                break
-            if ev.type == Gdk.EventType.UNMAP:
-                break
-        if Gtk.main_iteration_do(True):
-            break
 
 class Unbuffered(object):
     def __init__(self, stream):
@@ -915,99 +648,6 @@ def time_s2n(sss):
     ttt = time.mktime(rrr)
     return ttt
 
-def opendialog(parent=None):
-
-    # We create an array, so it is passed around by reference
-    fname = [""]
-
-    def makefilter(mask, name):
-        filter =  Gtk.FileFilter.new()
-        filter.add_pattern(mask)
-        filter.set_name(name)
-        return filter
-
-    def done_open_fc(win, resp, fname):
-        #print "done_open_fc", win, resp
-        if resp == Gtk.ButtonsType.OK:
-            fname[0] = win.get_filename()
-            if not fname[0]:
-                #print "Must have filename"
-                pass
-            elif os.path.isdir(fname[0]):
-                os.chdir(fname[0])
-                win.set_current_folder(fname[0])
-                return
-            else:
-                #print("OFD", fname[0])
-                pass
-        win.destroy()
-
-    but =   "Cancel", Gtk.ButtonsType.CANCEL,\
-            "Open File", Gtk.ButtonsType.OK
-
-    fc = Gtk.FileChooserDialog("Open file", parent, \
-         Gtk.FileChooserAction.OPEN  \
-        , but)
-
-    filters = []
-    filters.append(makefilter("*.mup", "MarkUp files (*.py)"))
-    filters.append(makefilter("*.*", "All files (*.*)"))
-
-    if filters:
-        for aa in filters:
-            fc.add_filter(aa)
-
-    fc.set_default_response(Gtk.ButtonsType.OK)
-    fc.set_current_folder(os.getcwd())
-    fc.connect("response", done_open_fc, fname)
-    #fc.connect("current-folder-changed", self.folder_ch )
-    #fc.set_current_name(self.fname)
-    fc.run()
-    #print("OFD2", fname[0])
-    return fname[0]
-
-def savedialog(resp):
-
-    #print "File dialog"
-    fname = [""]   # So it is passed around as a reference
-
-    def makefilter(mask, name):
-        filterx =  Gtk.FileFilter.new()
-        filterx.add_pattern(mask)
-        filterx.set_name(name)
-        return filterx
-
-    def done_fc(win, resp, fname):
-        #print( "done_fc", win, resp)
-        if resp == Gtk.ResponseType.OK:
-            fname[0] = win.get_filename()
-            if not fname[0]:
-                print("Must have filename")
-            else:
-                pass
-        win.destroy()
-
-    but =   "Cancel", Gtk.ResponseType.CANCEL,   \
-                    "Save File", Gtk.ResponseType.OK
-    fc = Gtk.FileChooserDialog("Save file as ... ", None,
-            Gtk.FileChooserAction.SAVE, but)
-
-    #fc.set_do_overwrite_confirmation(True)
-
-    filters = []
-    filters.append(makefilter("*.mup", "MarkUp files (*.py)"))
-    filters.append(makefilter("*.*", "All files (*.*)"))
-
-    if filters:
-        for aa in filters:
-            fc.add_filter(aa)
-
-    fc.set_current_name(os.path.basename(fname[0]))
-    fc.set_current_folder(os.path.dirname(fname[0]))
-    fc.set_default_response(Gtk.ResponseType.OK)
-    fc.connect("response", done_fc, fname)
-    fc.run()
-    return fname[0]
 
 # ------------------------------------------------------------------------
 
@@ -1029,14 +669,6 @@ def leadspace(strx):
         else:
             break
     return cnt
-
-def wrapscroll(what):
-
-    scroll2 = Gtk.ScrolledWindow()
-    scroll2.add(what)
-    frame2 = Gtk.Frame()
-    frame2.add(scroll2)
-    return frame2
 
 if __name__ == '__main__':
     print("This file was not meant to run directly")

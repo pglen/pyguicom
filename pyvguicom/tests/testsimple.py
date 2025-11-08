@@ -13,6 +13,7 @@ from gi.repository import Pango
 sys.path.append(".")
 
 import pgsimp
+import pggui
 import pgutils
 import pgtests
 
@@ -44,11 +45,11 @@ class pgtestwin(testwin):
         vbox  = Gtk.VBox()
 
         self.treeview = pgsimp.SimpleTree(("Hour", "Subject", "Alarm", "Notes"))
-        frame2 = pgutils.wrapscroll(self.treeview)
+        frame2 = pggui.wrapscroll(self.treeview)
         hbox.pack_start(frame2, 1, 1, 2)
 
         self.editor = pgsimp.SimpleEdit()
-        frame3 = pgutils.wrapscroll(self.editor)
+        frame3 = pggui.wrapscroll(self.editor)
         hbox.pack_start(frame3, 1, 1, 2)
 
         vbox.pack_start(hbox3, 0, 0, 2)

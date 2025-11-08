@@ -17,6 +17,8 @@ from gi.repository import Pango
 
 import pgbox
 
+cnt = 0
+
 # Colors for editor selection. Use X11 color names.
 
 font_colors =   \

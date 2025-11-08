@@ -16,6 +16,7 @@ from gi.repository import Pango
 
 sys.path.append(".")
 
+import pggui
 import pgutils
 import pgtextview
 
@@ -147,7 +148,7 @@ class MainWin(Gtk.Window):
 
     def onload(self, butt):
         #print("onload", butt)
-        self.fname = sutil.opendialog()
+        self.fname = pggui.opendialog()
         fp = open(self.fname, "rb")
         ddd = fp.read()  #.decode("cp437")
         fp.close()
@@ -157,9 +158,9 @@ class MainWin(Gtk.Window):
     def onsave(self, butt):
         #print("Save", butt)
         if not self.tview.textbuffer.get_modified():
-            sutil.message("\nFile is not modified.", title="File Save")
+            pggui.message("\nFile is not modified.", title="File Save")
             return
-        fname = sutil.savedialog(0)
+        fname = pggui.savedialog(0)
         #print("got fname", fname)
         if not fname:
             return
@@ -178,15 +179,17 @@ class MainWin(Gtk.Window):
         self.tview.textbuffer.set_modified(0)
 
     def OnExit(self, win, arg2 = None):
+        resp = None
         if self.tview.textbuffer.get_modified():
-            resp = pgutils.yes_no_cancel("File modified",
+            resp = pggui.yes_no_cancel("File modified",
             "Save file? \n\n '%s' \n" % self.fname, False)
             if resp == Gtk.ResponseType.YES:
                 #print("saving")
                 self.onsave(None)
 
         #print("OnExit", win)
-        Gtk.main_quit()
+        if resp != Gtk.ResponseType.CANCEL:
+            Gtk.main_quit()
 
 if __name__ == '__main__':
 
@@ -195,4 +198,4 @@ if __name__ == '__main__':
 
     Gtk.main()
 
-
+# EOF
