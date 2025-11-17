@@ -89,8 +89,9 @@ ui_def = """
 
 class MainWin(Gtk.Window):
 
-    def __init__(self):
+    def __init__(self, fname = ""):
 
+        self.filename = fname
         self.cnt = 0
         Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
 
@@ -100,6 +101,7 @@ class MainWin(Gtk.Window):
 
         self.set_default_size(800, 600)
         #self.set_default_size(1024, 768)
+        self.connect("unmap", self.OnExit)
         self.connect("destroy", self.OnExit)
         #self.connect("key-press-event", self.key_press_event)
         #self.connect("button-press-event", self.button_press_event)
@@ -124,38 +126,38 @@ class MainWin(Gtk.Window):
         self.vbox = Gtk.VBox();
         self.vbox.pack_start(self.menubar, False, False, 0)
         self.vbox.pack_start(self.toolbar1, False, False, 0)
-        self.tview = browsewin.browserWin()
+        self.editor = browsewin.browserWin()
         self.scroll = Gtk.ScrolledWindow()
-        self.scroll.add(self.tview)
+        self.scroll.add(self.editor)
         self.vbox.pack_start(self.scroll, 1, 1,2)
 
         hbox = Gtk.HBox()
         hbox.pack_start(Gtk.Label.new(" "), 1, 1, 0)
 
-        testbutt = Gtk.Button.new_with_mnemonic("   _Import   ")
-        testbutt.connect("activate", self.oninp)
-        testbutt.connect("pressed", self.oninp)
-        hbox.pack_start(testbutt, 0, 0, 0)
+        #testbutt = Gtk.Button.new_with_mnemonic("   _Import   ")
+        #testbutt.connect("activate", self.oninp)
+        #testbutt.connect("pressed", self.oninp)
+        #hbox.pack_start(testbutt, 0, 0, 0)
+        #
+        #hbox.pack_start(Gtk.Label.new(" "), 0, 0, 0)
+        #
+        #testbutt = Gtk.Button.new_with_mnemonic("   _Export   ")
+        #testbutt.connect("activate", self.onexp)
+        #testbutt.connect("pressed", self.onexp)
+        #hbox.pack_start(testbutt, 0, 0, 0)
 
-        hbox.pack_start(Gtk.Label.new(" "), 0, 0, 0)
-
-        testbutt = Gtk.Button.new_with_mnemonic("   _Export   ")
-        testbutt.connect("activate", self.onexp)
-        testbutt.connect("pressed", self.onexp)
-        hbox.pack_start(testbutt, 0, 0, 0)
-
-        hbox.pack_start(Gtk.Label.new(" "), 0, 0, 0)
-
-        testbutt = Gtk.Button.new_with_mnemonic("   _Test   ")
-        testbutt.connect("activate", self.ontest)
-        testbutt.connect("pressed", self.ontest)
-        hbox.pack_start(testbutt, 0, 0, 0)
+        #hbox.pack_start(Gtk.Label.new(" "), 0, 0, 0)
+        #
+        #testbutt = Gtk.Button.new_with_mnemonic("   _Test   ")
+        #testbutt.connect("activate", self.ontest)
+        #testbutt.connect("pressed", self.ontest)
+        #hbox.pack_start(testbutt, 0, 0, 0)
 
         hbox.pack_start(Gtk.Label.new(" "), 0, 0, 0)
 
         loadbutt = Gtk.Button.new_with_mnemonic("   _Load   ")
-        loadbutt.connect("activate", self.onload)
-        loadbutt.connect("pressed", self.onload)
+        loadbutt.connect("activate", self.onopen)
+        loadbutt.connect("pressed", self.onopen)
         hbox.pack_start(loadbutt, 0, 0, 0)
 
         hbox.pack_start(Gtk.Label.new(" "), 0, 0, 0)
@@ -179,6 +181,12 @@ class MainWin(Gtk.Window):
         self.add(self.vbox)
         self.show_all()
 
+        if self.filename:
+            fp = open(self.filename, "rt")
+            ddd = fp.read()
+            fp.close()
+            self.editor.load_html(ddd)
+
 
     def generate_ui(self):
 
@@ -191,8 +199,8 @@ class MainWin(Gtk.Window):
         ("menuFormat", None, "_Format"),
 
         ("new", Gtk.STOCK_NEW, "_New", None, None, self.on_new),
-        ("open", Gtk.STOCK_OPEN, "_Open", None, None, self.on_open),
-        ("save", Gtk.STOCK_SAVE, "_Save", None, None, self.on_save),
+        ("open", Gtk.STOCK_OPEN, "_Open", None, None, self.onopen),
+        ("save", Gtk.STOCK_SAVE, "_Save", None, None, self.onsave),
 
         ("undo", Gtk.STOCK_UNDO, "_Undo", None, None, self.on_action),
         ("redo", Gtk.STOCK_REDO, "_Redo", None, None, self.on_action),
@@ -233,7 +241,7 @@ class MainWin(Gtk.Window):
         self.editor.execute_editing_command(WebKit2.EDITING_COMMAND_PASTE)
 
     def on_new(self, action):
-        self.editor.load_html("", "file:///")
+        self.editor.load_html("") #, "file:///")
 
     def on_select_font(self, action):
         dialog = Gtk.FontChooserDialog("Select a font")
@@ -280,34 +288,38 @@ class MainWin(Gtk.Window):
                 "document.execCommand('insertImage', null, '%s');" % fn)
         dialog.destroy()
 
-    def on_open(self, action):
-        dialog = Gtk.FileChooserDialog("Select an HTML file", self, Gtk.FileChooserAction.OPEN,
-        (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+    #def on_open(self, action):
+    #    dialog = Gtk.FileChooserDialog("Select an HTML file", self, Gtk.FileChooserAction.OPEN,
+    #    (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+    #
+    #    if dialog.run() == Gtk.ResponseType.OK:
+    #        fn = dialog.get_filename()
+    #        if os.path.exists(fn):
+    #            self.filename = fn
+    #            with open(fn) as fd:
+    #                self.editor.load_html(fd.read(), "file:///")
+    #    dialog.destroy()
 
-        if dialog.run() == Gtk.ResponseType.OK:
-            fn = dialog.get_filename()
-            if os.path.exists(fn):
-                self.filename = fn
-                with open(fn) as fd:
-                    self.editor.load_html(fd.read(), "file:///")
-        dialog.destroy()
+    def completion(html, user_data):
+        open_mode = user_data
+        with open(self.filename, open_mode) as fd:
+            fd.write(html)
 
-    def on_save(self, action):
-        def completion(html, user_data):
-            open_mode = user_data
-            with open(self.filename, open_mode) as fd:
-                fd.write(html)
+    #def on_save(self, action):
+    #
+    #    return
+    #
+    #    if self.filename:
+    #        self.get_html(completion, 'w')
+    #    else:
+    #        dialog = Gtk.FileChooserDialog("Select an HTML file", self, Gtk.FileChooserAction.SAVE,
+    #            (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
+    #
+    #        if dialog.run() == Gtk.ResponseType.OK:
+    #            self.filename = dialog.get_filename()
+    #            self.get_html(completion, "w+")
+    #        dialog.destroy()
 
-        if self.filename:
-            self.get_html(completion, 'w')
-        else:
-            dialog = Gtk.FileChooserDialog("Select an HTML file", self, Gtk.FileChooserAction.SAVE,
-                (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
-
-            if dialog.run() == Gtk.ResponseType.OK:
-                self.filename = dialog.get_filename()
-                self.get_html(completion, "w+")
-            dialog.destroy()
 
     def get_html(self, completion_function, user_data):
         def javascript_completion(obj, result, user_data):
@@ -319,7 +331,7 @@ class MainWin(Gtk.Window):
                                    user_data)
 
     def oninp(self, butt):
-        print("oninp")
+        #print("oninp")
         sss = \
         b'GTKTEXTBUFFERCONTENTS-0001\x00\x00\x00\xcc <text_view_markup>\n <tags>\n  ' \
         b'<tag name="bold" priority="7">\n   <attr name="weight" type="gint" value="700" />\n ' \
@@ -327,67 +339,71 @@ class MainWin(Gtk.Window):
         b'name="bold">Hello</apply_tag>\n</text>\n</text_view_markup>\n '
 
     def onexp(self, butt):
-        print("onexp")
-        #sss = self.tview.ser_buff()
+        #print("onexp")
+        #sss = self.editor.ser_buff()
         #print(sss)
         pass
 
     # Use it to print stuff
     def ontest(self, butt):
-        print("ontest")
+        #print("ontest")
         pass
-        #self.tview.print_tags()
+        #self.editor.print_tags()
 
-    def onload(self, butt):
-        #print("onload", butt)
-        self.fname = pggui.opendialog()
-        if self.fname:
-            fp = open(self.fname, "rb")
-            ddd = fp.read()  #.decode("cp437")
+    def onopen(self, butt):
+        #print("onopen", butt)
+        fname = pggui.opendialog()
+        if fname:
+            fp = open(fname, "rt")
+            ddd = fp.read()
             fp.close()
-            #self.tview.deser_buff(ddd)
+            self.editor.load_html(ddd)
+            self.filename = fname
 
     def onsave(self, butt):
-        #print("Save", butt)
-        #if not self.tview.textbuffer.get_modified():
-        #    pggui.message("\nFile is not modified.", title="File Save")
-        #    return
-        fname = pggui.savedialog(0)
-        #print("got fname", fname)
-        if not fname:
+        #print("Save", self.filename)
+        if not self.editor.is_modified():
+            #newtext =  self.brow_win.get_content()
+            pggui.message("Not modified")
             return
-        if os.path.isfile(fname):
-            resp = pgutils.yes_no_cancel("Overwrite File Prompt",
-                        "Overwrite existing file?\n '%s'" % fname, False)
-            if resp == Gtk.ResponseType.NO:
-                print("not saved")
+        if not self.filename:
+            self.filename = pggui.savedialog(0)
+            #print("got fname", fname)
+            if not self.filename:
                 return
-        #buff  =  self.tview.textbuffer
-        #serx = self.tview.ser_buff()
-        #print(serx)
-        fp = open(fname, "wb")
-        fp.write(serx)
+
+        if os.path.isfile(self.filename):
+            resp = pggui.yes_no_cancel("Overwrite File Prompt",
+                        "Overwrite existing file?\n '%s'" % self.filename, False)
+            if resp == Gtk.ResponseType.NO:
+                #print("not saved")
+                return
+        buff  =  self.editor.get_content()
+        #print("buff", buff)
+        fp = open(self.filename, "wt")
+        fp.write(buff)
         fp.close()
-        #self.tview.textbuffer.set_modified(0)
 
     def OnExit(self, win, arg2 = None):
-        resp = None
-        #if self.tview.textbuffer.get_modified():
-        #    resp = pggui.yes_no_cancel("File modified",
-        #    "Save file? \n\n '%s' \n" % self.fname, False)
-        #    if resp == Gtk.ResponseType.YES:
-        #        #print("saving")
-        #        self.onsave(None)
-
         #print("OnExit", win)
+        resp = None
+        if self.editor.is_modified():
+            resp = pggui.yes_no_cancel("File modified",
+            "Save file? \n\n '%s' \n" % self.filename, False)
+            if resp == Gtk.ResponseType.YES:
+                #print("saving")
+                self.onsave(None)
+
         if resp != Gtk.ResponseType.CANCEL:
             Gtk.main_quit()
 
 if __name__ == '__main__':
 
-    #print("Starting pytextview")
-    mainwin = MainWin()
-
+    try:
+        fname = sys.argv[1]
+    except:
+        fname = ""
+    mainwin = MainWin(fname)
     Gtk.main()
 
 # EOF

@@ -378,8 +378,9 @@ def opendialog(parent=None):
          action=Gtk.FileChooserAction.OPEN )
     fc.add_buttons(*buts)
     filters = []
-    filters.append(makefilter("*.mup", "MarkUp files (*.py)"))
     filters.append(makefilter("*.*", "All files (*.*)"))
+    filters.append(makefilter("*.html", "HTML files (*.html)"))
+    filters.append(makefilter("*.txt", "Text files (*.txt)"))
 
     if filters:
         for aa in filters:
@@ -417,11 +418,10 @@ def savedialog(resp):
 
     but =   "Cancel", Gtk.ResponseType.CANCEL,   \
                     "Save File", Gtk.ResponseType.OK
-    fc = Gtk.FileChooserDialog("Save file as ... ", None,
-            Gtk.FileChooserAction.SAVE, but)
-
+    fc = Gtk.FileChooserDialog(title="Save file as ... ", transient_for=None,
+            action=Gtk.FileChooserAction.SAVE)
+    fc.add_buttons(*but)
     #fc.set_do_overwrite_confirmation(True)
-
     filters = []
     filters.append(makefilter("*.mup", "MarkUp files (*.py)"))
     filters.append(makefilter("*.*", "All files (*.*)"))
@@ -676,7 +676,9 @@ class LabelButt(Gtk.EventBox):
 
     def area_enter(self, arg1, arg2):
         #print("LabelButt enter")
+        warnings.simplefilter("ignore")
         gdk_window = self.get_root_window()
+        warnings.simplefilter("default")
         gdk_window.set_cursor(self.hand)
 
     def area_leave(self, arg1, arg2):

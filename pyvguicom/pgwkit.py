@@ -188,7 +188,9 @@ class pgwebw(WebKit2.WebView):
                     if key == aa.accel_parsed[0]:
                         #print("Fire ", aa.get_name(), aa.get_label())
                         #lab = aa.get_label()
+                        warnings.simplefilter("ignore")
                         aa.activate()
+                        warnings.simplefilter("default")
                         break   # Only one accel the other is a mistake
 
         # See if nav key
@@ -317,7 +319,7 @@ class pgwebw(WebKit2.WebView):
         self.modified = True
 
     def on_select_font(self, action):
-        dialog = Gtk.FontChooserDialog("Select a font")
+        dialog = Gtk.FontChooserDialog(title="Select a font")
         if dialog.run() == Gtk.ResponseType.OK:
             fname = dialog.get_font_desc().get_family()
             fsize = dialog.get_font_desc().get_size() / Pango.SCALE
@@ -328,7 +330,7 @@ class pgwebw(WebKit2.WebView):
         dialog.destroy()
 
     def on_select_color(self, action):
-        dialog = Gtk.ColorChooserDialog("Select Color")
+        dialog = Gtk.ColorChooserDialog(title="Select Color")
         if dialog.run() == Gtk.ResponseType.OK:
             (r, g, b, a) = dialog.get_rgba()
             color = "#%0.2x%0.2x%0.2x%0.2x" % (
@@ -340,7 +342,7 @@ class pgwebw(WebKit2.WebView):
         dialog.destroy()
 
     def on_select_bgcolor(self, action):
-        dialog = Gtk.ColorChooserDialog("Select Background Color")
+        dialog = Gtk.ColorChooserDialog(title="Select Background Color")
         if dialog.run() == Gtk.ResponseType.OK:
             (r, g, b, a) = dialog.get_rgba()
             color = "#%0.2x%0.2x%0.2x%0.2x" % (
@@ -374,18 +376,18 @@ class pgwebw(WebKit2.WebView):
         self.modified = True
 
     def on_insert_link(self, action):
-        dialog = Gtk.Dialog("   Enter a URL:   ", None, 0,
-        (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK))
-
+        dialog = Gtk.Dialog(title="   Enter a URL:   ", transient_for=None)
+        dialog.add_buttons( Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                            Gtk.STOCK_OK, Gtk.ResponseType.OK)
         entry = Gtk.Entry()
-        dialog.vbox.pack_start(Gtk.Label("  "), False, False, 0)
+        dialog.vbox.pack_start(Gtk.Label(label="  "), False, False, 0)
         hbox = Gtk.HBox()
-        hbox.pack_start(Gtk.Label("  "), False, False, 0)
+        hbox.pack_start(Gtk.Label(label="  "), False, False, 0)
         hbox.pack_start(entry, False, False, 0)
-        hbox.pack_start(Gtk.Label("  "), False, False, 0)
+        hbox.pack_start(Gtk.Label(label="  "), False, False, 0)
         dialog.vbox.pack_start(hbox, False, False, 0)
 
-        dialog.vbox.pack_start(Gtk.Label("  "), False, False, 0)
+        dialog.vbox.pack_start(Gtk.Label(label="  "), False, False, 0)
         dialog.show_all()
 
         if dialog.run() == Gtk.ResponseType.OK:
@@ -395,8 +397,10 @@ class pgwebw(WebKit2.WebView):
         self.modified = True
 
     def on_insert_image(self, action):
-        dialog = Gtk.FileChooserDialog("Select an image file", None, Gtk.FileChooserAction.OPEN,
-        (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+        dialog = Gtk.FileChooserDialog(title="Select an image file",
+                            transient_for=None, action=Gtk.FileChooserAction.OPEN)
+        dialog.add_buttons( Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                            Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
 
         if dialog.run() == Gtk.ResponseType.OK:
             fn = dialog.get_filename()
@@ -508,7 +512,7 @@ class pgwebw(WebKit2.WebView):
     ("font",        Gtk.STOCK_SELECT_FONT, "Select _Font", "", None, self.on_select_font),
     ("fontsize",    None, "Select Font _Size", "<Control>f", "Set Absolute Size (removes color)", self.on_fontsize),
     ("color",       Gtk.STOCK_SELECT_COLOR, "Select _Color", None, None, self.on_select_color),
-    ("backgroundcolor", Gtk.STOCK_COLOR_PICKER, "Select Back Color", None, None, self.on_select_bgcolor),
+    ("backgroundcolor", Gtk.STOCK_SELECT_COLOR, "Select Back Color", None, None, self.on_select_bgcolor),
 
     ("justifyleft",  Gtk.STOCK_JUSTIFY_LEFT, "Justify _Left", None, None, self.on_action),
     ("justifyright", Gtk.STOCK_JUSTIFY_RIGHT, "Justify _Right", None, None, self.on_action),
@@ -641,18 +645,18 @@ def markdialog(sss):
             "The editor already decorated this sufficiently, "\
               "try to edit existing items in place.\n"
 
-    lll = Gtk.Label(hhh)
+    lll = Gtk.Label(label=hhh)
     fd = Pango.FontDescription("Sans 9")
     lll.override_font(fd)
     thbox = Gtk.HBox()
     thbox.pack_start(lll, 1, 1, 1)
     dialog.vbox.pack_start(thbox, False, False, 0)
     hbox = Gtk.HBox()
-    hbox.pack_start(Gtk.Label(" "), False, False, 0)
+    hbox.pack_start(Gtk.Label(label=" "), False, False, 0)
     hbox.pack_start(scrolledwindow, 1, 1, 0)
-    hbox.pack_start(Gtk.Label(" "), False, False, 0)
+    hbox.pack_start(Gtk.Label(label=" "), False, False, 0)
     dialog.vbox.pack_start(hbox, 1, 1, 0)
-    #dialog.vbox.pack_start(Gtk.Label(" "), False, False, 0)
+    #dialog.vbox.pack_start(Gtk.Label(label=" "), False, False, 0)
     dialog.show_all()
 
     htmlx = ""
@@ -682,7 +686,7 @@ def sizedialog():
 
     ''' Present a selection Dialog for font sizes '''
 
-    dialog = Gtk.Dialog("  Font Size   ", None, 0, () )
+    dialog = Gtk.Dialog(title="  Font Size   ", transient_for=None) #, 0, () )
 
     #(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK))
 
@@ -714,19 +718,23 @@ def sizedialog():
             "The editor already decorated this sufficiently, "\
               "try to edit existing items in place.\n"
 
-    lll = Gtk.Label(hhh)
+    lll = Gtk.Label(label=hhh)
     fd = Pango.FontDescription("Sans 9")
+
+    warnings.simplefilter("ignore")
     lll.override_font(fd)
+    warnings.simplefilter("default")
+
     thbox = Gtk.HBox()
     thbox.pack_start(lll, 1, 1, 1)
     #dialog.vbox.pack_start(thbox, False, False, 0)
 
     hbox = Gtk.HBox()
-    hbox.pack_start(Gtk.Label(" "), False, False, 0)
+    hbox.pack_start(Gtk.Label(label=" "), False, False, 0)
     hbox.pack_start(scrolledwindow, 1, 1, 0)
-    hbox.pack_start(Gtk.Label(" "), False, False, 0)
+    hbox.pack_start(Gtk.Label(label=" "), False, False, 0)
     dialog.vbox.pack_start(hbox, 1, 1, 0)
-    #dialog.vbox.pack_start(Gtk.Label(" "), False, False, 0)
+    #dialog.vbox.pack_start(Gtk.Label(label=" "), False, False, 0)
     dialog.show_all()
 
     if dialog.run() == Gtk.ResponseType.OK:
