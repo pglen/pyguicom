@@ -372,13 +372,11 @@ def opendialog(parent=None):
                 pass
         win.destroy()
 
-    but =   "Cancel", Gtk.ButtonsType.CANCEL,\
-            "Open File", Gtk.ButtonsType.OK
-
-    fc = Gtk.FileChooserDialog("Open file", parent, \
-         Gtk.FileChooserAction.OPEN  \
-        , but)
-
+    buts =   "Cancel", Gtk.ButtonsType.CANCEL,\
+             "Open File", Gtk.ButtonsType.OK
+    fc = Gtk.FileChooserDialog(title="Open file", transient_for=parent, \
+         action=Gtk.FileChooserAction.OPEN )
+    fc.add_buttons(*buts)
     filters = []
     filters.append(makefilter("*.mup", "MarkUp files (*.py)"))
     filters.append(makefilter("*.*", "All files (*.*)"))

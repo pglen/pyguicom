@@ -1,6 +1,8 @@
 import os
 import gi
 
+''' This is obsolete, see HTML test in -> tests/testhtml '''
+
 gi.require_version("Gtk", "3.0")
 gi.require_version('WebKit2', '4.0')
 from gi.repository import Gtk, Gdk, WebKit2
@@ -152,7 +154,6 @@ class HtmlEditor(Gtk.Window):
         ui.insert_action_group(actions)
         ui.add_ui_from_string(ui_def)
         return ui
-
     def on_action(self, action):
         self.editor.run_javascript("document.execCommand('%s', false, false);" % action.get_name())
 
@@ -245,9 +246,9 @@ class HtmlEditor(Gtk.Window):
                                    javascript_completion,
                                    user_data)
 
-#e = HtmlEditor()
-#e.show_all()
-#e.scroll.grab_focus()
-#Gtk.main()
+e = HtmlEditor()
+e.show_all()
+e.scroll.grab_focus()
+Gtk.main()
 
 # EOF
