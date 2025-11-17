@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import os, sys #, getopt, signal, random, time, warnings
+import os, sys, warnings
+#, getopt, signal, random, time, warnings
 
 realinc = os.path.realpath(os.path.dirname(__file__) + os.sep + "../pycommon")
 sys.path.append(realinc)
@@ -22,6 +23,7 @@ from gi.repository import GObject
 from gi.repository import Pango
 from gi.repository.GdkPixbuf import Pixbuf
 
+warnings.simplefilter("default")
 
 # wget -q http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html -O /dev/stdout | grep '</td></tr><tr><td>.*</td><td>' | sed 's/.*<td>\(.[^<]*\).*/"\1",/'
 
@@ -339,6 +341,7 @@ if __name__ == '__main__':
 
     win = IconViewWindow()
     win.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
+    warnings.simplefilter("default")
 
     #ic = Gtk.Image(); ic.set_from_stock(Gtk.STOCK_DIALOG, Gtk.ICON_SIZE_BUTTON)
     #window.set_icon(ic.get_pixbuf())

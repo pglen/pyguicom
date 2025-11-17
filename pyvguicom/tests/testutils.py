@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
-
-import os, sys #, getopt, signal, select, string, time
-#import struct, stat, base64, random, zlib
+import os, sys, warnings
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -18,6 +15,8 @@ sys.path.append(".")
 import pgsimp
 import pggui
 import pgutils
+
+warnings.simplefilter("default")
 
 def subdialog(arg2):
 
@@ -98,7 +97,6 @@ class pgtestwin(testwin):
         butt = Gtk.Button.new_with_mnemonic("Test Sub Dialog")
         butt.connect("clicked", subdialog)
         vbox.pack_start(butt, 0, 0, 2)
-
 
         butt = Gtk.Button.new_with_mnemonic("E_xit")
         butt.connect("clicked", Gtk.main_quit)

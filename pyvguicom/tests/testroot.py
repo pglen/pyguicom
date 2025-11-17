@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, random
+import sys, random, warnings
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -15,6 +15,8 @@ sys.path.append(".")
 
 from pgbutt import *
 import pggui
+
+warnings.simplefilter("default")
 
 # Allow the core to search pydbase
 #fff = os.path.realpath(os.path.dirname(__file__) + os.sep + "../pydbase/")

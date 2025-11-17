@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 '''
-  This is a test application for driving the pgTextView control;
+  This is a test application for driving the html control;
   It has load / save functionality.
 '''
 import os, sys, getopt, signal, random, time, warnings
@@ -18,7 +18,7 @@ sys.path.append(".")
 
 import pggui
 import pgutils
-import pgtextview
+import browsewin
 
 warnings.simplefilter("default")
 
@@ -51,7 +51,7 @@ class MainWin(Gtk.Window):
         Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
 
         self.fname = "Unnamed.mup"
-        self.set_title("Test pgTextView")
+        self.set_title("Test htmlview")
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
 
         self.set_default_size(800, 600)
@@ -73,14 +73,17 @@ class MainWin(Gtk.Window):
 
         vbox = Gtk.VBox();
 
-        self.tview = pgtextview.pgTextView()
+        #self.tview = htmledit.HtmlEditor()
+        #self.tview = pgtextview.pgTextView()
         #self.tview.set_text(deftext)
+        #buff = self.tview.textbuffer
+        #buff.insert_markup(buff.get_start_iter(), deftext, len(deftext))
+        #buff.set_modified(0)
 
-        buff = self.tview.textbuffer
-        buff.insert_markup(buff.get_start_iter(), deftext, len(deftext))
-        buff.set_modified(0)
+        #self.tview = Gtk.Label(label="Hello")
+        self.tview = browsewin.browserWin()
 
-        vbox.pack_start(self.tview,1,1,2)
+        vbox.pack_start(self.tview, 1, 1,2)
         hbox = Gtk.HBox()
         hbox.pack_start(Gtk.Label.new(" "), 1, 1, 0)
 
@@ -138,15 +141,17 @@ class MainWin(Gtk.Window):
         b'</tag>\n </tags>\n<text><apply_tag ' \
         b'name="bold">Hello</apply_tag>\n</text>\n</text_view_markup>\n '
 
-        self.tview.deser_buff(sss)
+        #self.tview.deser_buff(sss)
 
     def onexp(self, butt):
-        sss = self.tview.ser_buff()
-        print(sss)
+        #sss = self.tview.ser_buff()
+        #print(sss)
+        pass
 
     # Use it to print stuff
     def ontest(self, butt):
-        self.tview.print_tags()
+        pass
+        #self.tview.print_tags()
 
     def onload(self, butt):
         #print("onload", butt)
@@ -155,13 +160,13 @@ class MainWin(Gtk.Window):
         ddd = fp.read()  #.decode("cp437")
         fp.close()
 
-        self.tview.deser_buff(ddd)
+        #self.tview.deser_buff(ddd)
 
     def onsave(self, butt):
         #print("Save", butt)
-        if not self.tview.textbuffer.get_modified():
-            pggui.message("\nFile is not modified.", title="File Save")
-            return
+        #if not self.tview.textbuffer.get_modified():
+        #    pggui.message("\nFile is not modified.", title="File Save")
+        #    return
         fname = pggui.savedialog(0)
         #print("got fname", fname)
         if not fname:
@@ -172,22 +177,22 @@ class MainWin(Gtk.Window):
             if resp == Gtk.ResponseType.NO:
                 print("not saved")
                 return
-        buff  =  self.tview.textbuffer
-        serx = self.tview.ser_buff()
+        #buff  =  self.tview.textbuffer
+        #serx = self.tview.ser_buff()
         #print(serx)
         fp = open(fname, "wb")
         fp.write(serx)
         fp.close()
-        self.tview.textbuffer.set_modified(0)
+        #self.tview.textbuffer.set_modified(0)
 
     def OnExit(self, win, arg2 = None):
         resp = None
-        if self.tview.textbuffer.get_modified():
-            resp = pggui.yes_no_cancel("File modified",
-            "Save file? \n\n '%s' \n" % self.fname, False)
-            if resp == Gtk.ResponseType.YES:
-                #print("saving")
-                self.onsave(None)
+        #if self.tview.textbuffer.get_modified():
+        #    resp = pggui.yes_no_cancel("File modified",
+        #    "Save file? \n\n '%s' \n" % self.fname, False)
+        #    if resp == Gtk.ResponseType.YES:
+        #        #print("saving")
+        #        self.onsave(None)
 
         #print("OnExit", win)
         if resp != Gtk.ResponseType.CANCEL:

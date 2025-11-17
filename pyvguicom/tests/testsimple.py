@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os, sys
+import os, sys, warnings
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -16,6 +16,8 @@ import pgsimp
 import pggui
 import pgutils
 import pgtests
+
+warnings.simplefilter("default")
 
 # ------------------------------------------------------------------------
 class testwin(Gtk.Window):

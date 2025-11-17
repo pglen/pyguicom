@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import sys
+import sys, warnings
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -12,9 +12,10 @@ from gi.repository import GObject
 from gi.repository import Pango
 
 sys.path.append(".")
-
 gi.require_version('WebKit2', '4.0')
 from gi.repository import WebKit2
+
+warnings.simplefilter("default")
 
 import pgbutt
 import pggui
@@ -63,7 +64,6 @@ class testWin(Gtk.Window):
         butt3z.connect("clicked", self.regbutt)
         hbox15.pack_start(butt3z, 0, 0, 0)
         hbox15.pack_start(pggui.ySpacer(), 1, 1, 0)
-
 
         vbox13.pack_start(hbox13, 0, 0, 0)
         vbox13.pack_start(hbox16, 0, 0, 0)

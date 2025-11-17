@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-''' This encapsulates the browser window wit the webkia an toolbars '''
+''' This encapsulates the browser window wit the webkit and toolbars '''
 
 import os, sys, getopt, signal, random, time, warnings
 
@@ -21,7 +21,7 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
 
-from pedlib import pedconfig
+#from pedlib import pedconfig
 
 import pgwkit
 #print("pgwkit:", pgwkit)
@@ -62,18 +62,20 @@ class  browserWin(Gtk.VBox):
         self.scroll_win.add(self.webview)
         self.webview.editor = self.webview
 
+        warnings.simplefilter("ignore")
         self.toolbar2 = self.webview.ui.get_widget("/toolbar_format")
+        warnings.simplefilter("default")
         self.pack_start(self.toolbar2, False, False, 0)
 
         self.pack_start(self.scroll_win, 1, 1, 2)
 
         hbox5 = Gtk.HBox()
-        hbox5.pack_start(Gtk.Label("  "), 0, 0, 0)
-        self.status = Gtk.Label(" Idle ");
+        hbox5.pack_start(Gtk.Label(label="  "), 0, 0, 0)
+        self.status = Gtk.Label(label=" Idle ");
         self.status.set_xalign(0)
 
         hbox5.pack_start(self.status, 1, 1, 0)
-        hbox5.pack_start(Gtk.Label("  "), 0, 0, 0)
+        hbox5.pack_start(Gtk.Label(label="  "), 0, 0, 0)
         self.set_status(" Idle State ")
 
         self.pack_start(hbox5, 0, 0, 2)
@@ -232,7 +234,7 @@ class  browserWin(Gtk.VBox):
         self.edit.single_line = True
 
         hbox3 = Gtk.HBox()
-        uuu  = Gtk.Label("  URL:  ")
+        uuu  = Gtk.Label(label="  URL:  ")
         uuu.set_tooltip_text("Current / New URL; press Enter to go")
         hbox3.pack_start(uuu, 0, 0, 0)
 
@@ -247,15 +249,15 @@ class  browserWin(Gtk.VBox):
         ddd = LabelButt("  For_w-> ", self.forwurl, "Go Forw")
         eee = LabelButt("   B_ase  ", self.baseurl, "Go to base URL")
 
-        hbox3.pack_start(Gtk.Label("  "), 0, 0, 0)
+        hbox3.pack_start(Gtk.Label(label="  "), 0, 0, 0)
 
         hbox3.pack_start(bbb, 0, 0, 0)
         hbox3.pack_start(ccc, 0, 0, 0)
         hbox3.pack_start(ddd, 0, 0, 0)
         hbox3.pack_start(eee, 0, 0, 0)
 
-        #hbox3.pack_start(Gtk.Label("  ^  "), 0, 0, 0)
-        hbox3.pack_start(Gtk.Label(" "), 0, 0, 0)
+        #hbox3.pack_start(Gtk.Label(label="  ^  "), 0, 0, 0)
+        hbox3.pack_start(Gtk.Label(label=" "), 0, 0, 0)
 
         return hbox3
 

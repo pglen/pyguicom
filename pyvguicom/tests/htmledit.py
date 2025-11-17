@@ -5,14 +5,14 @@ gi.require_version("Gtk", "3.0")
 gi.require_version('WebKit2', '4.0')
 from gi.repository import Gtk, Gdk, WebKit2
 
-class HtmlEditor(Gtk.Widget):
+class HtmlEditor(Gtk.Window):
 
     def __init__(self):
         super().__init__()
 
         #self.set_title("Html Editor")
         #self.connect("destroy", Gtk.main_quit)
-        self.resize(500, 500)
+        #self.resize(500, 500)
         self.filename = None
 
         self.editor = WebKit2.WebView()
@@ -24,7 +24,7 @@ class HtmlEditor(Gtk.Widget):
         self.scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
 
         self.ui = self.generate_ui()
-        self.add_accel_group(self.ui.get_accel_group())
+        #self.add_accel_group(self.ui.get_accel_group())
         self.toolbar1 = self.ui.get_widget("/toolbar_main")
         self.toolbar2 = self.ui.get_widget("/toolbar_format")
         self.menubar = self.ui.get_widget("/menubar_main")
@@ -45,6 +45,7 @@ class HtmlEditor(Gtk.Widget):
         #self.editor.get_inspector().set_property("height", 200)
         #self.editor.get_inspector().show()
         #print("hhh", self.editor.get_inspector().get_attached_height())
+        self.add(self.editor)
 
     def generate_ui(self):
         ui_def = """

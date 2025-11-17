@@ -443,15 +443,19 @@ class pgwebw(WebKit2.WebView):
         #print("get_html")
         def javascript_completion(obj, result, user_data):
             #print("javascript_completion", result)
+            warnings.simplefilter("ignore")
             fin = self.run_javascript_finish(result)
+            warnings.simplefilter("default")
             #print("fin", fin)
             html = fin.get_js_value().to_string()
             #print("len html", len(html), "\n")
             completion_function(html, user_data)
+        warnings.simplefilter("ignore")
         self.run_javascript("document.documentElement.innerHTML;",
                                    None,
                                    javascript_completion,
                                    user_data)
+        warnings.simplefilter("default")
 
     def get_lastmod(self, completion_function, user_data):
 
@@ -473,7 +477,7 @@ class pgwebw(WebKit2.WebView):
 
         ''' define toolbar items and actions here '''
 
-        actions = Gtk.ActionGroup("Actions")
+        actions = Gtk.ActionGroup(name="Actions")
     # ----------------------------------------------------------------
     # Name,     Stock Icon,   Accelerator,  ToolTip,   Action
 
@@ -524,7 +528,9 @@ class pgwebw(WebKit2.WebView):
 
     ]
 
+        warnings.simplefilter("ignore")
         actions.add_actions(accel_arr)
+        warnings.simplefilter("default")
 
         #print(dir(actions))
         for aa in accel_arr:
@@ -540,18 +546,23 @@ class pgwebw(WebKit2.WebView):
         #        #print("Exc on", aa)
         #        pass
 
+        warnings.simplefilter("ignore")
         actions.get_action("insertimage").set_property("icon-name", "insert-image")
         actions.get_action("insertlink").set_property("icon-name", "insert-link")
         actions.get_action("inserttable").set_property("icon-name", "appointment-new")
         actions.get_action("editmarker").set_property("icon-name", "text-editor")
         actions.get_action("fontsize").set_property("icon-name", "preferences-desktop-font")
         actions.get_action("removeformat").set_property("icon-name", "text-direction")
+        warnings.simplefilter("default")
 
         ui = Gtk.UIManager()
+        warnings.simplefilter("ignore")
         ui.insert_action_group(actions)
         ui.add_ui_from_string(ui_def)
+        warnings.simplefilter("default")
 
         # Fill in defaults
+        warnings.simplefilter("ignore")
         xxx = ui.get_action_groups()[0].list_actions()
         for aa in xxx:
             nnn = aa.get_name()
@@ -576,9 +587,12 @@ class pgwebw(WebKit2.WebView):
                             pass
 
             # Pad it with capitalize name if not there
+            warnings.simplefilter("ignore")
             if  not aa.get_tooltip():
                 aa.set_tooltip(nnn[0].upper() + nnn[1:])
+            warnings.simplefilter("default")
 
+        warnings.simplefilter("default")
         return ui
 
 # This is kicked in if there is no library  (is it used?)

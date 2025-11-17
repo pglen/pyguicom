@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
-
-import os, sys #, getopt, signal, select, string, time
-#import struct, stat, base64, random, zlib
+import os, sys, warnings
 
 sys.path.append(".")
 
 from pgsel import *
 from pgutils import *
+
+warnings.simplefilter("default")
 
 # ------------------------------------------------------------------------
 class testwin(Gtk.Window):

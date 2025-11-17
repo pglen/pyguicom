@@ -22,6 +22,15 @@ help:
 local-install:
 	@pip install .
 
+local-uninstall:
+	@pip uninstall pyvguicom
+
+pip-build:
+	./pip-build.py
+
+pip-upload:
+	./pip-upload.sh
+
 #@python3 ./install.py
 
 pack:
@@ -57,5 +66,3 @@ docs:
 	@${XPATH}   -o pyvguicom/docs pyvguicom/pgtextview.py
 
 # End of Makefile
-
-# eof

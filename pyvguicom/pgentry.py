@@ -35,9 +35,11 @@ class Entryx(Gtk.Entry):
         if flag:
             self.set_editable(False);
             style = self.get_style_context()
+            warnings.simplefilter("ignore")
             color = style.get_background_color(Gtk.StateFlags.NORMAL)
             color2 = Gdk.RGBA(color.red-.1, color.green-.1, color.blue-.1)
             self.override_background_color(Gtk.StateFlags.NORMAL, color2)
+            warnings.simplefilter("default")
         else:
             self.set_editable(True);
             style = self.get_style_context()
@@ -163,7 +165,9 @@ def textviewpair(arr, vbox, labtext, labname, tip, defval=None, expand=False):
 def gridhexa(gridxx, left, top, entry1, entry2, butt = None, butt2 = None):
 
     lab1 = Gtk.Label.new_with_mnemonic(entry1[0] + "  ")
+    warnings.simplefilter("ignore")
     lab1.set_alignment(1, 0)
+    warnings.simplefilter("default")
     lab1.set_tooltip_text(entry1[2])
     gridxx.attach(lab1, left, top, 1, 1)
 
@@ -195,7 +199,9 @@ def gridhexa(gridxx, left, top, entry1, entry2, butt = None, butt2 = None):
 
 def gridquad(gridx, left, top, entry1, entry2, butt = None):
     lab1 = Gtk.Label.new_with_mnemonic(entry1[0] + "  ")
+    warnings.simplefilter("ignore")
     lab1.set_alignment(1, 0)
+    warnings.simplefilter("default")
     lab1.set_tooltip_text(entry1[2])
     gridx.attach(lab1, left, top, 1, 1)
 

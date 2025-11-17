@@ -1,7 +1,6 @@
-
 #!/usr/bin/python
 
-import  sys
+import  sys, warnings
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -72,7 +71,10 @@ class   LetterNumberSel(Gtk.VBox):
         # Commit changes
         self.simsel.exec_index(True)
 
+        warnings.simplefilter("ignore")
         self.hand_cursor = Gdk.Cursor(Gdk.CursorType.HAND2)
+        warnings.simplefilter("default")
+
         self.simsel.connect("enter_notify_event", self.enter_label)
         self.simsel.connect("leave_notify_event", self.leave_label)
         self.simsel2.connect("enter_notify_event", self.enter_label)
@@ -198,7 +200,7 @@ class   internal_AllSel(Gtk.Label):
 
     def __init__(self, textx = " ", callb = None, font="Mono 13", pad = ""):
 
-        Gtk.Label.__init__(self, "")
+        Gtk.Label.__init__(self, label="")
 
         self.set_events(Gdk.EventMask.ALL_EVENTS_MASK )
         self.connect("button-press-event", self.area_button)
@@ -259,11 +261,13 @@ class   internal_SimpleSel(Gtk.Label):
 
     def __init__(self, textx = " ", callb = None, font="Mono 13", pad = ""):
 
-        Gtk.Label.__init__(self, "")
+        Gtk.Label.__init__(self, label="")
 
         self.set_events(Gdk.EventMask.ALL_EVENTS_MASK )
         self.connect("button-press-event", self.area_button)
+        warnings.simplefilter("ignore")
         self.modify_font(Pango.FontDescription(font))
+        warnings.simplefilter("default")
         self.set_has_window(True)
 
         self.callb = callb
@@ -344,11 +348,13 @@ class   NumberSel(Gtk.Label):
         self.text = text
         self.callb = callb
         self.axx = self.text.find("[All]")
-        Gtk.Label.__init__(self, text)
+        Gtk.Label.__init__(self, label=text)
         self.set_has_window(True)
         self.set_events(Gdk.EventMask.ALL_EVENTS_MASK )
         self.connect("button-press-event", self.area_button)
+        warnings.simplefilter("ignore")
         self.override_font(Pango.FontDescription(font))
+        warnings.simplefilter("default")
         self.lastsel = 0
 
     def area_button(self, but, event):

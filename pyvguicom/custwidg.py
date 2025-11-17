@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-import os, sys, getopt, signal, select, string, time
-import struct, stat, base64, random, zlib
+import os, sys, warnings
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -49,10 +48,12 @@ class SimpleWidget(Gtk.Widget):
         #print("con", context)
 
         # paint background
+        warnings.simplefilter("ignore")
         bg_color = self.get_style_context().get_background_color(Gtk.StateFlags.NORMAL)
-        print(bg_color)
+        warnings.simplefilter("default")
+        #print(bg_color)
         bg_color = Gdk.RGBA(.9, .9, .9, )
-        print(bg_color)
+        #print(bg_color)
 
         cr.set_source_rgba(*list(bg_color))
         cr.paint()

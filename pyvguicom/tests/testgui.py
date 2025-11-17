@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import sys
+import sys, warnings
+
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -13,11 +14,27 @@ from gi.repository import Pango
 sys.path.append(".")
 
 import pggui
+warnings.simplefilter("default")
 
 def timer(ledx):
     # Reset LED
     ledx.set_color(ledx.orgcolor) #"#ffffff")
     pass
+
+def callb(arg1, arg2):
+    print(arg1, arg2)
+
+def scallb(arg1, arg2):
+    print(arg1, arg2)
+
+def button_press_event(win, event):
+    #print(win, event)
+    marr = "sHeader", "sMenu1", "sMenu2", "sMenu3"
+    smenu = pggui.Menu(marr, scallb, event, True)
+
+    marr = "Header", "Menu1", "Menu2", "-", smenu, "Menu3"
+    if event.button == 3:
+        menu = pggui.Menu(marr, callb, event)
 
 if __name__ == "__main__":
 
@@ -92,9 +109,18 @@ if __name__ == "__main__":
     #hbox4.pack_start(Gtk.Label(label="  "), 1, 1, 0)
     #vbox.pack_start(hbox4, 0, 0, 2)
 
-    rarr = ["One", "Two", "Three", "Four", "Five"]
-    rg = pggui.RadioGroup(rarr, _callb, True)
-    vbox.pack_start(rg, 0, 0, 2)
+    def _rcallb(arg1, arg2):
+        print("rcallb", arg1, arg2)
+
+    rarr = ["_One", "_Two", "T_hree", "Four", "Five"]
+    rg = pggui.RadioGroup(rarr)
+    hbox = Gtk.HBox()
+    hbox.pack_start(Gtk.Label(label=" "), 1, 1, 4)
+    hbox.pack_start(rg, 0, 0, 2)
+    hbox.pack_start(Gtk.Label(label=" "),10, 1, 4)
+    vbox.pack_start(hbox, 0, 0, 2)
+    rg.set_check(2, 1)
+    rg.set_callb(_rcallb)
 
     hbox5 = Gtk.HBox()
     cb = pggui.ComboBox(marr, _callb)
@@ -113,6 +139,8 @@ if __name__ == "__main__":
     butt = Gtk.Button.new_with_mnemonic("E_xit")
     butt.connect("clicked", Gtk.main_quit)
     vbox.pack_start(butt, 0, 0, 2)
+
+    w.connect("button-press-event", button_press_event)
 
     w.add(vbox)
     w.show_all()

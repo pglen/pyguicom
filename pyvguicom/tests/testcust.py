@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-import os, sys, getopt, signal, select, string, time
-import struct, stat, base64, random, zlib
+import os, sys, warnings
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -16,6 +15,8 @@ from gi.repository import PangoCairo
 
 sys.path.append(".")
 import custwidg
+
+warnings.simplefilter("default")
 
 if __name__ == "__main__":
 

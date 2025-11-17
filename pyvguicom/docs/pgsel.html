@@ -28,7 +28,7 @@
 </summary>
 <pre><code class="python">#!/usr/bin/python
 
-import  sys
+import  sys, warnings
 
 import gi
 gi.require_version(&#34;Gtk&#34;, &#34;3.0&#34;)
@@ -99,7 +99,10 @@ class   LetterNumberSel(Gtk.VBox):
         # Commit changes
         self.simsel.exec_index(True)
 
+        warnings.simplefilter(&#34;ignore&#34;)
         self.hand_cursor = Gdk.Cursor(Gdk.CursorType.HAND2)
+        warnings.simplefilter(&#34;default&#34;)
+
         self.simsel.connect(&#34;enter_notify_event&#34;, self.enter_label)
         self.simsel.connect(&#34;leave_notify_event&#34;, self.leave_label)
         self.simsel2.connect(&#34;enter_notify_event&#34;, self.enter_label)
@@ -225,7 +228,7 @@ class   internal_AllSel(Gtk.Label):
 
     def __init__(self, textx = &#34; &#34;, callb = None, font=&#34;Mono 13&#34;, pad = &#34;&#34;):
 
-        Gtk.Label.__init__(self, &#34;&#34;)
+        Gtk.Label.__init__(self, label=&#34;&#34;)
 
         self.set_events(Gdk.EventMask.ALL_EVENTS_MASK )
         self.connect(&#34;button-press-event&#34;, self.area_button)
@@ -286,11 +289,13 @@ class   internal_SimpleSel(Gtk.Label):
 
     def __init__(self, textx = &#34; &#34;, callb = None, font=&#34;Mono 13&#34;, pad = &#34;&#34;):
 
-        Gtk.Label.__init__(self, &#34;&#34;)
+        Gtk.Label.__init__(self, label=&#34;&#34;)
 
         self.set_events(Gdk.EventMask.ALL_EVENTS_MASK )
         self.connect(&#34;button-press-event&#34;, self.area_button)
+        warnings.simplefilter(&#34;ignore&#34;)
         self.modify_font(Pango.FontDescription(font))
+        warnings.simplefilter(&#34;default&#34;)
         self.set_has_window(True)
 
         self.callb = callb
@@ -371,11 +376,13 @@ class   NumberSel(Gtk.Label):
         self.text = text
         self.callb = callb
         self.axx = self.text.find(&#34;[All]&#34;)
-        Gtk.Label.__init__(self, text)
+        Gtk.Label.__init__(self, label=text)
         self.set_has_window(True)
         self.set_events(Gdk.EventMask.ALL_EVENTS_MASK )
         self.connect(&#34;button-press-event&#34;, self.area_button)
+        warnings.simplefilter(&#34;ignore&#34;)
         self.override_font(Pango.FontDescription(font))
+        warnings.simplefilter(&#34;default&#34;)
         self.lastsel = 0
 
     def area_button(self, but, event):
@@ -613,7 +620,10 @@ sets through the use of explicit keyword arguments.</p></div>
         # Commit changes
         self.simsel.exec_index(True)
 
+        warnings.simplefilter(&#34;ignore&#34;)
         self.hand_cursor = Gdk.Cursor(Gdk.CursorType.HAND2)
+        warnings.simplefilter(&#34;default&#34;)
+
         self.simsel.connect(&#34;enter_notify_event&#34;, self.enter_label)
         self.simsel.connect(&#34;leave_notify_event&#34;, self.leave_label)
         self.simsel2.connect(&#34;enter_notify_event&#34;, self.enter_label)
@@ -1013,11 +1023,13 @@ sets through the use of explicit keyword arguments.</p></div>
         self.text = text
         self.callb = callb
         self.axx = self.text.find(&#34;[All]&#34;)
-        Gtk.Label.__init__(self, text)
+        Gtk.Label.__init__(self, label=text)
         self.set_has_window(True)
         self.set_events(Gdk.EventMask.ALL_EVENTS_MASK )
         self.connect(&#34;button-press-event&#34;, self.area_button)
+        warnings.simplefilter(&#34;ignore&#34;)
         self.override_font(Pango.FontDescription(font))
+        warnings.simplefilter(&#34;default&#34;)
         self.lastsel = 0
 
     def area_button(self, but, event):
@@ -1151,7 +1163,7 @@ sets through the use of explicit keyword arguments.</p></div>
 
     def __init__(self, textx = &#34; &#34;, callb = None, font=&#34;Mono 13&#34;, pad = &#34;&#34;):
 
-        Gtk.Label.__init__(self, &#34;&#34;)
+        Gtk.Label.__init__(self, label=&#34;&#34;)
 
         self.set_events(Gdk.EventMask.ALL_EVENTS_MASK )
         self.connect(&#34;button-press-event&#34;, self.area_button)
@@ -1306,11 +1318,13 @@ sets through the use of explicit keyword arguments.</p></div>
 
     def __init__(self, textx = &#34; &#34;, callb = None, font=&#34;Mono 13&#34;, pad = &#34;&#34;):
 
-        Gtk.Label.__init__(self, &#34;&#34;)
+        Gtk.Label.__init__(self, label=&#34;&#34;)
 
         self.set_events(Gdk.EventMask.ALL_EVENTS_MASK )
         self.connect(&#34;button-press-event&#34;, self.area_button)
+        warnings.simplefilter(&#34;ignore&#34;)
         self.modify_font(Pango.FontDescription(font))
+        warnings.simplefilter(&#34;default&#34;)
         self.set_has_window(True)
 
         self.callb = callb

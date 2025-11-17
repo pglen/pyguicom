@@ -69,6 +69,11 @@ starting with the text* prefix.
 
  See descendent projects for more examples. (pyedpro; pycal; pyvserv; ...)
 
+ ## History:
+
+    Sat 08.Nov.2025     -- Simplified pyutils
+    Tue 11.Nov.2025     -- No default frame for radio buttons
+
 Peter Glen
 
 // EOF

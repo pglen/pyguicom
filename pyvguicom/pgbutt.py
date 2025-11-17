@@ -2,9 +2,7 @@
 
 # Drawing operations done here
 
-from __future__ import absolute_import
-
-import signal, os, time, sys, codecs
+import signal, os, time, sys, codecs, warnings
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -23,10 +21,12 @@ from pgutils import *
 
 class smallbutt(Gtk.EventBox):
 
+    warnings.simplefilter("ignore")
     __gsignals__ = {
     #"activate": (GObject.SIGNAL_RUN_FIRST, GObject.TYPE_NONE, () ),
     "pressed": (GObject.SIGNAL_RUN_FIRST, GObject.TYPE_NONE, () ),
     }
+    warnings.simplefilter("default")
 
     def __init__(self, labx, eventx = None, tooltip = None, *args, **kwds):
         super().__init__(*args, **kwds)
@@ -40,8 +40,11 @@ class smallbutt(Gtk.EventBox):
         self.add(self.lab)
         self.set_above_child(True)
 
+
+        warnings.simplefilter("ignore")
         self.arrow  =  Gdk.Cursor(Gdk.CursorType.ARROW)
         self.hand   =  Gdk.Cursor(Gdk.CursorType.HAND1)
+        warnings.simplefilter("default")
         self.down   = 0
 
         cnt = 0;
@@ -68,7 +71,10 @@ class smallbutt(Gtk.EventBox):
         self.set_sensitive(True)
 
         font = "Sans 10"
+
+        warnings.simplefilter("ignore")
         self.override_font(Pango.FontDescription(font))
+        warnings.simplefilter("default")
 
         #self.set_alignment(0.5, 0.5)
         #self.set_margin_left(0)
@@ -92,7 +98,9 @@ class smallbutt(Gtk.EventBox):
         #print("ww", self.ww, "hh", self.hh)
 
         self.set_size_request(self.ww, self.hh)
+        warnings.simplefilter("ignore")
         self.hand_cursor = Gdk.Cursor(Gdk.CursorType.HAND2)
+        warnings.simplefilter("default")
 
         self.set_events(Gdk.EventMask.ALL_EVENTS_MASK)
 
@@ -137,7 +145,9 @@ class smallbutt(Gtk.EventBox):
     def stattime(self, arg2, arg3):
 
         # Test if mnemonic key is down
+        warnings.simplefilter("ignore")
         kmap = Gdk.Keymap().get_default()
+        warnings.simplefilter("default")
         state = kmap.get_modifier_state()
         #print("mods", state)
         if state ==  Gdk.ModifierType.MOD1_MASK:
@@ -180,7 +190,9 @@ class smallbutt(Gtk.EventBox):
             if 0: #self.has_focus():
                 bg_color = Gdk.RGBA(.75, .75, .75)
             else:
+                warnings.simplefilter("ignore")
                 bg_color = self.get_style_context().get_background_color(Gtk.StateFlags.NORMAL)
+                warnings.simplefilter("default")
 
         cr.set_source_rgba(*list(bg_color))
 

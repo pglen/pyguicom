@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
-
-import os, sys #, getopt, signal, select, string, time
-#import struct, stat, base64, random, zlib
+import os, sys, warnings
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -17,6 +14,8 @@ sys.path.append(".")
 import pgentry
 import pgutils
 import pggui
+
+warnings.simplefilter("default")
 
 # ------------------------------------------------------------------------
 class testwin(Gtk.Window):

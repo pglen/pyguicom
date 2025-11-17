@@ -14,6 +14,8 @@ sys.path.append(".")
 from pgsel import *
 from pggui import *
 
+warnings.simplefilter("default")
+
 #def OnExit(arg1, arg2):
 #    #print("Exiting", arg1, arg2)
 #    Gtk.main_quit()

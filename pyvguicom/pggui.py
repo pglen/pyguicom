@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-import signal, os, time, sys, pickle, subprocess, random
-import math, copy
+import signal, os, time, sys, math, warnings, random
+import platform
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -9,6 +9,7 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GObject
 from gi.repository import Pango
+from gi.repository import GdkPixbuf
 
 gi.require_version('PangoCairo', '1.0')
 from gi.repository import PangoCairo
@@ -21,7 +22,7 @@ import pgsimp
 
 IDXERR = "Index is larger than the available number of controls."
 
-VERSION = "1.3.5"
+VERSION = "1.3.8"
 
 gui_testmode = 0
 
@@ -40,8 +41,11 @@ def screen_dims_under_cursor():
         return None
 
     # 2. Get the device (pointer) responsible for the cursor
+
+    warnings.simplefilter("ignore")
     device_manager = display.get_device_manager()
     pointer_device = device_manager.get_client_pointer()
+    warnings.simplefilter("default")
 
     # 3. Get the current cursor position on the screen
     # The method needs an output variable for the screen, but we can pass None as we get the position later
@@ -60,7 +64,6 @@ def screen_dims_under_cursor():
     #print(f"Monitor at cursor position (dimensions): Width={width}, Height={height} pixels")
 
     return xx, yy, geometry.width, geometry.height
-
 
 # It's totally optional to do this, you could just manually insert icons
 # and have them not be themeable, especially if you never expect people
@@ -209,9 +212,9 @@ def find(self):
 
     self.dialog = dialog
 
-    label3 = Gtk.Label("   ");  label4 = Gtk.Label("   ")
-    label5 = Gtk.Label("   ");  label6 = Gtk.Label("   ")
-    label7 = Gtk.Label("   ");  label8 = Gtk.Label("   ")
+    label3 = Gtk.Label(label="   ");  label4 = Gtk.Label(label="   ")
+    label5 = Gtk.Label(label="   ");  label6 = Gtk.Label(label="   ")
+    label7 = Gtk.Label(label="   ");  label8 = Gtk.Label(label="   ")
 
     #warmings.simplefilter("ignore")
     entry = Gtk.Entry()
@@ -240,7 +243,7 @@ def find(self):
     dialog.vbox.pack_start(hbox)
     dialog.vbox.pack_start(label8)
 
-    label32 = Gtk.Label("   ")
+    label32 = Gtk.Label(label="   ")
     hbox4 = Gtk.HBox()
 
     hbox4.pack_start(label32)
@@ -530,14 +533,16 @@ class   TextTable(Gtk.Table):
         row = 0
         for aa, bb in confarr:
             #print("aa", aa, "bb", bb)
-            label = Gtk.Label()
+            label = Gtk.Label(label="")
             label.set_text_with_mnemonic(aa)
             tbox = Gtk.Entry()
             label.set_mnemonic_widget(tbox)
             tbox.set_width_chars (textwidth)
             self.texts.append(tbox)
+            warnings.simplefilter("ignore")
             self.attach_defaults(label, 0, 1, row, row + 1)
             self.attach_defaults(tbox,  1, 2, row, row + 1)
+            warnings.simplefilter("default")
             row += 1
 
 class   TextRow(Gtk.HBox):
@@ -549,7 +554,7 @@ class   TextRow(Gtk.HBox):
 
         self.set_homogeneous(False)
         self.main = main
-        self.label = Gtk.Label()
+        self.label = Gtk.Label(label="")
         self.label.set_text_with_mnemonic(labelx)
         #self.label.set_xalign(1)
 
@@ -633,8 +638,11 @@ class LabelButt(Gtk.EventBox):
         self.label = Gtk.Label.new_with_mnemonic(front)
         self.label.set_mnemonic_widget(self)
         #self.curve =  Gdk.Cursor(Gdk.CursorType.CROSSHAIR)
+
+        warnings.simplefilter("ignore")
         self.arrow =  Gdk.Cursor(Gdk.CursorType.ARROW)
         self.hand =  Gdk.Cursor(Gdk.CursorType.HAND1)
+        warnings.simplefilter("default")
 
         #gdk_window = self.get_root_window()
         #self.arrow = gdk_window.get_cursor()
@@ -748,8 +756,10 @@ class MenuButt(Gtk.DrawingArea):
         dims = screen_dims_under_cursor()
         self.pointer = dims[0], dims[1]
 
+        #warnings.simplefilter("default")
+
     def _create_menuitem(self, string, action, arg = None):
-        rclick_menu = Gtk.MenuItem(string)
+        rclick_menu = Gtk.MenuItem(label=string)
         rclick_menu.connect("activate", action, string, arg);
         rclick_menu.show()
         return rclick_menu
@@ -771,21 +781,25 @@ class MenuButt(Gtk.DrawingArea):
             self.menu3.append(self._create_menuitem(aa, self.menu_fired, cnt))
             cnt = cnt + 1
 
+    def _pop_it(self, event):
+        self._make_menu()
+        warnings.simplefilter("ignore")
+        self.menu3.popup(None, None, None, None, event.button, event.time)
+        warnings.simplefilter("default")
+
     def area_rbutton(self, area, event):
         #print("rmenu butt ", event.type, event.button);
         if  event.type == Gdk.EventType.BUTTON_RELEASE:
             if event.button == 3:
+                self._pop_it(event)
                 #print( "Left Click at x=", event.x, "y=", event.y)
-                self._make_menu()
-                self.menu3.popup(None, None, None, None, event.button, event.time)
 
     def area_button(self, area, event):
         #print("menu butt ", event.type, event.button);
         if  event.type == Gdk.EventType.BUTTON_PRESS:
             if event.button == 1:
                 #print( "Left Click at x=", event.x, "y=", event.y)
-                self._make_menu()
-                self.menu3.popup(None, None, None, None, event.button, event.time)
+                self._pop_it(event)
 
     def menu_fired(self, menu, menutext, arg):
         #print ("menu item fired:", menutext, arg)
@@ -838,13 +852,19 @@ class FrameTextView(Gtk.Frame):
 
         self.scroll = Gtk.ScrolledWindow()
         self.scroll.set_size_request(100, 100)
+
+        warnings.simplefilter("ignore")
         self.scroll.add_with_viewport(self.tview)
+        warnings.simplefilter("default")
         #self.frame = Gtk.Frame()
         self.add(self.scroll)
 
         #self.set_size_request(150, 150)
         ls = self.get_style_context()
+        warnings.simplefilter("ignore")
         fd = ls.get_font(Gtk.StateFlags.NORMAL)
+        warnings.simplefilter("default")
+
         #newfd = fd.to_string() + " " + str(fd.get_size() / Pango.SCALE + 4)
         #print("newfd", newfd)
         self.modify_font(Pango.FontDescription("Sans 13"))
@@ -867,7 +887,9 @@ class Label(Gtk.Label):
         if tooltip:
             self.set_tooltip_text(tooltip)
         if font:
+            warnings.simplefilter("ignore")
             self.override_font(Pango.FontDescription(font))
+            warnings.simplefilter("default")
 
 class Logo(Gtk.VBox):
 
@@ -875,7 +897,7 @@ class Logo(Gtk.VBox):
 
         GObject.GObject.__init__(self)
 
-        self.logolab = Gtk.Label(labelx)
+        self.logolab = Gtk.Label(label=labelx)
         self.logolab.set_has_window(True)
         if tooltip:
             self.logolab.set_tooltip_text(tooltip)
@@ -886,7 +908,9 @@ class Logo(Gtk.VBox):
         if callme:
             self.logolab.connect("button-press-event", callme)
 
+        warnings.simplefilter("ignore")
         self.logolab.modify_font(Pango.FontDescription(font))
+        warnings.simplefilter("default")
 
         #self.pack_start(Spacer(), 0, 0, False)
         self.pack_start(self.logolab, 0, 0, False)
@@ -1051,7 +1075,8 @@ class Spinner(Gtk.SpinButton):
         GObject.GObject.__init__(self)
         self.cb_func = cb
 
-        adj2 = Gtk.Adjustment(startx, startx, endx, 1.0, 5.0, 0.0)
+        adj2 = Gtk.Adjustment(value=startx, lower=startx, upper=endx,
+                            page_increment=1.0, step_increment=5.0, page_size=0.0)
         self.set_adjustment(adj2)
         self.set_value(defx)
         self.set_wrap(True)
@@ -1175,23 +1200,21 @@ class   xHBox(Gtk.HBox):
 
 # ------------------------------------------------------------------------
 
-class   RadioGroup(Gtk.Frame):
+class   RadioGroup(Gtk.Box):
 
-    def __init__(self, rad_arr, call_me = None, horiz = False):
+    def __init__(self, rad_arr, call_me = None, horiz = True):
 
         GObject.GObject.__init__(self)
         self.buttons = []
         self.callme = call_me
         if horiz:
-            vbox6 = Gtk.HBox();
-            vbox6.set_spacing(6);
-            vbox6.set_border_width(4)
+            self.vbox = Gtk.HBox();
+            self.vbox.set_spacing(6);
+            #self.vbox.set_border_width(2)
         else:
-            vbox6 = Gtk.VBox();
-            vbox6.set_spacing(4);
-            vbox6.set_border_width(6)
-
-
+            self.vbox = Gtk.VBox();
+            self.vbox.set_spacing(4);
+            #self.vbox.set_border_width(2)
 
         if gui_testmode:
             self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#778888"))
@@ -1200,23 +1223,27 @@ class   RadioGroup(Gtk.Frame):
 
         for aa in range(len(rad_arr)):
             #rad2 = Gtk.RadioButton.new_from_widget(self.radio)
-            #rad2.set_label(rad_arr[aa])
+            #rad2.set_label(label=rad_arr[aa])
             rad2 = Gtk.RadioButton.new_with_mnemonic_from_widget(self.radio, rad_arr[aa])
             self.buttons.append(rad2)
             rad2.connect("toggled", self.radio_toggle, aa)
-            vbox6.pack_start(rad2, False, False, False)
+            self.vbox.pack_start(rad2, False, False, False)
 
-        self.add(vbox6)
+        self.add(self.vbox)
 
     def radio_toggle(self, button, idx):
         #print("RadioGroup", button.get_active(), "'" + str(idx) + "'")
         if  button.get_active():
-            self.callme(button, self.buttons[idx].get_label())
+            if self.callme:
+                self.callme(button, self.buttons[idx].get_label())
 
     def set_tooltip(self, idx, strx):
         if idx >= len(self.buttons):
             raise ValueError(IDXERR)
         self.buttons[idx].set_tooltip_text(strx)
+
+    def set_callb(self, callb):
+        self.callme = callb
 
     def set_entry(self, idx, strx):
         if idx >= len(self.buttons):
@@ -1252,6 +1279,9 @@ class   RadioGroup(Gtk.Frame):
                 return aa.get_label()
         # Nothing selected ... empty str
         return ""
+
+    def border_width(self, width):
+        self.vbox.set_border_width(width)
 
 # Bug fix in Gtk
 
@@ -1313,6 +1343,8 @@ class Menu():
         if not submenu:
             self.gtkmenu.popup(None, None, None, None, event.button, event.time)
 
+        #warnings.simplefilter("default")
+
     def dummy(self, menu, menutext, arg):
         pass
 
@@ -1371,7 +1403,7 @@ class Lights(Gtk.Frame):
 
     def colbox(self, col, size):
 
-        lab1 = Gtk.Label("  " * size + "\n" * (size // 3))
+        lab1 = Gtk.Label(label="  " * size + "\n" * (size // 3))
         lab1.set_lines(size)
         eventbox = Gtk.EventBox()
         frame = Gtk.Frame()
@@ -1689,7 +1721,7 @@ class RCLButt(Gtk.Button):
         GObject.GObject.__init__(self)
         self.rcallme = rcallme
         self.callme  = callme
-        self.set_label(" " * space + labelx + " " * space)
+        self.set_label(label=" " * space + labelx + " " * space)
         self.set_use_underline (True)
 
         if ttip:
@@ -1770,8 +1802,11 @@ def yes_no(message, title = "Question", parent=None, default="Yes"):
 
     dialog = Gtk.MessageDialog(title=title)
 
+    warnings.simplefilter("ignore")
     img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
     dialog.set_image(img)
+    warnings.simplefilter("default")
+
     dialog.set_markup(message)
 
     if default == "Yes":
@@ -1843,8 +1878,10 @@ def yes_no_cancel(message, title="Question", default="Yes"):
         dialog.add_button("_Yes", Gtk.ResponseType.YES)
         dialog.add_button("_No", Gtk.ResponseType.NO)
 
+    warnings.simplefilter("ignore")
     img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
     dialog.set_image(img)
+    warnings.simplefilter("default")
     dialog.set_markup(message)
 
     def _yn_keyc(win, event):
