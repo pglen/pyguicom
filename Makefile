@@ -53,10 +53,9 @@ XPATH=PYTHONPATH=../pyvcommon:../  python -W ignore::DeprecationWarning `which p
 docs:
 	@${XPATH}   -o pyvguicom/docs pyvguicom/pgbox.py
 	@${XPATH}   -o pyvguicom/docs pyvguicom/pgsel.py
-	#@${XPATH}   -o pyvguicom/docs pyvguicom/browsewin.py
+	@${XPATH}   -o pyvguicom/docs pyvguicom/browsewin.py
 	@${XPATH}   -o pyvguicom/docs pyvguicom/pgbutt.py
 	@${XPATH}   -o pyvguicom/docs pyvguicom/pgutils.py
-	@${XPATH}   -o pyvguicom/docs pyvguicom/htmledit.py
 	@${XPATH}   -o pyvguicom/docs pyvguicom/pgentry.py
 	@${XPATH}   -o pyvguicom/docs pyvguicom/pgwkit.py
 	@${XPATH}   -o pyvguicom/docs pyvguicom/pggui.py
@@ -64,5 +63,8 @@ docs:
 	@${XPATH}   -o pyvguicom/docs pyvguicom/pggui.py
 	@${XPATH}   -o pyvguicom/docs pyvguicom/pgbox.py
 	@${XPATH}   -o pyvguicom/docs pyvguicom/pgtextview.py
+	@${XPATH}   -o pyvguicom/docs pyvguicom/comline.py
+	@${XPATH}   -o pyvguicom/docs pyvguicom/custwidg.py
+	@${XPATH}   -o pyvguicom/docs pyvguicom/pgtests.py
 
 # End of Makefile

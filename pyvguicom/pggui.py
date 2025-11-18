@@ -1,7 +1,12 @@
 #!/usr/bin/env python
 
-import signal, os, time, sys, math, warnings, random
-import platform
+#pylint: disable=C0103
+#pylint: disable=C0209
+#pylint: disable=C0321
+#pylint: disable=C0116
+#pylint: disable=W0301
+
+import os, sys, math, warnings, random, platform
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -17,18 +22,13 @@ from gi.repository import PangoCairo
 realinc = os.path.realpath(os.path.dirname(__file__) + os.sep + "../pycommon")
 sys.path.append(realinc)
 
-import pgutils
-import pgsimp
-
 IDXERR = "Index is larger than the available number of controls."
 
 VERSION = "1.3.9"
 
 gui_testmode = 0
 
-import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk
+import pgutils
 
 def screen_dims_under_cursor():
 
@@ -48,13 +48,14 @@ def screen_dims_under_cursor():
     warnings.simplefilter("default")
 
     # 3. Get the current cursor position on the screen
-    # The method needs an output variable for the screen, but we can pass None as we get the position later
+    # The method needs an output variable for the screen, but we can
+    # pass None as we get the position later
     _, xx, yy = pointer_device.get_position()
 
     # 4. Get the GdkMonitor at the cursor's position
     monitor = display.get_monitor_at_point(xx, yy)
     if not monitor:
-        print(f"Could not find monitor at position ({x}, {y})")
+        print(f"Could not find monitor at position ({xx}, {yy})")
         return None
 
     # 5. Get the monitor's geometry (position and size)
@@ -778,7 +779,7 @@ class Led(Gtk.DrawingArea):
         #cr.scale(width / 2., height / 2.)
         #cr.restore()
 
-        ccc = pgutils.str2float(self.color)
+        ccc = str2float(self.color)
 
         cr.set_source_rgba(ccc[0] * 0.5, ccc[1] * 0.5, ccc[2] * 0.5)
         cr.arc(rect.width/2, rect.height/2, rect.width / 2. * .85, 0., 2 * math.pi)
@@ -1574,7 +1575,7 @@ class   ComboBox(Gtk.ComboBox):
                     print("except: self.store remove")
         except:
             print("combo delall", sys.exc_info())
-            pass
+            #pass
 
     # --------------------------------------------------------------------
     def  sel_text(self, txt):
@@ -1582,26 +1583,24 @@ class   ComboBox(Gtk.ComboBox):
         #print("Sel combo text")
 
         model = self.get_model()
-        iter = model.get_iter_first()
-        if iter:
+        iterx = model.get_iter_first()
+        if iterx:
             cnt = 0
             while True:
-
                 #print("entry %d" % cnt, model[iter][0], txt)
                 if  model[iter][0] == txt:
                     #print("Found %d" % cnt, model[iter][0])
                     self.set_active_iter(iter)
                     break
-
-                iter = model.iter_next(iter)
-                if not iter:
+                iterx = model.iter_next(iter)
+                if not iterx:
                     break
                 cnt += 1
 
     def     sel_first(self):
         model = self.get_model()
-        iter = model.get_iter_first()
-        self.set_active_iter(iter)
+        iterx = model.get_iter_first()
+        self.set_active_iter(iterx)
 
 class Rectangle():
 
@@ -1781,7 +1780,8 @@ class Rectangle():
 
 class RCLButt(Gtk.Button):
 
-    def __init__(self, labelx, callme = None, rcallme = None, space = 2, ttip = None):
+    def __init__(self, labelx, callme = None, rcallme = None,
+                            space = 2, ttip = None):
         #super().__init__(self)
         GObject.GObject.__init__(self)
         self.rcallme = rcallme
@@ -1923,7 +1923,7 @@ def yes_no(message, title = "Question", parent=None, default="Yes"):
 
 # ------------------------------------------------------------------------
 
-def yes_no_cancel(message, title="Question", default="Yes"):
+def yes_no_cancel(messagex, title="Question", default="Yes"):
 
     dialog = Gtk.MessageDialog(title=title)
 
@@ -1947,7 +1947,7 @@ def yes_no_cancel(message, title="Question", default="Yes"):
     img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
     dialog.set_image(img)
     warnings.simplefilter("default")
-    dialog.set_markup(message)
+    dialog.set_markup(messagex)
 
     def _yn_keyc(win, event):
         #print("key:",  event)
@@ -2008,6 +2008,56 @@ def resp2str(resp):
 def set_gui_testmode(flag):
     global gui_testmode
     gui_testmode = flag
+
+# ------------------------------------------------------------------------
+# Color conversions
+
+def str2col(strx):
+    ccc = str2float(strx)
+    return float2col(ccc)
+
+def str2float( col):
+    return ( float(int(col[1:3], base=16)) / 256,
+                    float(int(col[3:5], base=16)) / 256, \
+                        float(int(col[5:7], base=16)) / 256 )
+
+def float2str(col):
+    aa = min(col[0], 1.)
+    bb = min(col[1], 1.)
+    cc = min(col[2], 1.)
+    strx = "#%02x%02x%02x" % (aa * 256,  \
+                        bb * 256, cc * 256)
+    return strx
+
+def col2float(col):
+    rrr = [float(col.red) / 65535,
+            float(col.green) / 65535,
+                float(col.blue) / 65535]
+    return rrr
+
+def rgb2str(icol):
+    strx = "#%02x%02x%02x" % (int(icol.red) & 0xff,  \
+                        int(icol.green) & 0xff, int(icol.blue) & 0xff)
+    return strx
+
+def col2str(icol):
+    strx = "#%02x%02x%02x" % (int(icol.red / 255),  \
+                        int(icol.green / 255), int(icol.blue / 255))
+    return strx
+
+def rgb2col(icol):
+    #print "rgb2col", icol
+    col = [0, 0, 0]
+    col[0] = float(icol.red) / 256
+    col[1] = float(icol.green) / 256
+    col[2] = float(icol.blue) / 256
+    return col
+
+def float2col(col):
+    aa = min(col[0], 1.)
+    bb = min(col[1], 1.)
+    cc = min(col[2], 1.)
+    return Gdk.Color(aa * 65535, bb * 65535, cc * 65535)
 
 if __name__ == '__main__':
     print("This file was not meant to run as the main module")

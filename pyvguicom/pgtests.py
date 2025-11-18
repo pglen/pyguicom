@@ -4,9 +4,10 @@
 # pylint: disable=C0209
 # pylint: disable=C0321
 
-import os, sys, getopt, string,  math
-import random, time, traceback, stat
-import platform, datetime
+import string, random
+#import os, sys, getopt, math
+#import time, traceback, stat
+#import platform, datetime
 
 # Add the new line twice for more balaced string
 

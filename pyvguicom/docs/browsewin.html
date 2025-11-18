@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>browsewin API documentation</title>
-<meta name="description" content="This encapsulates the browser window wit the webkia an toolbars" />
+<meta name="description" content="This encapsulates the browser window wit the webkit and toolbars" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,14 +22,14 @@
 <h1 class="title">Module <code>browsewin</code></h1>
 </header>
 <section id="section-intro">
-<p>This encapsulates the browser window wit the webkia an toolbars</p>
+<p>This encapsulates the browser window wit the webkit and toolbars</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">#!/usr/bin/env python
 
-&#39;&#39;&#39; This encapsulates the browser window wit the webkia an toolbars &#39;&#39;&#39;
+&#39;&#39;&#39; This encapsulates the browser window wit the webkit and toolbars &#39;&#39;&#39;
 
 import os, sys, getopt, signal, random, time, warnings
 
@@ -37,9 +37,9 @@ realinc = os.path.realpath(os.path.dirname(__file__) + os.sep + &#34;../pycommon
 if realinc not in sys.path:
     sys.path.append(realinc)
 
-from pgutils import  *
-from pggui import  *
-from pgsimp import  *
+from pgutils import *
+from pggui import *
+from pgsimp import *
 
 import gi
 gi.require_version(&#34;Gtk&#34;, &#34;3.0&#34;)
@@ -49,8 +49,6 @@ from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
-
-from pedlib import pedconfig
 
 import pgwkit
 #print(&#34;pgwkit:&#34;, pgwkit)
@@ -91,18 +89,20 @@ class  browserWin(Gtk.VBox):
         self.scroll_win.add(self.webview)
         self.webview.editor = self.webview
 
+        warnings.simplefilter(&#34;ignore&#34;)
         self.toolbar2 = self.webview.ui.get_widget(&#34;/toolbar_format&#34;)
+        warnings.simplefilter(&#34;default&#34;)
         self.pack_start(self.toolbar2, False, False, 0)
 
         self.pack_start(self.scroll_win, 1, 1, 2)
 
         hbox5 = Gtk.HBox()
-        hbox5.pack_start(Gtk.Label(&#34;  &#34;), 0, 0, 0)
-        self.status = Gtk.Label(&#34; Idle &#34;);
+        hbox5.pack_start(Gtk.Label(label=&#34;  &#34;), 0, 0, 0)
+        self.status = Gtk.Label(label=&#34; Idle &#34;);
         self.status.set_xalign(0)
 
         hbox5.pack_start(self.status, 1, 1, 0)
-        hbox5.pack_start(Gtk.Label(&#34;  &#34;), 0, 0, 0)
+        hbox5.pack_start(Gtk.Label(label=&#34;  &#34;), 0, 0, 0)
         self.set_status(&#34; Idle State &#34;)
 
         self.pack_start(hbox5, 0, 0, 2)
@@ -114,8 +114,8 @@ class  browserWin(Gtk.VBox):
         self.set_can_focus(True)
         #self.grab_focus()
 
-    def load_html(self, strx):
-        self.webview.load_html(strx)
+    def load_html(self, strx, acc):
+        self.webview.load_html(strx, acc)
 
     def cut(self):
         #print(&#34;cut&#34;)
@@ -131,7 +131,7 @@ class  browserWin(Gtk.VBox):
         #self.webview.on_action(&#34;paste&#34;)
 
     def open(self):
-        dialog = Gtk.FileChooserDialog(&#34;Open an HTML file&#34;, None,
+        dialog = Gtk.FileChooserDialog(&#34;Open an HTML filex&#34;, None,
                 Gtk.FileChooserAction.OPEN,
                     (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
                         Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
@@ -146,7 +146,10 @@ class  browserWin(Gtk.VBox):
             if os.path.exists(fn):
                 self.fname = fn
                 with open(fn) as fd:
-                    self.webview.load_html(fd.read(), &#34;file:///&#34;)
+                    ddd = os.getwd()
+                    print(ddd)
+                    self.webview.load_html(fd.read(), ddd)
+                    #self.webview.load_html(fd.read(), &#34;file:///&#34;)
 
     def save(self):
 
@@ -169,6 +172,9 @@ class  browserWin(Gtk.VBox):
 
     def is_modified(self):
         return self.webview.modified
+
+    def set_modified(self, flag):
+        self.webview.modified = flag
 
     def _completion(self, html, user_data):
         self.ret = html
@@ -261,30 +267,29 @@ class  browserWin(Gtk.VBox):
         self.edit.single_line = True
 
         hbox3 = Gtk.HBox()
-        uuu  = Gtk.Label(&#34;  URL:  &#34;)
+        uuu  = Gtk.Label(label=&#34;  URL:  &#34;)
         uuu.set_tooltip_text(&#34;Current / New URL; press Enter to go&#34;)
         hbox3.pack_start(uuu, 0, 0, 0)
 
         hbox3.pack_start(self.edit, True, True, 2)
 
-        bbb = LabelButt(&#34; _Go &#34;, self.gourl, &#34;Go to speified URL&#34;)
+        bbb = IconButt(Gtk.STOCK_SAVE, self.gourl, &#34;Go to speified URL&#34;)
         #bbb = Gtk.Button.new_with_mnemonic(&#34; _Go &#34;) #, self.gourl, &#34;Go to speified URL&#34;)
         #bbb.connect(&#34;clicked&#34;, self.gourl)
-
         #bbb = LabelButt(&#34; _Go &#34;, self.gourl, &#34;Go to speified URL&#34;)
-        ccc = LabelButt(&#34; &lt;-_Back  &#34;, self.backurl, &#34;Go Back&#34;)
-        ddd = LabelButt(&#34;  For_w-&gt; &#34;, self.forwurl, &#34;Go Forw&#34;)
-        eee = LabelButt(&#34;   B_ase  &#34;, self.baseurl, &#34;Go to base URL&#34;)
+        ccc = IconButt(Gtk.STOCK_GO_BACK, self.backurl, &#34;Go Back&#34;)
+        ddd = IconButt(Gtk.STOCK_GO_FORWARD, self.forwurl, &#34;Go Forw&#34;)
+        eee = IconButt(Gtk.STOCK_HOME, self.baseurl, &#34;Go to base URL&#34;)
 
-        hbox3.pack_start(Gtk.Label(&#34;  &#34;), 0, 0, 0)
+        hbox3.pack_start(Gtk.Label(label=&#34;  &#34;), 0, 0, 0)
 
         hbox3.pack_start(bbb, 0, 0, 0)
         hbox3.pack_start(ccc, 0, 0, 0)
         hbox3.pack_start(ddd, 0, 0, 0)
         hbox3.pack_start(eee, 0, 0, 0)
 
-        #hbox3.pack_start(Gtk.Label(&#34;  ^  &#34;), 0, 0, 0)
-        hbox3.pack_start(Gtk.Label(&#34; &#34;), 0, 0, 0)
+        #hbox3.pack_start(Gtk.Label(label=&#34;  ^  &#34;), 0, 0, 0)
+        hbox3.pack_start(Gtk.Label(label=&#34; &#34;), 0, 0, 0)
 
         return hbox3
 
@@ -347,18 +352,20 @@ sets through the use of explicit keyword arguments.</p></div>
         self.scroll_win.add(self.webview)
         self.webview.editor = self.webview
 
+        warnings.simplefilter(&#34;ignore&#34;)
         self.toolbar2 = self.webview.ui.get_widget(&#34;/toolbar_format&#34;)
+        warnings.simplefilter(&#34;default&#34;)
         self.pack_start(self.toolbar2, False, False, 0)
 
         self.pack_start(self.scroll_win, 1, 1, 2)
 
         hbox5 = Gtk.HBox()
-        hbox5.pack_start(Gtk.Label(&#34;  &#34;), 0, 0, 0)
-        self.status = Gtk.Label(&#34; Idle &#34;);
+        hbox5.pack_start(Gtk.Label(label=&#34;  &#34;), 0, 0, 0)
+        self.status = Gtk.Label(label=&#34; Idle &#34;);
         self.status.set_xalign(0)
 
         hbox5.pack_start(self.status, 1, 1, 0)
-        hbox5.pack_start(Gtk.Label(&#34;  &#34;), 0, 0, 0)
+        hbox5.pack_start(Gtk.Label(label=&#34;  &#34;), 0, 0, 0)
         self.set_status(&#34; Idle State &#34;)
 
         self.pack_start(hbox5, 0, 0, 2)
@@ -370,8 +377,8 @@ sets through the use of explicit keyword arguments.</p></div>
         self.set_can_focus(True)
         #self.grab_focus()
 
-    def load_html(self, strx):
-        self.webview.load_html(strx)
+    def load_html(self, strx, acc):
+        self.webview.load_html(strx, acc)
 
     def cut(self):
         #print(&#34;cut&#34;)
@@ -387,7 +394,7 @@ sets through the use of explicit keyword arguments.</p></div>
         #self.webview.on_action(&#34;paste&#34;)
 
     def open(self):
-        dialog = Gtk.FileChooserDialog(&#34;Open an HTML file&#34;, None,
+        dialog = Gtk.FileChooserDialog(&#34;Open an HTML filex&#34;, None,
                 Gtk.FileChooserAction.OPEN,
                     (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
                         Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
@@ -402,7 +409,10 @@ sets through the use of explicit keyword arguments.</p></div>
             if os.path.exists(fn):
                 self.fname = fn
                 with open(fn) as fd:
-                    self.webview.load_html(fd.read(), &#34;file:///&#34;)
+                    ddd = os.getwd()
+                    print(ddd)
+                    self.webview.load_html(fd.read(), ddd)
+                    #self.webview.load_html(fd.read(), &#34;file:///&#34;)
 
     def save(self):
 
@@ -425,6 +435,9 @@ sets through the use of explicit keyword arguments.</p></div>
 
     def is_modified(self):
         return self.webview.modified
+
+    def set_modified(self, flag):
+        self.webview.modified = flag
 
     def _completion(self, html, user_data):
         self.ret = html
@@ -517,30 +530,29 @@ sets through the use of explicit keyword arguments.</p></div>
         self.edit.single_line = True
 
         hbox3 = Gtk.HBox()
-        uuu  = Gtk.Label(&#34;  URL:  &#34;)
+        uuu  = Gtk.Label(label=&#34;  URL:  &#34;)
         uuu.set_tooltip_text(&#34;Current / New URL; press Enter to go&#34;)
         hbox3.pack_start(uuu, 0, 0, 0)
 
         hbox3.pack_start(self.edit, True, True, 2)
 
-        bbb = LabelButt(&#34; _Go &#34;, self.gourl, &#34;Go to speified URL&#34;)
+        bbb = IconButt(Gtk.STOCK_SAVE, self.gourl, &#34;Go to speified URL&#34;)
         #bbb = Gtk.Button.new_with_mnemonic(&#34; _Go &#34;) #, self.gourl, &#34;Go to speified URL&#34;)
         #bbb.connect(&#34;clicked&#34;, self.gourl)
-
         #bbb = LabelButt(&#34; _Go &#34;, self.gourl, &#34;Go to speified URL&#34;)
-        ccc = LabelButt(&#34; &lt;-_Back  &#34;, self.backurl, &#34;Go Back&#34;)
-        ddd = LabelButt(&#34;  For_w-&gt; &#34;, self.forwurl, &#34;Go Forw&#34;)
-        eee = LabelButt(&#34;   B_ase  &#34;, self.baseurl, &#34;Go to base URL&#34;)
+        ccc = IconButt(Gtk.STOCK_GO_BACK, self.backurl, &#34;Go Back&#34;)
+        ddd = IconButt(Gtk.STOCK_GO_FORWARD, self.forwurl, &#34;Go Forw&#34;)
+        eee = IconButt(Gtk.STOCK_HOME, self.baseurl, &#34;Go to base URL&#34;)
 
-        hbox3.pack_start(Gtk.Label(&#34;  &#34;), 0, 0, 0)
+        hbox3.pack_start(Gtk.Label(label=&#34;  &#34;), 0, 0, 0)
 
         hbox3.pack_start(bbb, 0, 0, 0)
         hbox3.pack_start(ccc, 0, 0, 0)
         hbox3.pack_start(ddd, 0, 0, 0)
         hbox3.pack_start(eee, 0, 0, 0)
 
-        #hbox3.pack_start(Gtk.Label(&#34;  ^  &#34;), 0, 0, 0)
-        hbox3.pack_start(Gtk.Label(&#34; &#34;), 0, 0, 0)
+        #hbox3.pack_start(Gtk.Label(label=&#34;  ^  &#34;), 0, 0, 0)
+        hbox3.pack_start(Gtk.Label(label=&#34; &#34;), 0, 0, 0)
 
         return hbox3</code></pre>
 </details>
@@ -712,7 +724,7 @@ sets through the use of explicit keyword arguments.</p></div>
 </details>
 </dd>
 <dt id="browsewin.browserWin.load_html"><code class="name flex">
-<span>def <span class="ident">load_html</span></span>(<span>self, strx)</span>
+<span>def <span class="ident">load_html</span></span>(<span>self, strx, acc)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -720,8 +732,8 @@ sets through the use of explicit keyword arguments.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def load_html(self, strx):
-    self.webview.load_html(strx)</code></pre>
+<pre><code class="python">def load_html(self, strx, acc):
+    self.webview.load_html(strx, acc)</code></pre>
 </details>
 </dd>
 <dt id="browsewin.browserWin.open"><code class="name flex">
@@ -734,7 +746,7 @@ sets through the use of explicit keyword arguments.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def open(self):
-    dialog = Gtk.FileChooserDialog(&#34;Open an HTML file&#34;, None,
+    dialog = Gtk.FileChooserDialog(&#34;Open an HTML filex&#34;, None,
             Gtk.FileChooserAction.OPEN,
                 (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
                     Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
@@ -749,7 +761,10 @@ sets through the use of explicit keyword arguments.</p></div>
         if os.path.exists(fn):
             self.fname = fn
             with open(fn) as fd:
-                self.webview.load_html(fd.read(), &#34;file:///&#34;)</code></pre>
+                ddd = os.getwd()
+                print(ddd)
+                self.webview.load_html(fd.read(), ddd)
+                #self.webview.load_html(fd.read(), &#34;file:///&#34;)</code></pre>
 </details>
 </dd>
 <dt id="browsewin.browserWin.paste"><code class="name flex">
@@ -824,6 +839,19 @@ sets through the use of explicit keyword arguments.</p></div>
     dialog.destroy()</code></pre>
 </details>
 </dd>
+<dt id="browsewin.browserWin.set_modified"><code class="name flex">
+<span>def <span class="ident">set_modified</span></span>(<span>self, flag)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_modified(self, flag):
+    self.webview.modified = flag</code></pre>
+</details>
+</dd>
 <dt id="browsewin.browserWin.set_status"><code class="name flex">
 <span>def <span class="ident">set_status</span></span>(<span>self, xtxt)</span>
 </code></dt>
@@ -880,30 +908,29 @@ sets through the use of explicit keyword arguments.</p></div>
     self.edit.single_line = True
 
     hbox3 = Gtk.HBox()
-    uuu  = Gtk.Label(&#34;  URL:  &#34;)
+    uuu  = Gtk.Label(label=&#34;  URL:  &#34;)
     uuu.set_tooltip_text(&#34;Current / New URL; press Enter to go&#34;)
     hbox3.pack_start(uuu, 0, 0, 0)
 
     hbox3.pack_start(self.edit, True, True, 2)
 
-    bbb = LabelButt(&#34; _Go &#34;, self.gourl, &#34;Go to speified URL&#34;)
+    bbb = IconButt(Gtk.STOCK_SAVE, self.gourl, &#34;Go to speified URL&#34;)
     #bbb = Gtk.Button.new_with_mnemonic(&#34; _Go &#34;) #, self.gourl, &#34;Go to speified URL&#34;)
     #bbb.connect(&#34;clicked&#34;, self.gourl)
-
     #bbb = LabelButt(&#34; _Go &#34;, self.gourl, &#34;Go to speified URL&#34;)
-    ccc = LabelButt(&#34; &lt;-_Back  &#34;, self.backurl, &#34;Go Back&#34;)
-    ddd = LabelButt(&#34;  For_w-&gt; &#34;, self.forwurl, &#34;Go Forw&#34;)
-    eee = LabelButt(&#34;   B_ase  &#34;, self.baseurl, &#34;Go to base URL&#34;)
+    ccc = IconButt(Gtk.STOCK_GO_BACK, self.backurl, &#34;Go Back&#34;)
+    ddd = IconButt(Gtk.STOCK_GO_FORWARD, self.forwurl, &#34;Go Forw&#34;)
+    eee = IconButt(Gtk.STOCK_HOME, self.baseurl, &#34;Go to base URL&#34;)
 
-    hbox3.pack_start(Gtk.Label(&#34;  &#34;), 0, 0, 0)
+    hbox3.pack_start(Gtk.Label(label=&#34;  &#34;), 0, 0, 0)
 
     hbox3.pack_start(bbb, 0, 0, 0)
     hbox3.pack_start(ccc, 0, 0, 0)
     hbox3.pack_start(ddd, 0, 0, 0)
     hbox3.pack_start(eee, 0, 0, 0)
 
-    #hbox3.pack_start(Gtk.Label(&#34;  ^  &#34;), 0, 0, 0)
-    hbox3.pack_start(Gtk.Label(&#34; &#34;), 0, 0, 0)
+    #hbox3.pack_start(Gtk.Label(label=&#34;  ^  &#34;), 0, 0, 0)
+    hbox3.pack_start(Gtk.Label(label=&#34; &#34;), 0, 0, 0)
 
     return hbox3</code></pre>
 </details>
@@ -938,6 +965,7 @@ sets through the use of explicit keyword arguments.</p></div>
 <li><code><a title="browsewin.browserWin.paste" href="#browsewin.browserWin.paste">paste</a></code></li>
 <li><code><a title="browsewin.browserWin.save" href="#browsewin.browserWin.save">save</a></code></li>
 <li><code><a title="browsewin.browserWin.saveas" href="#browsewin.browserWin.saveas">saveas</a></code></li>
+<li><code><a title="browsewin.browserWin.set_modified" href="#browsewin.browserWin.set_modified">set_modified</a></code></li>
 <li><code><a title="browsewin.browserWin.set_status" href="#browsewin.browserWin.set_status">set_status</a></code></li>
 <li><code><a title="browsewin.browserWin.stattime" href="#browsewin.browserWin.stattime">stattime</a></code></li>
 <li><code><a title="browsewin.browserWin.url_callb" href="#browsewin.browserWin.url_callb">url_callb</a></code></li>

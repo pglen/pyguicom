@@ -163,10 +163,7 @@ navkeys = [   \
                 Gdk.KEY_Control_L,  Gdk.KEY_Control_R,
                 Gdk.KEY_Super_L,    Gdk.KEY_Super_R,
                 Gdk.KEY_Shift_L,    Gdk.KEY_Shift_R,
-
-          ]
-
-# ------------------------------------------------------------------------
+]
 
 class pgwebw(WebKit2.WebView):
 
@@ -181,6 +178,27 @@ class pgwebw(WebKit2.WebView):
         self.xlink = xlink
         self.set_editable(True)
 
+        #for aa in dir(self):
+        #    print(aa)
+
+        sss = self.get_settings()
+
+        sss.set_allow_file_access_from_file_urls(True)
+        sss.set_enable_write_console_messages_to_stdout(True)
+        sss.set_allow_universal_access_from_file_urls(True)
+
+        #for aa in dir(sss):
+        #    if &#34;__&#34; == aa[:2]:
+        #        continue
+        #    if not &#34;get_&#34; in aa:
+        #        continue
+        #    try:
+        #        attr = getattr(sss, aa)
+        #        print(aa, &#34;=&#34;, attr())
+        #    except:
+        #        pass
+        #        #print(aa, &#34;=&#34;, &#34;Err&#34;, sys.exc_info())
+
         #if editable:
         #    self.set_editable(True)
 
@@ -189,6 +207,9 @@ class pgwebw(WebKit2.WebView):
         self.ui = self.generate_ui()
         self.connect(&#34;key-release-event&#34;,  self.keypress)
         self.modified = False
+
+        #print(WebKit2.WebView.__doc__)
+        #print(super().self.__doc__)
 
     def  _get_response_data_finish(self, resource, result, user_data=None):
         self.old_html = resource.get_data_finish(result)
@@ -217,7 +238,9 @@ class pgwebw(WebKit2.WebView):
                     if key == aa.accel_parsed[0]:
                         #print(&#34;Fire &#34;, aa.get_name(), aa.get_label())
                         #lab = aa.get_label()
+                        warnings.simplefilter(&#34;ignore&#34;)
                         aa.activate()
+                        warnings.simplefilter(&#34;default&#34;)
                         break   # Only one accel the other is a mistake
 
         # See if nav key
@@ -289,7 +312,6 @@ class pgwebw(WebKit2.WebView):
 
         if not ccc:
             return
-
         dddd = ccc.get_data().decode()
         if not dddd:
             return
@@ -346,7 +368,7 @@ class pgwebw(WebKit2.WebView):
         self.modified = True
 
     def on_select_font(self, action):
-        dialog = Gtk.FontChooserDialog(&#34;Select a font&#34;)
+        dialog = Gtk.FontChooserDialog(title=&#34;Select a font&#34;)
         if dialog.run() == Gtk.ResponseType.OK:
             fname = dialog.get_font_desc().get_family()
             fsize = dialog.get_font_desc().get_size() / Pango.SCALE
@@ -357,7 +379,7 @@ class pgwebw(WebKit2.WebView):
         dialog.destroy()
 
     def on_select_color(self, action):
-        dialog = Gtk.ColorChooserDialog(&#34;Select Color&#34;)
+        dialog = Gtk.ColorChooserDialog(title=&#34;Select Color&#34;)
         if dialog.run() == Gtk.ResponseType.OK:
             (r, g, b, a) = dialog.get_rgba()
             color = &#34;#%0.2x%0.2x%0.2x%0.2x&#34; % (
@@ -369,7 +391,7 @@ class pgwebw(WebKit2.WebView):
         dialog.destroy()
 
     def on_select_bgcolor(self, action):
-        dialog = Gtk.ColorChooserDialog(&#34;Select Background Color&#34;)
+        dialog = Gtk.ColorChooserDialog(title=&#34;Select Background Color&#34;)
         if dialog.run() == Gtk.ResponseType.OK:
             (r, g, b, a) = dialog.get_rgba()
             color = &#34;#%0.2x%0.2x%0.2x%0.2x&#34; % (
@@ -403,18 +425,18 @@ class pgwebw(WebKit2.WebView):
         self.modified = True
 
     def on_insert_link(self, action):
-        dialog = Gtk.Dialog(&#34;   Enter a URL:   &#34;, None, 0,
-        (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK))
-
+        dialog = Gtk.Dialog(title=&#34;   Enter a URL:   &#34;, transient_for=None)
+        dialog.add_buttons( Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                            Gtk.STOCK_OK, Gtk.ResponseType.OK)
         entry = Gtk.Entry()
-        dialog.vbox.pack_start(Gtk.Label(&#34;  &#34;), False, False, 0)
+        dialog.vbox.pack_start(Gtk.Label(label=&#34;  &#34;), False, False, 0)
         hbox = Gtk.HBox()
-        hbox.pack_start(Gtk.Label(&#34;  &#34;), False, False, 0)
+        hbox.pack_start(Gtk.Label(label=&#34;  &#34;), False, False, 0)
         hbox.pack_start(entry, False, False, 0)
-        hbox.pack_start(Gtk.Label(&#34;  &#34;), False, False, 0)
+        hbox.pack_start(Gtk.Label(label=&#34;  &#34;), False, False, 0)
         dialog.vbox.pack_start(hbox, False, False, 0)
 
-        dialog.vbox.pack_start(Gtk.Label(&#34;  &#34;), False, False, 0)
+        dialog.vbox.pack_start(Gtk.Label(label=&#34;  &#34;), False, False, 0)
         dialog.show_all()
 
         if dialog.run() == Gtk.ResponseType.OK:
@@ -424,12 +446,15 @@ class pgwebw(WebKit2.WebView):
         self.modified = True
 
     def on_insert_image(self, action):
-        dialog = Gtk.FileChooserDialog(&#34;Select an image file&#34;, None, Gtk.FileChooserAction.OPEN,
-        (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+        dialog = Gtk.FileChooserDialog(title=&#34;Select an image file&#34;,
+                            transient_for=None, action=Gtk.FileChooserAction.OPEN)
+        dialog.add_buttons( Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                            Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
 
         if dialog.run() == Gtk.ResponseType.OK:
             fn = dialog.get_filename()
             if os.path.exists(fn):
+                print(&#34;image&#34;, fn)
                 self.run_javascript(
                 &#34;document.execCommand(&#39;insertImage&#39;, null, &#39;%s&#39;);&#34; % fn)
         dialog.destroy()
@@ -472,15 +497,19 @@ class pgwebw(WebKit2.WebView):
         #print(&#34;get_html&#34;)
         def javascript_completion(obj, result, user_data):
             #print(&#34;javascript_completion&#34;, result)
+            warnings.simplefilter(&#34;ignore&#34;)
             fin = self.run_javascript_finish(result)
+            warnings.simplefilter(&#34;default&#34;)
             #print(&#34;fin&#34;, fin)
             html = fin.get_js_value().to_string()
             #print(&#34;len html&#34;, len(html), &#34;\n&#34;)
             completion_function(html, user_data)
+        warnings.simplefilter(&#34;ignore&#34;)
         self.run_javascript(&#34;document.documentElement.innerHTML;&#34;,
                                    None,
                                    javascript_completion,
                                    user_data)
+        warnings.simplefilter(&#34;default&#34;)
 
     def get_lastmod(self, completion_function, user_data):
 
@@ -502,7 +531,7 @@ class pgwebw(WebKit2.WebView):
 
         &#39;&#39;&#39; define toolbar items and actions here &#39;&#39;&#39;
 
-        actions = Gtk.ActionGroup(&#34;Actions&#34;)
+        actions = Gtk.ActionGroup(name=&#34;Actions&#34;)
     # ----------------------------------------------------------------
     # Name,     Stock Icon,   Accelerator,  ToolTip,   Action
 
@@ -533,7 +562,7 @@ class pgwebw(WebKit2.WebView):
     (&#34;font&#34;,        Gtk.STOCK_SELECT_FONT, &#34;Select _Font&#34;, &#34;&#34;, None, self.on_select_font),
     (&#34;fontsize&#34;,    None, &#34;Select Font _Size&#34;, &#34;&lt;Control&gt;f&#34;, &#34;Set Absolute Size (removes color)&#34;, self.on_fontsize),
     (&#34;color&#34;,       Gtk.STOCK_SELECT_COLOR, &#34;Select _Color&#34;, None, None, self.on_select_color),
-    (&#34;backgroundcolor&#34;, Gtk.STOCK_COLOR_PICKER, &#34;Select Back Color&#34;, None, None, self.on_select_bgcolor),
+    (&#34;backgroundcolor&#34;, Gtk.STOCK_SELECT_COLOR, &#34;Select Back Color&#34;, None, None, self.on_select_bgcolor),
 
     (&#34;justifyleft&#34;,  Gtk.STOCK_JUSTIFY_LEFT, &#34;Justify _Left&#34;, None, None, self.on_action),
     (&#34;justifyright&#34;, Gtk.STOCK_JUSTIFY_RIGHT, &#34;Justify _Right&#34;, None, None, self.on_action),
@@ -553,7 +582,9 @@ class pgwebw(WebKit2.WebView):
 
     ]
 
+        warnings.simplefilter(&#34;ignore&#34;)
         actions.add_actions(accel_arr)
+        warnings.simplefilter(&#34;default&#34;)
 
         #print(dir(actions))
         for aa in accel_arr:
@@ -569,18 +600,23 @@ class pgwebw(WebKit2.WebView):
         #        #print(&#34;Exc on&#34;, aa)
         #        pass
 
+        warnings.simplefilter(&#34;ignore&#34;)
         actions.get_action(&#34;insertimage&#34;).set_property(&#34;icon-name&#34;, &#34;insert-image&#34;)
         actions.get_action(&#34;insertlink&#34;).set_property(&#34;icon-name&#34;, &#34;insert-link&#34;)
         actions.get_action(&#34;inserttable&#34;).set_property(&#34;icon-name&#34;, &#34;appointment-new&#34;)
         actions.get_action(&#34;editmarker&#34;).set_property(&#34;icon-name&#34;, &#34;text-editor&#34;)
         actions.get_action(&#34;fontsize&#34;).set_property(&#34;icon-name&#34;, &#34;preferences-desktop-font&#34;)
         actions.get_action(&#34;removeformat&#34;).set_property(&#34;icon-name&#34;, &#34;text-direction&#34;)
+        warnings.simplefilter(&#34;default&#34;)
 
         ui = Gtk.UIManager()
+        warnings.simplefilter(&#34;ignore&#34;)
         ui.insert_action_group(actions)
         ui.add_ui_from_string(ui_def)
+        warnings.simplefilter(&#34;default&#34;)
 
         # Fill in defaults
+        warnings.simplefilter(&#34;ignore&#34;)
         xxx = ui.get_action_groups()[0].list_actions()
         for aa in xxx:
             nnn = aa.get_name()
@@ -605,9 +641,12 @@ class pgwebw(WebKit2.WebView):
                             pass
 
             # Pad it with capitalize name if not there
+            warnings.simplefilter(&#34;ignore&#34;)
             if  not aa.get_tooltip():
                 aa.set_tooltip(nnn[0].upper() + nnn[1:])
+            warnings.simplefilter(&#34;default&#34;)
 
+        warnings.simplefilter(&#34;default&#34;)
         return ui
 
 # This is kicked in if there is no library  (is it used?)
@@ -656,18 +695,18 @@ def markdialog(sss):
             &#34;The editor already decorated this sufficiently, &#34;\
               &#34;try to edit existing items in place.\n&#34;
 
-    lll = Gtk.Label(hhh)
+    lll = Gtk.Label(label=hhh)
     fd = Pango.FontDescription(&#34;Sans 9&#34;)
     lll.override_font(fd)
     thbox = Gtk.HBox()
     thbox.pack_start(lll, 1, 1, 1)
     dialog.vbox.pack_start(thbox, False, False, 0)
     hbox = Gtk.HBox()
-    hbox.pack_start(Gtk.Label(&#34; &#34;), False, False, 0)
+    hbox.pack_start(Gtk.Label(label=&#34; &#34;), False, False, 0)
     hbox.pack_start(scrolledwindow, 1, 1, 0)
-    hbox.pack_start(Gtk.Label(&#34; &#34;), False, False, 0)
+    hbox.pack_start(Gtk.Label(label=&#34; &#34;), False, False, 0)
     dialog.vbox.pack_start(hbox, 1, 1, 0)
-    #dialog.vbox.pack_start(Gtk.Label(&#34; &#34;), False, False, 0)
+    #dialog.vbox.pack_start(Gtk.Label(label=&#34; &#34;), False, False, 0)
     dialog.show_all()
 
     htmlx = &#34;&#34;
@@ -697,7 +736,7 @@ def sizedialog():
 
     &#39;&#39;&#39; Present a selection Dialog for font sizes &#39;&#39;&#39;
 
-    dialog = Gtk.Dialog(&#34;  Font Size   &#34;, None, 0, () )
+    dialog = Gtk.Dialog(title=&#34;  Font Size   &#34;, transient_for=None) #, 0, () )
 
     #(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK))
 
@@ -729,19 +768,23 @@ def sizedialog():
             &#34;The editor already decorated this sufficiently, &#34;\
               &#34;try to edit existing items in place.\n&#34;
 
-    lll = Gtk.Label(hhh)
+    lll = Gtk.Label(label=hhh)
     fd = Pango.FontDescription(&#34;Sans 9&#34;)
+
+    warnings.simplefilter(&#34;ignore&#34;)
     lll.override_font(fd)
+    warnings.simplefilter(&#34;default&#34;)
+
     thbox = Gtk.HBox()
     thbox.pack_start(lll, 1, 1, 1)
     #dialog.vbox.pack_start(thbox, False, False, 0)
 
     hbox = Gtk.HBox()
-    hbox.pack_start(Gtk.Label(&#34; &#34;), False, False, 0)
+    hbox.pack_start(Gtk.Label(label=&#34; &#34;), False, False, 0)
     hbox.pack_start(scrolledwindow, 1, 1, 0)
-    hbox.pack_start(Gtk.Label(&#34; &#34;), False, False, 0)
+    hbox.pack_start(Gtk.Label(label=&#34; &#34;), False, False, 0)
     dialog.vbox.pack_start(hbox, 1, 1, 0)
-    #dialog.vbox.pack_start(Gtk.Label(&#34; &#34;), False, False, 0)
+    #dialog.vbox.pack_start(Gtk.Label(label=&#34; &#34;), False, False, 0)
     dialog.show_all()
 
     if dialog.run() == Gtk.ResponseType.OK:
@@ -807,18 +850,18 @@ def sizedialog():
             &#34;The editor already decorated this sufficiently, &#34;\
               &#34;try to edit existing items in place.\n&#34;
 
-    lll = Gtk.Label(hhh)
+    lll = Gtk.Label(label=hhh)
     fd = Pango.FontDescription(&#34;Sans 9&#34;)
     lll.override_font(fd)
     thbox = Gtk.HBox()
     thbox.pack_start(lll, 1, 1, 1)
     dialog.vbox.pack_start(thbox, False, False, 0)
     hbox = Gtk.HBox()
-    hbox.pack_start(Gtk.Label(&#34; &#34;), False, False, 0)
+    hbox.pack_start(Gtk.Label(label=&#34; &#34;), False, False, 0)
     hbox.pack_start(scrolledwindow, 1, 1, 0)
-    hbox.pack_start(Gtk.Label(&#34; &#34;), False, False, 0)
+    hbox.pack_start(Gtk.Label(label=&#34; &#34;), False, False, 0)
     dialog.vbox.pack_start(hbox, 1, 1, 0)
-    #dialog.vbox.pack_start(Gtk.Label(&#34; &#34;), False, False, 0)
+    #dialog.vbox.pack_start(Gtk.Label(label=&#34; &#34;), False, False, 0)
     dialog.show_all()
 
     htmlx = &#34;&#34;
@@ -853,7 +896,7 @@ def sizedialog():
 
     &#39;&#39;&#39; Present a selection Dialog for font sizes &#39;&#39;&#39;
 
-    dialog = Gtk.Dialog(&#34;  Font Size   &#34;, None, 0, () )
+    dialog = Gtk.Dialog(title=&#34;  Font Size   &#34;, transient_for=None) #, 0, () )
 
     #(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK))
 
@@ -885,19 +928,23 @@ def sizedialog():
             &#34;The editor already decorated this sufficiently, &#34;\
               &#34;try to edit existing items in place.\n&#34;
 
-    lll = Gtk.Label(hhh)
+    lll = Gtk.Label(label=hhh)
     fd = Pango.FontDescription(&#34;Sans 9&#34;)
+
+    warnings.simplefilter(&#34;ignore&#34;)
     lll.override_font(fd)
+    warnings.simplefilter(&#34;default&#34;)
+
     thbox = Gtk.HBox()
     thbox.pack_start(lll, 1, 1, 1)
     #dialog.vbox.pack_start(thbox, False, False, 0)
 
     hbox = Gtk.HBox()
-    hbox.pack_start(Gtk.Label(&#34; &#34;), False, False, 0)
+    hbox.pack_start(Gtk.Label(label=&#34; &#34;), False, False, 0)
     hbox.pack_start(scrolledwindow, 1, 1, 0)
-    hbox.pack_start(Gtk.Label(&#34; &#34;), False, False, 0)
+    hbox.pack_start(Gtk.Label(label=&#34; &#34;), False, False, 0)
     dialog.vbox.pack_start(hbox, 1, 1, 0)
-    #dialog.vbox.pack_start(Gtk.Label(&#34; &#34;), False, False, 0)
+    #dialog.vbox.pack_start(Gtk.Label(label=&#34; &#34;), False, False, 0)
     dialog.show_all()
 
     if dialog.run() == Gtk.ResponseType.OK:
@@ -1068,6 +1115,27 @@ sets through the use of explicit keyword arguments.</p></div>
         self.xlink = xlink
         self.set_editable(True)
 
+        #for aa in dir(self):
+        #    print(aa)
+
+        sss = self.get_settings()
+
+        sss.set_allow_file_access_from_file_urls(True)
+        sss.set_enable_write_console_messages_to_stdout(True)
+        sss.set_allow_universal_access_from_file_urls(True)
+
+        #for aa in dir(sss):
+        #    if &#34;__&#34; == aa[:2]:
+        #        continue
+        #    if not &#34;get_&#34; in aa:
+        #        continue
+        #    try:
+        #        attr = getattr(sss, aa)
+        #        print(aa, &#34;=&#34;, attr())
+        #    except:
+        #        pass
+        #        #print(aa, &#34;=&#34;, &#34;Err&#34;, sys.exc_info())
+
         #if editable:
         #    self.set_editable(True)
 
@@ -1076,6 +1144,9 @@ sets through the use of explicit keyword arguments.</p></div>
         self.ui = self.generate_ui()
         self.connect(&#34;key-release-event&#34;,  self.keypress)
         self.modified = False
+
+        #print(WebKit2.WebView.__doc__)
+        #print(super().self.__doc__)
 
     def  _get_response_data_finish(self, resource, result, user_data=None):
         self.old_html = resource.get_data_finish(result)
@@ -1104,7 +1175,9 @@ sets through the use of explicit keyword arguments.</p></div>
                     if key == aa.accel_parsed[0]:
                         #print(&#34;Fire &#34;, aa.get_name(), aa.get_label())
                         #lab = aa.get_label()
+                        warnings.simplefilter(&#34;ignore&#34;)
                         aa.activate()
+                        warnings.simplefilter(&#34;default&#34;)
                         break   # Only one accel the other is a mistake
 
         # See if nav key
@@ -1176,7 +1249,6 @@ sets through the use of explicit keyword arguments.</p></div>
 
         if not ccc:
             return
-
         dddd = ccc.get_data().decode()
         if not dddd:
             return
@@ -1233,7 +1305,7 @@ sets through the use of explicit keyword arguments.</p></div>
         self.modified = True
 
     def on_select_font(self, action):
-        dialog = Gtk.FontChooserDialog(&#34;Select a font&#34;)
+        dialog = Gtk.FontChooserDialog(title=&#34;Select a font&#34;)
         if dialog.run() == Gtk.ResponseType.OK:
             fname = dialog.get_font_desc().get_family()
             fsize = dialog.get_font_desc().get_size() / Pango.SCALE
@@ -1244,7 +1316,7 @@ sets through the use of explicit keyword arguments.</p></div>
         dialog.destroy()
 
     def on_select_color(self, action):
-        dialog = Gtk.ColorChooserDialog(&#34;Select Color&#34;)
+        dialog = Gtk.ColorChooserDialog(title=&#34;Select Color&#34;)
         if dialog.run() == Gtk.ResponseType.OK:
             (r, g, b, a) = dialog.get_rgba()
             color = &#34;#%0.2x%0.2x%0.2x%0.2x&#34; % (
@@ -1256,7 +1328,7 @@ sets through the use of explicit keyword arguments.</p></div>
         dialog.destroy()
 
     def on_select_bgcolor(self, action):
-        dialog = Gtk.ColorChooserDialog(&#34;Select Background Color&#34;)
+        dialog = Gtk.ColorChooserDialog(title=&#34;Select Background Color&#34;)
         if dialog.run() == Gtk.ResponseType.OK:
             (r, g, b, a) = dialog.get_rgba()
             color = &#34;#%0.2x%0.2x%0.2x%0.2x&#34; % (
@@ -1290,18 +1362,18 @@ sets through the use of explicit keyword arguments.</p></div>
         self.modified = True
 
     def on_insert_link(self, action):
-        dialog = Gtk.Dialog(&#34;   Enter a URL:   &#34;, None, 0,
-        (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK))
-
+        dialog = Gtk.Dialog(title=&#34;   Enter a URL:   &#34;, transient_for=None)
+        dialog.add_buttons( Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                            Gtk.STOCK_OK, Gtk.ResponseType.OK)
         entry = Gtk.Entry()
-        dialog.vbox.pack_start(Gtk.Label(&#34;  &#34;), False, False, 0)
+        dialog.vbox.pack_start(Gtk.Label(label=&#34;  &#34;), False, False, 0)
         hbox = Gtk.HBox()
-        hbox.pack_start(Gtk.Label(&#34;  &#34;), False, False, 0)
+        hbox.pack_start(Gtk.Label(label=&#34;  &#34;), False, False, 0)
         hbox.pack_start(entry, False, False, 0)
-        hbox.pack_start(Gtk.Label(&#34;  &#34;), False, False, 0)
+        hbox.pack_start(Gtk.Label(label=&#34;  &#34;), False, False, 0)
         dialog.vbox.pack_start(hbox, False, False, 0)
 
-        dialog.vbox.pack_start(Gtk.Label(&#34;  &#34;), False, False, 0)
+        dialog.vbox.pack_start(Gtk.Label(label=&#34;  &#34;), False, False, 0)
         dialog.show_all()
 
         if dialog.run() == Gtk.ResponseType.OK:
@@ -1311,12 +1383,15 @@ sets through the use of explicit keyword arguments.</p></div>
         self.modified = True
 
     def on_insert_image(self, action):
-        dialog = Gtk.FileChooserDialog(&#34;Select an image file&#34;, None, Gtk.FileChooserAction.OPEN,
-        (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+        dialog = Gtk.FileChooserDialog(title=&#34;Select an image file&#34;,
+                            transient_for=None, action=Gtk.FileChooserAction.OPEN)
+        dialog.add_buttons( Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                            Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
 
         if dialog.run() == Gtk.ResponseType.OK:
             fn = dialog.get_filename()
             if os.path.exists(fn):
+                print(&#34;image&#34;, fn)
                 self.run_javascript(
                 &#34;document.execCommand(&#39;insertImage&#39;, null, &#39;%s&#39;);&#34; % fn)
         dialog.destroy()
@@ -1359,15 +1434,19 @@ sets through the use of explicit keyword arguments.</p></div>
         #print(&#34;get_html&#34;)
         def javascript_completion(obj, result, user_data):
             #print(&#34;javascript_completion&#34;, result)
+            warnings.simplefilter(&#34;ignore&#34;)
             fin = self.run_javascript_finish(result)
+            warnings.simplefilter(&#34;default&#34;)
             #print(&#34;fin&#34;, fin)
             html = fin.get_js_value().to_string()
             #print(&#34;len html&#34;, len(html), &#34;\n&#34;)
             completion_function(html, user_data)
+        warnings.simplefilter(&#34;ignore&#34;)
         self.run_javascript(&#34;document.documentElement.innerHTML;&#34;,
                                    None,
                                    javascript_completion,
                                    user_data)
+        warnings.simplefilter(&#34;default&#34;)
 
     def get_lastmod(self, completion_function, user_data):
 
@@ -1389,7 +1468,7 @@ sets through the use of explicit keyword arguments.</p></div>
 
         &#39;&#39;&#39; define toolbar items and actions here &#39;&#39;&#39;
 
-        actions = Gtk.ActionGroup(&#34;Actions&#34;)
+        actions = Gtk.ActionGroup(name=&#34;Actions&#34;)
     # ----------------------------------------------------------------
     # Name,     Stock Icon,   Accelerator,  ToolTip,   Action
 
@@ -1420,7 +1499,7 @@ sets through the use of explicit keyword arguments.</p></div>
     (&#34;font&#34;,        Gtk.STOCK_SELECT_FONT, &#34;Select _Font&#34;, &#34;&#34;, None, self.on_select_font),
     (&#34;fontsize&#34;,    None, &#34;Select Font _Size&#34;, &#34;&lt;Control&gt;f&#34;, &#34;Set Absolute Size (removes color)&#34;, self.on_fontsize),
     (&#34;color&#34;,       Gtk.STOCK_SELECT_COLOR, &#34;Select _Color&#34;, None, None, self.on_select_color),
-    (&#34;backgroundcolor&#34;, Gtk.STOCK_COLOR_PICKER, &#34;Select Back Color&#34;, None, None, self.on_select_bgcolor),
+    (&#34;backgroundcolor&#34;, Gtk.STOCK_SELECT_COLOR, &#34;Select Back Color&#34;, None, None, self.on_select_bgcolor),
 
     (&#34;justifyleft&#34;,  Gtk.STOCK_JUSTIFY_LEFT, &#34;Justify _Left&#34;, None, None, self.on_action),
     (&#34;justifyright&#34;, Gtk.STOCK_JUSTIFY_RIGHT, &#34;Justify _Right&#34;, None, None, self.on_action),
@@ -1440,7 +1519,9 @@ sets through the use of explicit keyword arguments.</p></div>
 
     ]
 
+        warnings.simplefilter(&#34;ignore&#34;)
         actions.add_actions(accel_arr)
+        warnings.simplefilter(&#34;default&#34;)
 
         #print(dir(actions))
         for aa in accel_arr:
@@ -1456,18 +1537,23 @@ sets through the use of explicit keyword arguments.</p></div>
         #        #print(&#34;Exc on&#34;, aa)
         #        pass
 
+        warnings.simplefilter(&#34;ignore&#34;)
         actions.get_action(&#34;insertimage&#34;).set_property(&#34;icon-name&#34;, &#34;insert-image&#34;)
         actions.get_action(&#34;insertlink&#34;).set_property(&#34;icon-name&#34;, &#34;insert-link&#34;)
         actions.get_action(&#34;inserttable&#34;).set_property(&#34;icon-name&#34;, &#34;appointment-new&#34;)
         actions.get_action(&#34;editmarker&#34;).set_property(&#34;icon-name&#34;, &#34;text-editor&#34;)
         actions.get_action(&#34;fontsize&#34;).set_property(&#34;icon-name&#34;, &#34;preferences-desktop-font&#34;)
         actions.get_action(&#34;removeformat&#34;).set_property(&#34;icon-name&#34;, &#34;text-direction&#34;)
+        warnings.simplefilter(&#34;default&#34;)
 
         ui = Gtk.UIManager()
+        warnings.simplefilter(&#34;ignore&#34;)
         ui.insert_action_group(actions)
         ui.add_ui_from_string(ui_def)
+        warnings.simplefilter(&#34;default&#34;)
 
         # Fill in defaults
+        warnings.simplefilter(&#34;ignore&#34;)
         xxx = ui.get_action_groups()[0].list_actions()
         for aa in xxx:
             nnn = aa.get_name()
@@ -1492,9 +1578,12 @@ sets through the use of explicit keyword arguments.</p></div>
                             pass
 
             # Pad it with capitalize name if not there
+            warnings.simplefilter(&#34;ignore&#34;)
             if  not aa.get_tooltip():
                 aa.set_tooltip(nnn[0].upper() + nnn[1:])
+            warnings.simplefilter(&#34;default&#34;)
 
+        warnings.simplefilter(&#34;default&#34;)
         return ui</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -1595,7 +1684,7 @@ sets through the use of explicit keyword arguments.</p></div>
 
     &#39;&#39;&#39; define toolbar items and actions here &#39;&#39;&#39;
 
-    actions = Gtk.ActionGroup(&#34;Actions&#34;)
+    actions = Gtk.ActionGroup(name=&#34;Actions&#34;)
 # ----------------------------------------------------------------
 # Name,     Stock Icon,   Accelerator,  ToolTip,   Action
 
@@ -1626,7 +1715,7 @@ sets through the use of explicit keyword arguments.</p></div>
 (&#34;font&#34;,        Gtk.STOCK_SELECT_FONT, &#34;Select _Font&#34;, &#34;&#34;, None, self.on_select_font),
 (&#34;fontsize&#34;,    None, &#34;Select Font _Size&#34;, &#34;&lt;Control&gt;f&#34;, &#34;Set Absolute Size (removes color)&#34;, self.on_fontsize),
 (&#34;color&#34;,       Gtk.STOCK_SELECT_COLOR, &#34;Select _Color&#34;, None, None, self.on_select_color),
-(&#34;backgroundcolor&#34;, Gtk.STOCK_COLOR_PICKER, &#34;Select Back Color&#34;, None, None, self.on_select_bgcolor),
+(&#34;backgroundcolor&#34;, Gtk.STOCK_SELECT_COLOR, &#34;Select Back Color&#34;, None, None, self.on_select_bgcolor),
 
 (&#34;justifyleft&#34;,  Gtk.STOCK_JUSTIFY_LEFT, &#34;Justify _Left&#34;, None, None, self.on_action),
 (&#34;justifyright&#34;, Gtk.STOCK_JUSTIFY_RIGHT, &#34;Justify _Right&#34;, None, None, self.on_action),
@@ -1646,7 +1735,9 @@ sets through the use of explicit keyword arguments.</p></div>
 
 ]
 
+    warnings.simplefilter(&#34;ignore&#34;)
     actions.add_actions(accel_arr)
+    warnings.simplefilter(&#34;default&#34;)
 
     #print(dir(actions))
     for aa in accel_arr:
@@ -1662,18 +1753,23 @@ sets through the use of explicit keyword arguments.</p></div>
     #        #print(&#34;Exc on&#34;, aa)
     #        pass
 
+    warnings.simplefilter(&#34;ignore&#34;)
     actions.get_action(&#34;insertimage&#34;).set_property(&#34;icon-name&#34;, &#34;insert-image&#34;)
     actions.get_action(&#34;insertlink&#34;).set_property(&#34;icon-name&#34;, &#34;insert-link&#34;)
     actions.get_action(&#34;inserttable&#34;).set_property(&#34;icon-name&#34;, &#34;appointment-new&#34;)
     actions.get_action(&#34;editmarker&#34;).set_property(&#34;icon-name&#34;, &#34;text-editor&#34;)
     actions.get_action(&#34;fontsize&#34;).set_property(&#34;icon-name&#34;, &#34;preferences-desktop-font&#34;)
     actions.get_action(&#34;removeformat&#34;).set_property(&#34;icon-name&#34;, &#34;text-direction&#34;)
+    warnings.simplefilter(&#34;default&#34;)
 
     ui = Gtk.UIManager()
+    warnings.simplefilter(&#34;ignore&#34;)
     ui.insert_action_group(actions)
     ui.add_ui_from_string(ui_def)
+    warnings.simplefilter(&#34;default&#34;)
 
     # Fill in defaults
+    warnings.simplefilter(&#34;ignore&#34;)
     xxx = ui.get_action_groups()[0].list_actions()
     for aa in xxx:
         nnn = aa.get_name()
@@ -1698,9 +1794,12 @@ sets through the use of explicit keyword arguments.</p></div>
                         pass
 
         # Pad it with capitalize name if not there
+        warnings.simplefilter(&#34;ignore&#34;)
         if  not aa.get_tooltip():
             aa.set_tooltip(nnn[0].upper() + nnn[1:])
+        warnings.simplefilter(&#34;default&#34;)
 
+    warnings.simplefilter(&#34;default&#34;)
     return ui</code></pre>
 </details>
 </dd>
@@ -1718,15 +1817,19 @@ sets through the use of explicit keyword arguments.</p></div>
     #print(&#34;get_html&#34;)
     def javascript_completion(obj, result, user_data):
         #print(&#34;javascript_completion&#34;, result)
+        warnings.simplefilter(&#34;ignore&#34;)
         fin = self.run_javascript_finish(result)
+        warnings.simplefilter(&#34;default&#34;)
         #print(&#34;fin&#34;, fin)
         html = fin.get_js_value().to_string()
         #print(&#34;len html&#34;, len(html), &#34;\n&#34;)
         completion_function(html, user_data)
+    warnings.simplefilter(&#34;ignore&#34;)
     self.run_javascript(&#34;document.documentElement.innerHTML;&#34;,
                                None,
                                javascript_completion,
-                               user_data)</code></pre>
+                               user_data)
+    warnings.simplefilter(&#34;default&#34;)</code></pre>
 </details>
 </dd>
 <dt id="pgwkit.pgwebw.get_lastmod"><code class="name flex">
@@ -1786,7 +1889,9 @@ sets through the use of explicit keyword arguments.</p></div>
                 if key == aa.accel_parsed[0]:
                     #print(&#34;Fire &#34;, aa.get_name(), aa.get_label())
                     #lab = aa.get_label()
+                    warnings.simplefilter(&#34;ignore&#34;)
                     aa.activate()
+                    warnings.simplefilter(&#34;default&#34;)
                     break   # Only one accel the other is a mistake
 
     # See if nav key
@@ -1912,7 +2017,6 @@ sets through the use of explicit keyword arguments.</p></div>
 
     if not ccc:
         return
-
     dddd = ccc.get_data().decode()
     if not dddd:
         return
@@ -1934,12 +2038,15 @@ sets through the use of explicit keyword arguments.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def on_insert_image(self, action):
-    dialog = Gtk.FileChooserDialog(&#34;Select an image file&#34;, None, Gtk.FileChooserAction.OPEN,
-    (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+    dialog = Gtk.FileChooserDialog(title=&#34;Select an image file&#34;,
+                        transient_for=None, action=Gtk.FileChooserAction.OPEN)
+    dialog.add_buttons( Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                        Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
 
     if dialog.run() == Gtk.ResponseType.OK:
         fn = dialog.get_filename()
         if os.path.exists(fn):
+            print(&#34;image&#34;, fn)
             self.run_javascript(
             &#34;document.execCommand(&#39;insertImage&#39;, null, &#39;%s&#39;);&#34; % fn)
     dialog.destroy()
@@ -1956,18 +2063,18 @@ sets through the use of explicit keyword arguments.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def on_insert_link(self, action):
-    dialog = Gtk.Dialog(&#34;   Enter a URL:   &#34;, None, 0,
-    (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK))
-
+    dialog = Gtk.Dialog(title=&#34;   Enter a URL:   &#34;, transient_for=None)
+    dialog.add_buttons( Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                        Gtk.STOCK_OK, Gtk.ResponseType.OK)
     entry = Gtk.Entry()
-    dialog.vbox.pack_start(Gtk.Label(&#34;  &#34;), False, False, 0)
+    dialog.vbox.pack_start(Gtk.Label(label=&#34;  &#34;), False, False, 0)
     hbox = Gtk.HBox()
-    hbox.pack_start(Gtk.Label(&#34;  &#34;), False, False, 0)
+    hbox.pack_start(Gtk.Label(label=&#34;  &#34;), False, False, 0)
     hbox.pack_start(entry, False, False, 0)
-    hbox.pack_start(Gtk.Label(&#34;  &#34;), False, False, 0)
+    hbox.pack_start(Gtk.Label(label=&#34;  &#34;), False, False, 0)
     dialog.vbox.pack_start(hbox, False, False, 0)
 
-    dialog.vbox.pack_start(Gtk.Label(&#34;  &#34;), False, False, 0)
+    dialog.vbox.pack_start(Gtk.Label(label=&#34;  &#34;), False, False, 0)
     dialog.show_all()
 
     if dialog.run() == Gtk.ResponseType.OK:
@@ -2085,7 +2192,7 @@ sets through the use of explicit keyword arguments.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def on_select_bgcolor(self, action):
-    dialog = Gtk.ColorChooserDialog(&#34;Select Background Color&#34;)
+    dialog = Gtk.ColorChooserDialog(title=&#34;Select Background Color&#34;)
     if dialog.run() == Gtk.ResponseType.OK:
         (r, g, b, a) = dialog.get_rgba()
         color = &#34;#%0.2x%0.2x%0.2x%0.2x&#34; % (
@@ -2107,7 +2214,7 @@ sets through the use of explicit keyword arguments.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def on_select_color(self, action):
-    dialog = Gtk.ColorChooserDialog(&#34;Select Color&#34;)
+    dialog = Gtk.ColorChooserDialog(title=&#34;Select Color&#34;)
     if dialog.run() == Gtk.ResponseType.OK:
         (r, g, b, a) = dialog.get_rgba()
         color = &#34;#%0.2x%0.2x%0.2x%0.2x&#34; % (
@@ -2129,7 +2236,7 @@ sets through the use of explicit keyword arguments.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def on_select_font(self, action):
-    dialog = Gtk.FontChooserDialog(&#34;Select a font&#34;)
+    dialog = Gtk.FontChooserDialog(title=&#34;Select a font&#34;)
     if dialog.run() == Gtk.ResponseType.OK:
         fname = dialog.get_font_desc().get_family()
         fsize = dialog.get_font_desc().get_size() / Pango.SCALE

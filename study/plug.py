@@ -4,7 +4,12 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 import sys
-socket_id = sys.argv[1]
+
+try:
+    socket_id = sys.argv[1]
+except:
+    socket_id = ""
+
 plug = Gtk.Plug.new(int(socket_id))
 plug.connect('destroy', Gtk.main_quit)
 class SocketDialogWindow(Gtk.Window):

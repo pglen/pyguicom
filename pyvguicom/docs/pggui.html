@@ -50,7 +50,7 @@ import pgsimp
 
 IDXERR = &#34;Index is larger than the available number of controls.&#34;
 
-VERSION = &#34;1.3.8&#34;
+VERSION = &#34;1.3.9&#34;
 
 gui_testmode = 0
 
@@ -400,16 +400,15 @@ def opendialog(parent=None):
                 pass
         win.destroy()
 
-    but =   &#34;Cancel&#34;, Gtk.ButtonsType.CANCEL,\
-            &#34;Open File&#34;, Gtk.ButtonsType.OK
-
-    fc = Gtk.FileChooserDialog(&#34;Open file&#34;, parent, \
-         Gtk.FileChooserAction.OPEN  \
-        , but)
-
+    buts =   &#34;Cancel&#34;, Gtk.ButtonsType.CANCEL,\
+             &#34;Open File&#34;, Gtk.ButtonsType.OK
+    fc = Gtk.FileChooserDialog(title=&#34;Open file&#34;, transient_for=parent, \
+         action=Gtk.FileChooserAction.OPEN )
+    fc.add_buttons(*buts)
     filters = []
-    filters.append(makefilter(&#34;*.mup&#34;, &#34;MarkUp files (*.py)&#34;))
     filters.append(makefilter(&#34;*.*&#34;, &#34;All files (*.*)&#34;))
+    filters.append(makefilter(&#34;*.html&#34;, &#34;HTML files (*.html)&#34;))
+    filters.append(makefilter(&#34;*.txt&#34;, &#34;Text files (*.txt)&#34;))
 
     if filters:
         for aa in filters:
@@ -447,11 +446,10 @@ def savedialog(resp):
 
     but =   &#34;Cancel&#34;, Gtk.ResponseType.CANCEL,   \
                     &#34;Save File&#34;, Gtk.ResponseType.OK
-    fc = Gtk.FileChooserDialog(&#34;Save file as ... &#34;, None,
-            Gtk.FileChooserAction.SAVE, but)
-
+    fc = Gtk.FileChooserDialog(title=&#34;Save file as ... &#34;, transient_for=None,
+            action=Gtk.FileChooserAction.SAVE)
+    fc.add_buttons(*but)
     #fc.set_do_overwrite_confirmation(True)
-
     filters = []
     filters.append(makefilter(&#34;*.mup&#34;, &#34;MarkUp files (*.py)&#34;))
     filters.append(makefilter(&#34;*.*&#34;, &#34;All files (*.*)&#34;))
@@ -706,11 +704,78 @@ class LabelButt(Gtk.EventBox):
 
     def area_enter(self, arg1, arg2):
         #print(&#34;LabelButt enter&#34;)
+        warnings.simplefilter(&#34;ignore&#34;)
         gdk_window = self.get_root_window()
+        warnings.simplefilter(&#34;default&#34;)
         gdk_window.set_cursor(self.hand)
 
     def area_leave(self, arg1, arg2):
         #print(&#34;LabelButt leave&#34;)
+        gdk_window = self.get_root_window()
+        gdk_window.set_cursor(self.arrow)
+
+class IconButt(Gtk.EventBox):
+
+    &#39;&#39;&#39; Imitate button &#39;&#39;&#39;
+
+    def __init__(self, front, callb, toolt=&#34;&#34;):
+
+        GObject.GObject.__init__(self)
+
+        self.set_can_focus(True)
+        self.image = Gtk.Image.new_from_stock(front, 32)
+        print(&#34;image&#34;, self.image)
+        self.label = Gtk.Label.new_with_mnemonic(front)
+        self.label.set_mnemonic_widget(self)
+        #self.curve =  Gdk.Cursor(Gdk.CursorType.CROSSHAIR)
+
+        warnings.simplefilter(&#34;ignore&#34;)
+        self.arrow =  Gdk.Cursor(Gdk.CursorType.ARROW)
+        self.hand =  Gdk.Cursor(Gdk.CursorType.HAND1)
+        warnings.simplefilter(&#34;default&#34;)
+
+        #gdk_window = self.get_root_window()
+        #self.arrow = gdk_window.get_cursor()
+
+        if toolt:
+            self.label.set_tooltip_text(toolt)
+            self.image.set_tooltip_text(toolt)
+        self.label.set_single_line_mode(True)
+        #self.add(self.label)
+        self.add(self.image)
+        self.label.connect(&#34;event-after&#34;, self.eventx, front)
+        self.connect(&#34;mnemonic-activate&#34;, self.mnemonic, front)
+
+        if callb:
+            self.connect(&#34;button-press-event&#34;, callb, front)
+
+        self.set_above_child(True)
+        self.add_mnemonic_label(self.label)
+
+        #self.label.connect(&#34;motion-notify-event&#34;, self.area_motion)
+        self.connect(&#34;motion-notify-event&#34;, self.area_motion)
+        self.connect(&#34;enter-notify-event&#34;, self.area_enter)
+        self.connect(&#34;leave-notify-event&#34;, self.area_leave)
+
+    def eventx(self, *args):
+        print(&#34;IconButt eventx&#34;, *args)
+
+    def mnemonic(self, *arg):
+        print(&#34;IconButt  Mnemonic&#34;, *arg)
+
+    def area_motion(self, arg1, arg2):
+        #print(&#34;IconButt Motion&#34;)
+        pass
+
+    def area_enter(self, arg1, arg2):
+        #print(&#34;IconButt enter&#34;)
+        warnings.simplefilter(&#34;ignore&#34;)
+        gdk_window = self.get_root_window()
+        warnings.simplefilter(&#34;default&#34;)
+        gdk_window.set_cursor(self.hand)
+
+    def area_leave(self, arg1, arg2):
+        #print(&#34;IconButt leave&#34;)
         gdk_window = self.get_root_window()
         gdk_window.set_cursor(self.arrow)
 
@@ -2250,16 +2315,15 @@ if __name__ == &#39;__main__&#39;:
                 pass
         win.destroy()
 
-    but =   &#34;Cancel&#34;, Gtk.ButtonsType.CANCEL,\
-            &#34;Open File&#34;, Gtk.ButtonsType.OK
-
-    fc = Gtk.FileChooserDialog(&#34;Open file&#34;, parent, \
-         Gtk.FileChooserAction.OPEN  \
-        , but)
-
+    buts =   &#34;Cancel&#34;, Gtk.ButtonsType.CANCEL,\
+             &#34;Open File&#34;, Gtk.ButtonsType.OK
+    fc = Gtk.FileChooserDialog(title=&#34;Open file&#34;, transient_for=parent, \
+         action=Gtk.FileChooserAction.OPEN )
+    fc.add_buttons(*buts)
     filters = []
-    filters.append(makefilter(&#34;*.mup&#34;, &#34;MarkUp files (*.py)&#34;))
     filters.append(makefilter(&#34;*.*&#34;, &#34;All files (*.*)&#34;))
+    filters.append(makefilter(&#34;*.html&#34;, &#34;HTML files (*.html)&#34;))
+    filters.append(makefilter(&#34;*.txt&#34;, &#34;Text files (*.txt)&#34;))
 
     if filters:
         for aa in filters:
@@ -2424,11 +2488,10 @@ can be themed.</p></div>
 
     but =   &#34;Cancel&#34;, Gtk.ResponseType.CANCEL,   \
                     &#34;Save File&#34;, Gtk.ResponseType.OK
-    fc = Gtk.FileChooserDialog(&#34;Save file as ... &#34;, None,
-            Gtk.FileChooserAction.SAVE, but)
-
+    fc = Gtk.FileChooserDialog(title=&#34;Save file as ... &#34;, transient_for=None,
+            action=Gtk.FileChooserAction.SAVE)
+    fc.add_buttons(*but)
     #fc.set_do_overwrite_confirmation(True)
-
     filters = []
     filters.append(makefilter(&#34;*.mup&#34;, &#34;MarkUp files (*.py)&#34;))
     filters.append(makefilter(&#34;*.*&#34;, &#34;All files (*.*)&#34;))
@@ -3228,6 +3291,173 @@ new(label:str=None) -&gt; Gtk.Widget
 </dd>
 </dl>
 </dd>
+<dt id="pggui.IconButt"><code class="flex name class">
+<span>class <span class="ident">IconButt</span></span>
+<span>(</span><span>front, callb, toolt='')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Imitate button</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class IconButt(Gtk.EventBox):
+
+    &#39;&#39;&#39; Imitate button &#39;&#39;&#39;
+
+    def __init__(self, front, callb, toolt=&#34;&#34;):
+
+        GObject.GObject.__init__(self)
+
+        self.set_can_focus(True)
+        self.image = Gtk.Image.new_from_stock(front, 32)
+        print(&#34;image&#34;, self.image)
+        self.label = Gtk.Label.new_with_mnemonic(front)
+        self.label.set_mnemonic_widget(self)
+        #self.curve =  Gdk.Cursor(Gdk.CursorType.CROSSHAIR)
+
+        warnings.simplefilter(&#34;ignore&#34;)
+        self.arrow =  Gdk.Cursor(Gdk.CursorType.ARROW)
+        self.hand =  Gdk.Cursor(Gdk.CursorType.HAND1)
+        warnings.simplefilter(&#34;default&#34;)
+
+        #gdk_window = self.get_root_window()
+        #self.arrow = gdk_window.get_cursor()
+
+        if toolt:
+            self.label.set_tooltip_text(toolt)
+            self.image.set_tooltip_text(toolt)
+        self.label.set_single_line_mode(True)
+        #self.add(self.label)
+        self.add(self.image)
+        self.label.connect(&#34;event-after&#34;, self.eventx, front)
+        self.connect(&#34;mnemonic-activate&#34;, self.mnemonic, front)
+
+        if callb:
+            self.connect(&#34;button-press-event&#34;, callb, front)
+
+        self.set_above_child(True)
+        self.add_mnemonic_label(self.label)
+
+        #self.label.connect(&#34;motion-notify-event&#34;, self.area_motion)
+        self.connect(&#34;motion-notify-event&#34;, self.area_motion)
+        self.connect(&#34;enter-notify-event&#34;, self.area_enter)
+        self.connect(&#34;leave-notify-event&#34;, self.area_leave)
+
+    def eventx(self, *args):
+        print(&#34;IconButt eventx&#34;, *args)
+
+    def mnemonic(self, *arg):
+        print(&#34;IconButt  Mnemonic&#34;, *arg)
+
+    def area_motion(self, arg1, arg2):
+        #print(&#34;IconButt Motion&#34;)
+        pass
+
+    def area_enter(self, arg1, arg2):
+        #print(&#34;IconButt enter&#34;)
+        warnings.simplefilter(&#34;ignore&#34;)
+        gdk_window = self.get_root_window()
+        warnings.simplefilter(&#34;default&#34;)
+        gdk_window.set_cursor(self.hand)
+
+    def area_leave(self, arg1, arg2):
+        #print(&#34;IconButt leave&#34;)
+        gdk_window = self.get_root_window()
+        gdk_window.set_cursor(self.arrow)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>gi.repository.Gtk.EventBox</li>
+<li>gi.repository.Gtk.Bin</li>
+<li>gi.overrides.Gtk.Container</li>
+<li>gi.repository.Gtk.Container</li>
+<li>gi.overrides.Gtk.Widget</li>
+<li>gi.repository.Gtk.Widget</li>
+<li>gi.repository.GObject.InitiallyUnowned</li>
+<li>gi.overrides.GObject.Object</li>
+<li>gi.repository.GObject.Object</li>
+<li>gi._gi.GObject</li>
+<li>gi.repository.Atk.ImplementorIface</li>
+<li>gi.repository.Gtk.Buildable</li>
+<li>gobject.GInterface</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="pggui.IconButt.area_enter"><code class="name flex">
+<span>def <span class="ident">area_enter</span></span>(<span>self, arg1, arg2)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def area_enter(self, arg1, arg2):
+    #print(&#34;IconButt enter&#34;)
+    warnings.simplefilter(&#34;ignore&#34;)
+    gdk_window = self.get_root_window()
+    warnings.simplefilter(&#34;default&#34;)
+    gdk_window.set_cursor(self.hand)</code></pre>
+</details>
+</dd>
+<dt id="pggui.IconButt.area_leave"><code class="name flex">
+<span>def <span class="ident">area_leave</span></span>(<span>self, arg1, arg2)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def area_leave(self, arg1, arg2):
+    #print(&#34;IconButt leave&#34;)
+    gdk_window = self.get_root_window()
+    gdk_window.set_cursor(self.arrow)</code></pre>
+</details>
+</dd>
+<dt id="pggui.IconButt.area_motion"><code class="name flex">
+<span>def <span class="ident">area_motion</span></span>(<span>self, arg1, arg2)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def area_motion(self, arg1, arg2):
+    #print(&#34;IconButt Motion&#34;)
+    pass</code></pre>
+</details>
+</dd>
+<dt id="pggui.IconButt.eventx"><code class="name flex">
+<span>def <span class="ident">eventx</span></span>(<span>self, *args)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def eventx(self, *args):
+    print(&#34;IconButt eventx&#34;, *args)</code></pre>
+</details>
+</dd>
+<dt id="pggui.IconButt.mnemonic"><code class="name flex">
+<span>def <span class="ident">mnemonic</span></span>(<span>self, *arg)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mnemonic(self, *arg):
+    print(&#34;IconButt  Mnemonic&#34;, *arg)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="pggui.Label"><code class="flex name class">
 <span>class <span class="ident">Label</span></span>
 <span>(</span><span>textm='', widget=None, tooltip=None, font=None)</span>
@@ -3335,7 +3565,9 @@ sets through the use of explicit keyword arguments.</p></div>
 
     def area_enter(self, arg1, arg2):
         #print(&#34;LabelButt enter&#34;)
+        warnings.simplefilter(&#34;ignore&#34;)
         gdk_window = self.get_root_window()
+        warnings.simplefilter(&#34;default&#34;)
         gdk_window.set_cursor(self.hand)
 
     def area_leave(self, arg1, arg2):
@@ -3372,7 +3604,9 @@ sets through the use of explicit keyword arguments.</p></div>
 </summary>
 <pre><code class="python">def area_enter(self, arg1, arg2):
     #print(&#34;LabelButt enter&#34;)
+    warnings.simplefilter(&#34;ignore&#34;)
     gdk_window = self.get_root_window()
+    warnings.simplefilter(&#34;default&#34;)
     gdk_window.set_cursor(self.hand)</code></pre>
 </details>
 </dd>
@@ -6275,6 +6509,16 @@ sets through the use of explicit keyword arguments.</p></div>
 <h4><code><a title="pggui.FrameTextView" href="#pggui.FrameTextView">FrameTextView</a></code></h4>
 <ul class="">
 <li><code><a title="pggui.FrameTextView.append" href="#pggui.FrameTextView.append">append</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pggui.IconButt" href="#pggui.IconButt">IconButt</a></code></h4>
+<ul class="">
+<li><code><a title="pggui.IconButt.area_enter" href="#pggui.IconButt.area_enter">area_enter</a></code></li>
+<li><code><a title="pggui.IconButt.area_leave" href="#pggui.IconButt.area_leave">area_leave</a></code></li>
+<li><code><a title="pggui.IconButt.area_motion" href="#pggui.IconButt.area_motion">area_motion</a></code></li>
+<li><code><a title="pggui.IconButt.eventx" href="#pggui.IconButt.eventx">eventx</a></code></li>
+<li><code><a title="pggui.IconButt.mnemonic" href="#pggui.IconButt.mnemonic">mnemonic</a></code></li>
 </ul>
 </li>
 <li>

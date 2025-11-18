@@ -1,10 +1,13 @@
 #!/usr/bin/python
 
-# pylint: disable=C0103
-# pylint: disable=C0209
-# pylint: disable=C0321
+#pylint: disable=C0103
+#pylint: disable=C0209
+#pylint: disable=C0321
+#pylint: disable=C0116
 
-import os, sys, time, traceback
+''' General utilities '''
+
+import os, sys, time, traceback, stat
 
 #import getopt, string,  math
 #import random, traceback, stat, platform
@@ -34,56 +37,6 @@ def respath(fname):
     except:
         print ("Cannot resolve path", fname, sys.exc_info())
     return None
-
-# ------------------------------------------------------------------------
-# Color conversions
-
-def str2col(strx):
-    ccc = str2float(strx)
-    return float2col(ccc)
-
-def str2float( col):
-    return ( float(int(col[1:3], base=16)) / 256,
-                    float(int(col[3:5], base=16)) / 256, \
-                        float(int(col[5:7], base=16)) / 256 )
-
-def float2col(col):
-    aa = min(col[0], 1.)
-    bb = min(col[1], 1.)
-    cc = min(col[2], 1.)
-    return Gdk.Color(aa * 65535, bb * 65535, cc * 65535)
-
-def float2str(col):
-    aa = min(col[0], 1.)
-    bb = min(col[1], 1.)
-    cc = min(col[2], 1.)
-    strx = "#%02x%02x%02x" % (aa * 256,  \
-                        bb * 256, cc * 256)
-    return strx
-
-def col2float(col):
-    rrr = [float(col.red) / 65535,
-            float(col.green) / 65535,
-                float(col.blue) / 65535]
-    return rrr
-
-def rgb2str(icol):
-    strx = "#%02x%02x%02x" % (int(icol.red) & 0xff,  \
-                        int(icol.green) & 0xff, int(icol.blue) & 0xff)
-    return strx
-
-def col2str(icol):
-    strx = "#%02x%02x%02x" % (int(icol.red / 255),  \
-                        int(icol.green / 255), int(icol.blue / 255))
-    return strx
-
-def rgb2col(icol):
-    #print "rgb2col", icol
-    col = [0, 0, 0]
-    col[0] = float(icol.red) / 256
-    col[1] = float(icol.green) / 256
-    col[2] = float(icol.blue) / 256
-    return col
 
 def put_debug2(xstr):
     try:
@@ -169,6 +122,7 @@ def clean_str2(strx):
 # This is crafted to Py2 so has clock with the same name
 
 start_time = time.clock()
+#start_time = get_time()
 
 def  get_time():
 
@@ -244,9 +198,9 @@ def oct2int(strx):
 # ------------------------------------------------------------------------
 # Convert unicode sequence to unicode char
 
-def uni(xtab):
+def uni(xtab2):
 
-    #print str.format("{0:b}",  xtab[0])
+    #print str.format("{0:b}",  xtab2[0])
     try:
         unichr
     except NameError:
@@ -254,31 +208,31 @@ def uni(xtab):
 
     cc = 0
     try:
-        if xtab[0] & 0xe0 == 0xc0:  # two numbers
-            cc = (xtab[0] & 0x1f) << 6
-            cc += (xtab[1] & 0x3f)
-        elif xtab[0] & 0xf0 == 0xe0: # three numbers
-            cc = (xtab[0] & 0x0f) << 12
-            cc += (xtab[1] & 0x3f) << 6
-            cc += (xtab[2] & 0x3f)
-        elif xtab[0] & 0xf8 == 0xf0: # four numbers
-            cc = (xtab[0] & 0x0e)  << 18
-            cc += (xtab[1] & 0x3f) << 12
-            cc += (xtab[2] & 0x3f) << 6
-            cc += (xtab[3] & 0x3f)
-        elif xtab[0] & 0xfc == 0xf8: # five numbers
-            cc = (xtab[0] & 0x03)  << 24
-            cc += (xtab[1] & 0x3f) << 18
-            cc += (xtab[2] & 0x3f) << 12
-            cc += (xtab[3] & 0x3f) << 6
-            cc += (xtab[4] & 0x3f)
-        elif xtab[0] & 0xfe == 0xf8: # six numbers
-            cc = (xtab[0] & 0x01)  << 30
-            cc += (xtab[1] & 0x3f) << 24
-            cc += (xtab[2] & 0x3f) << 18
-            cc += (xtab[3] & 0x3f) << 12
-            cc += (xtab[4] & 0x3f) << 6
-            cc += (xtab[5] & 0x3f)
+        if xtab2[0] & 0xe0 == 0xc0:  # two numbers
+            cc = (xtab2[0] & 0x1f) << 6
+            cc += (xtab2[1] & 0x3f)
+        elif xtab2[0] & 0xf0 == 0xe0: # three numbers
+            cc = (xtab2[0] & 0x0f) << 12
+            cc += (xtab2[1] & 0x3f) << 6
+            cc += (xtab2[2] & 0x3f)
+        elif xtab2[0] & 0xf8 == 0xf0: # four numbers
+            cc = (xtab2[0] & 0x0e)  << 18
+            cc += (xtab2[1] & 0x3f) << 12
+            cc += (xtab2[2] & 0x3f) << 6
+            cc += (xtab2[3] & 0x3f)
+        elif xtab2[0] & 0xfc == 0xf8: # five numbers
+            cc = (xtab2[0] & 0x03)  << 24
+            cc += (xtab2[1] & 0x3f) << 18
+            cc += (xtab2[2] & 0x3f) << 12
+            cc += (xtab2[3] & 0x3f) << 6
+            cc += (xtab2[4] & 0x3f)
+        elif xtab2[0] & 0xfe == 0xf8: # six numbers
+            cc = (xtab2[0] & 0x01)  << 30
+            cc += (xtab2[1] & 0x3f) << 24
+            cc += (xtab2[2] & 0x3f) << 18
+            cc += (xtab2[3] & 0x3f) << 12
+            cc += (xtab2[4] & 0x3f) << 6
+            cc += (xtab2[5] & 0x3f)
 
         ccc = unichr(cc)
     except:
@@ -331,7 +285,7 @@ def unescape(strx):
     #print " x[" + strx + "]x "
 
     global xtab, xtablen
-    retx = u""; pos = 0; lenx = len(strx)
+    retx = ""; pos = 0; lenx = len(strx)
 
     while True:
         if pos >= lenx:
@@ -462,7 +416,8 @@ def put_exception2_old(xstr):
 
 def hash_name(strx):
 
-    lenx = len(strx);  hashx = int(0)
+    #lenx = len(strx);
+    hashx = int(0)
     for aa in strx:
         bb = ord(aa)
         hashx +=  int((bb << 12) + bb)
@@ -483,7 +438,7 @@ def untab_str(strx, tabstop = 4):
             # Generate string
             spaces = tabstop - (cnt % tabstop)
             ttt = ""
-            for aa in range(spaces):
+            for _ in range(spaces):
                 ttt += " "
             res += ttt
             cnt += spaces
@@ -623,7 +578,10 @@ def tmpname(indir, template):
             break
     return fname
 
-class Unbuffered(object):
+class Unbuffered():
+
+    ''' Unbuffered std in / out '''
+
     def __init__(self, stream):
         self.stream = stream
 
