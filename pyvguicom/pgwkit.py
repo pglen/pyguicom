@@ -134,10 +134,7 @@ navkeys = [   \
                 Gdk.KEY_Control_L,  Gdk.KEY_Control_R,
                 Gdk.KEY_Super_L,    Gdk.KEY_Super_R,
                 Gdk.KEY_Shift_L,    Gdk.KEY_Shift_R,
-
-          ]
-
-# ------------------------------------------------------------------------
+]
 
 class pgwebw(WebKit2.WebView):
 
@@ -152,6 +149,27 @@ class pgwebw(WebKit2.WebView):
         self.xlink = xlink
         self.set_editable(True)
 
+        #for aa in dir(self):
+        #    print(aa)
+
+        sss = self.get_settings()
+
+        sss.set_allow_file_access_from_file_urls(True)
+        sss.set_enable_write_console_messages_to_stdout(True)
+        sss.set_allow_universal_access_from_file_urls(True)
+
+        #for aa in dir(sss):
+        #    if "__" == aa[:2]:
+        #        continue
+        #    if not "get_" in aa:
+        #        continue
+        #    try:
+        #        attr = getattr(sss, aa)
+        #        print(aa, "=", attr())
+        #    except:
+        #        pass
+        #        #print(aa, "=", "Err", sys.exc_info())
+
         #if editable:
         #    self.set_editable(True)
 
@@ -160,6 +178,9 @@ class pgwebw(WebKit2.WebView):
         self.ui = self.generate_ui()
         self.connect("key-release-event",  self.keypress)
         self.modified = False
+
+        #print(WebKit2.WebView.__doc__)
+        #print(super().self.__doc__)
 
     def  _get_response_data_finish(self, resource, result, user_data=None):
         self.old_html = resource.get_data_finish(result)
@@ -262,7 +283,6 @@ class pgwebw(WebKit2.WebView):
 
         if not ccc:
             return
-
         dddd = ccc.get_data().decode()
         if not dddd:
             return
@@ -405,6 +425,7 @@ class pgwebw(WebKit2.WebView):
         if dialog.run() == Gtk.ResponseType.OK:
             fn = dialog.get_filename()
             if os.path.exists(fn):
+                print("image", fn)
                 self.run_javascript(
                 "document.execCommand('insertImage', null, '%s');" % fn)
         dialog.destroy()

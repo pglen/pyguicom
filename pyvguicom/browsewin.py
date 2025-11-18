@@ -8,9 +8,9 @@ realinc = os.path.realpath(os.path.dirname(__file__) + os.sep + "../pycommon")
 if realinc not in sys.path:
     sys.path.append(realinc)
 
-from pgutils import  *
-from pggui import  *
-from pgsimp import  *
+from pgutils import *
+from pggui import *
+from pgsimp import *
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -20,8 +20,6 @@ from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
-
-#from pedlib import pedconfig
 
 import pgwkit
 #print("pgwkit:", pgwkit)
@@ -87,8 +85,8 @@ class  browserWin(Gtk.VBox):
         self.set_can_focus(True)
         #self.grab_focus()
 
-    def load_html(self, strx):
-        self.webview.load_html(strx)
+    def load_html(self, strx, acc):
+        self.webview.load_html(strx, acc)
 
     def cut(self):
         #print("cut")
@@ -104,7 +102,7 @@ class  browserWin(Gtk.VBox):
         #self.webview.on_action("paste")
 
     def open(self):
-        dialog = Gtk.FileChooserDialog("Open an HTML file", None,
+        dialog = Gtk.FileChooserDialog("Open an HTML filex", None,
                 Gtk.FileChooserAction.OPEN,
                     (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
                         Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
@@ -119,7 +117,10 @@ class  browserWin(Gtk.VBox):
             if os.path.exists(fn):
                 self.fname = fn
                 with open(fn) as fd:
-                    self.webview.load_html(fd.read(), "file:///")
+                    ddd = os.getwd()
+                    print(ddd)
+                    self.webview.load_html(fd.read(), ddd)
+                    #self.webview.load_html(fd.read(), "file:///")
 
     def save(self):
 
@@ -142,6 +143,9 @@ class  browserWin(Gtk.VBox):
 
     def is_modified(self):
         return self.webview.modified
+
+    def set_modified(self, flag):
+        self.webview.modified = flag
 
     def _completion(self, html, user_data):
         self.ret = html

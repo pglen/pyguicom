@@ -185,8 +185,9 @@ class MainWin(Gtk.Window):
             fp = open(self.filename, "rt")
             ddd = fp.read()
             fp.close()
-            self.editor.load_html(ddd)
-
+            fff = "file://" + os.getcwd() + "/"
+            #print("base", fff)
+            self.editor.load_html(ddd, fff)
 
     def generate_ui(self):
 
@@ -357,7 +358,9 @@ class MainWin(Gtk.Window):
             fp = open(fname, "rt")
             ddd = fp.read()
             fp.close()
-            self.editor.load_html(ddd)
+            fff = os.getcwd()
+            print(fff)
+            self.editor.load_html(ddd, "file://")
             self.filename = fname
 
     def onsave(self, butt):
@@ -371,15 +374,16 @@ class MainWin(Gtk.Window):
             #print("got fname", fname)
             if not self.filename:
                 return
+        self.editor.set_modified(False)
 
-        if os.path.isfile(self.filename):
-            resp = pggui.yes_no_cancel("Overwrite File Prompt",
-                        "Overwrite existing file?\n '%s'" % self.filename, False)
-            if resp == Gtk.ResponseType.NO:
-                #print("not saved")
-                return
+        #if os.path.isfile(self.filename):
+        #    resp = pggui.yes_no_cancel("Overwrite File Prompt",
+        #                "Overwrite existing file?\n '%s'" % self.filename, False)
+        #    if resp == Gtk.ResponseType.NO:
+        #        #print("not saved")
+        #        return
+
         buff  =  self.editor.get_content()
-        #print("buff", buff)
         fp = open(self.filename, "wt")
         fp.write(buff)
         fp.close()

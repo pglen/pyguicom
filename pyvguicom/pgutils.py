@@ -4,9 +4,10 @@
 # pylint: disable=C0209
 # pylint: disable=C0321
 
-import os, sys, time #, getopt, string,  math
-#import random, traceback, stat
-#import platform
+import os, sys, time, traceback
+
+#import getopt, string,  math
+#import random, traceback, stat, platform
 
 ''' General utility fiunctions '''
 
