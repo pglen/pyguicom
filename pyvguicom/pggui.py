@@ -686,6 +686,71 @@ class LabelButt(Gtk.EventBox):
         gdk_window = self.get_root_window()
         gdk_window.set_cursor(self.arrow)
 
+class IconButt(Gtk.EventBox):
+
+    ''' Imitate button '''
+
+    def __init__(self, front, callb, toolt=""):
+
+        GObject.GObject.__init__(self)
+
+        self.set_can_focus(True)
+        self.image = Gtk.Image.new_from_stock(front, 32)
+        print("image", self.image)
+        self.label = Gtk.Label.new_with_mnemonic(front)
+        self.label.set_mnemonic_widget(self)
+        #self.curve =  Gdk.Cursor(Gdk.CursorType.CROSSHAIR)
+
+        warnings.simplefilter("ignore")
+        self.arrow =  Gdk.Cursor(Gdk.CursorType.ARROW)
+        self.hand =  Gdk.Cursor(Gdk.CursorType.HAND1)
+        warnings.simplefilter("default")
+
+        #gdk_window = self.get_root_window()
+        #self.arrow = gdk_window.get_cursor()
+
+        if toolt:
+            self.label.set_tooltip_text(toolt)
+            self.image.set_tooltip_text(toolt)
+        self.label.set_single_line_mode(True)
+        #self.add(self.label)
+        self.add(self.image)
+        self.label.connect("event-after", self.eventx, front)
+        self.connect("mnemonic-activate", self.mnemonic, front)
+
+        if callb:
+            self.connect("button-press-event", callb, front)
+
+        self.set_above_child(True)
+        self.add_mnemonic_label(self.label)
+
+        #self.label.connect("motion-notify-event", self.area_motion)
+        self.connect("motion-notify-event", self.area_motion)
+        self.connect("enter-notify-event", self.area_enter)
+        self.connect("leave-notify-event", self.area_leave)
+
+    def eventx(self, *args):
+        print("IconButt eventx", *args)
+
+    def mnemonic(self, *arg):
+        print("IconButt  Mnemonic", *arg)
+
+    def area_motion(self, arg1, arg2):
+        #print("IconButt Motion")
+        pass
+
+    def area_enter(self, arg1, arg2):
+        #print("IconButt enter")
+        warnings.simplefilter("ignore")
+        gdk_window = self.get_root_window()
+        warnings.simplefilter("default")
+        gdk_window.set_cursor(self.hand)
+
+    def area_leave(self, arg1, arg2):
+        #print("IconButt leave")
+        gdk_window = self.get_root_window()
+        gdk_window.set_cursor(self.arrow)
+
 class Led(Gtk.DrawingArea):
 
     def __init__(self, color, size = 20, border = 2):

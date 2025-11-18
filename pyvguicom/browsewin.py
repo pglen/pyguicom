@@ -244,14 +244,13 @@ class  browserWin(Gtk.VBox):
 
         hbox3.pack_start(self.edit, True, True, 2)
 
-        bbb = LabelButt(" _Go ", self.gourl, "Go to speified URL")
+        bbb = IconButt(Gtk.STOCK_SAVE, self.gourl, "Go to speified URL")
         #bbb = Gtk.Button.new_with_mnemonic(" _Go ") #, self.gourl, "Go to speified URL")
         #bbb.connect("clicked", self.gourl)
-
         #bbb = LabelButt(" _Go ", self.gourl, "Go to speified URL")
-        ccc = LabelButt(" <-_Back  ", self.backurl, "Go Back")
-        ddd = LabelButt("  For_w-> ", self.forwurl, "Go Forw")
-        eee = LabelButt("   B_ase  ", self.baseurl, "Go to base URL")
+        ccc = IconButt(Gtk.STOCK_GO_BACK, self.backurl, "Go Back")
+        ddd = IconButt(Gtk.STOCK_GO_FORWARD, self.forwurl, "Go Forw")
+        eee = IconButt(Gtk.STOCK_HOME, self.baseurl, "Go to base URL")
 
         hbox3.pack_start(Gtk.Label(label="  "), 0, 0, 0)
 
