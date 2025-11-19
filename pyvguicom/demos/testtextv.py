@@ -17,6 +17,7 @@ from gi.repository import Pango
 sys.path.append(".")
 
 import pggui
+import pgdlgs
 import pgutils
 import pgtextview
 
@@ -150,7 +151,7 @@ class MainWin(Gtk.Window):
 
     def onload(self, butt):
         #print("onload", butt)
-        self.fname = pggui.opendialog()
+        self.fname = pgdlgs.opendialog()
         fp = open(self.fname, "rb")
         ddd = fp.read()  #.decode("cp437")
         fp.close()
@@ -160,14 +161,14 @@ class MainWin(Gtk.Window):
     def onsave(self, butt):
         #print("Save", butt)
         if not self.tview.textbuffer.get_modified():
-            pggui.message("\nFile is not modified.", title="File Save")
+            pgdlgs.message("\nFile is not modified.", title="File Save")
             return
-        fname = pggui.savedialog(0)
+        fname = pgdlgs.savedialog(0)
         #print("got fname", fname)
         if not fname:
             return
         if os.path.isfile(fname):
-            resp = pgutils.yes_no_cancel("Overwrite File Prompt",
+            resp = pgdlgs.yes_no_cancel("Overwrite File Prompt",
                         "Overwrite existing file?\n '%s'" % fname, False)
             if resp == Gtk.ResponseType.NO:
                 print("not saved")
@@ -183,7 +184,7 @@ class MainWin(Gtk.Window):
     def OnExit(self, win, arg2 = None):
         resp = None
         if self.tview.textbuffer.get_modified():
-            resp = pggui.yes_no_cancel("File modified",
+            resp = pgdlgs.yes_no_cancel("File modified",
             "Save file? \n\n '%s' \n" % self.fname, False)
             if resp == Gtk.ResponseType.YES:
                 #print("saving")

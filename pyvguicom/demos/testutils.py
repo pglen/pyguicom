@@ -14,6 +14,7 @@ sys.path.append(".")
 
 import pgsimp
 import pggui
+import pgdlgs
 import pgutils
 
 warnings.simplefilter("default")
@@ -22,38 +23,37 @@ def subdialog(arg2):
 
     def pressed(arg2, arg3):
         #print("pressed")
-        pggui.message("From sub", parent=arg3)
+        pgdlgs.message("From sub", parent=arg3)
+
     def pressed2(arg2, arg3):
         #print("pressed2", arg2, arg3)
         arg3.response(Gtk.ResponseType.OK)
         arg3.destroy()
 
     dialog = Gtk.Dialog()
-    dialog.set_size_request(200, 100)
-    dialog.add_button = (Gtk.ButtonsType.CLOSE, Gtk.ResponseType.OK)
+    dialog.set_size_request(250, -1)
+    #dialog.add_button = (Gtk.ButtonsType.CLOSE, Gtk.ResponseType.OK)
+
     bbb = Gtk.Button(label="Message")
-    dialog.vbox.pack_start(bbb, 0, 0, 0)
     bbb.connect("pressed", pressed, dialog)
-    #buttons=Gtk.ButtonsType.CLOSE)
-    bbb = Gtk.Button.new_with_mnemonic("E_xit Sub")
+
+    ccc = Gtk.Button.new_with_mnemonic("E_xit Sub")
+    ccc.connect("pressed", pressed2, dialog)
+    ccc.connect("clicked", pressed2, dialog)
+
     dialog.vbox.pack_start(bbb, 0, 0, 0)
-    bbb.connect("pressed", pressed2, dialog)
+    dialog.vbox.pack_start(ccc, 0, 0, 0)
+
     dialog.show_all()
     dialog.run()
 
-class testwin(Gtk.Window):
-
-    def __init__(self):
-        Gtk.Window.__init__(self)
-        #self.set_default_size(800, 600)
-        self.set_position(Gtk.WindowPosition.CENTER)
-        self.connect("unmap", Gtk.main_quit)
-
-class pgtestwin(testwin):
+class pgtestwin(Gtk.Window):
 
     def __init__(self):
 
-        testwin.__init__(self)
+        super(Gtk.Window, self).__init__()
+
+        self.set_default_size(250, -1)
 
         hbox  = Gtk.HBox(); hbox3 = Gtk.HBox()
         hbox2 = Gtk.HBox(); hbox4 = Gtk.HBox()
@@ -70,31 +70,31 @@ class pgtestwin(testwin):
         butt.connect("clicked", self.test_about)
         vbox.pack_start(butt, 0, 0, 2)
 
-        #butt = Gtk.Button.new_with_mnemonic("Test Yes_no _cancel2")
-        #butt.connect("clicked", self.test_yes_no_cancel2)
-        #vbox.pack_start(butt, 0, 0, 2)
-
-        butt = Gtk.Button.new_with_mnemonic("Test Yes_no _cancel")
-        butt.connect("clicked", self.test_yes_no_cancel)
-        vbox.pack_start(butt, 0, 0, 2)
-
-        butt = Gtk.Button.new_with_mnemonic("Test Yes_no")
+        butt = Gtk.Button.new_with_mnemonic("Test Yes No (yes)")
         butt.connect("clicked", self.test_yes_no)
         vbox.pack_start(butt, 0, 0, 2)
 
-        #butt = Gtk.Button.new_with_mnemonic("Test Yes_no2")
-        #butt.connect("clicked", self.test_yes_no2)
-        #vbox.pack_start(butt, 0, 0, 2)
-        #
-        #butt = Gtk.Button.new_with_mnemonic("Test M_essage2")
-        #butt.connect("clicked", self.test_message2)
-        #vbox.pack_start(butt, 0, 0, 2)
+        butt3 = Gtk.Button.new_with_mnemonic("Test Yes No (no)")
+        butt3.connect("clicked", self.test_yes_no2)
+        vbox.pack_start(butt3, 0, 0, 2)
+
+        butt2 = Gtk.Button.new_with_mnemonic("Test Yes no cancel (yes)")
+        butt2.connect("clicked", self.test_yes_no_cancel)
+        vbox.pack_start(butt2, 0, 0, 2)
+
+        butt = Gtk.Button.new_with_mnemonic("Test Yes no cancel (no)")
+        butt.connect("clicked", self.test_yes_no_cancel2)
+        vbox.pack_start(butt, 0, 0, 2)
+
+        butt = Gtk.Button.new_with_mnemonic("Test Yes no cancel (cancel)")
+        butt.connect("clicked", self.test_yes_no_cancel3)
+        vbox.pack_start(butt, 0, 0, 2)
 
         butt = Gtk.Button.new_with_mnemonic("Test M_essage")
         butt.connect("clicked", self.test_message)
         vbox.pack_start(butt, 0, 0, 2)
 
-        butt = Gtk.Button.new_with_mnemonic("Test Sub Dialog")
+        butt = Gtk.Button.new_with_mnemonic("Test _Sub Dialog")
         butt.connect("clicked", subdialog)
         vbox.pack_start(butt, 0, 0, 2)
 
@@ -106,31 +106,27 @@ class pgtestwin(testwin):
         self.show_all()
 
     def test_about(self, arg2):
-        print(pggui.about("Tester"))
-
-    def test_yes_no_cancel2(self, arg2):
-        print(pggui.yes_no_cancel2("Yes No Message"))
-
-    def test_yes_no_cancel(self, arg2):
-        print(pggui.yes_no_cancel("Yes No Message"))
+        pgdlgs.about("Tester")
 
     def test_yes_no(self, arg2):
-        print(pggui.yes_no("Yes No Message"))
+        pgdlgs.yes_no("Yes No Message")
 
     def test_yes_no2(self, arg2):
-        print(pggui.yes_no2("Yes No Message"))
+        pgdlgs.yes_no("Yes No Message", default="No")
 
-    def test_message2(self, arg2):
-        pggui.message2("Hello Message")
+    def test_yes_no_cancel(self, arg2):
+        pgdlgs.yes_no_cancel("Yes No Message")
+
+    def test_yes_no_cancel2(self, arg2):
+        pgdlgs.yes_no_cancel("Yes No Message", default="No")
+
+    def test_yes_no_cancel3(self, arg2):
+        pgdlgs.yes_no_cancel("Yes No Message", default="Cancel")
 
     def test_message(self, arg2):
-        pggui.message("Hello Message")
+        pgdlgs.message("Hello Message")
 
-
-tw = pgtestwin()
-
-#print("test")
-
+pgtestwin()
 Gtk.main()
 
 # EOF

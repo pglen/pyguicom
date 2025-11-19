@@ -19,6 +19,7 @@ sys.path.append(".")
 import pggui
 import pgutils
 import browsewin
+import pgdlgs
 
 warnings.simplefilter("default")
 
@@ -353,7 +354,7 @@ class MainWin(Gtk.Window):
 
     def onopen(self, butt):
         #print("onopen", butt)
-        fname = pggui.opendialog()
+        fname = pgdlgs.opendialog()
         if fname:
             fp = open(fname, "rt")
             ddd = fp.read()
@@ -367,10 +368,10 @@ class MainWin(Gtk.Window):
         #print("Save", self.filename)
         if not self.editor.is_modified():
             #newtext =  self.brow_win.get_content()
-            pggui.message("Not modified")
+            pgdlgs.message("Not modified")
             return
         if not self.filename:
-            self.filename = pggui.savedialog(0)
+            self.filename = pgdlgs.savedialog(0)
             #print("got fname", fname)
             if not self.filename:
                 return
