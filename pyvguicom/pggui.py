@@ -893,9 +893,6 @@ class MenuButt(Gtk.DrawingArea):
         self._draw_line(cr, self.border, 3*rect.height/4,
                                 rect.width - self.border, 3*rect.height/4);
 
-
-# ------------------------------------------------------------------------
-
 class WideButt(Gtk.Button):
 
     def __init__(self, labelx, callme = None, space = 2):
@@ -990,11 +987,11 @@ class Logo(Gtk.VBox):
         self.forall(self.forallcallb)
 
 
-# ------------------------------------------------------------------------
-# This override covers / hides the complexity of the treeview and the
-# textlisbox did not have the needed detail
 
 class ListBox(Gtk.TreeView):
+
+    ''' This override covers / hides the complexity of the treeview and the
+        textlisbox did not have the needed detail '''
 
     def __init__(self, callb = None, limit = -1, colname = ''):
 
@@ -1054,10 +1051,10 @@ class ListBox(Gtk.TreeView):
         if idx == -1:
             ts.unselect_all()
             return
-        iter = self.treestore.get_iter_first()
+        iterx = self.treestore.get_iter_first()
         for aa in range(idx):
-            iter = self.treestore.iter_next(iter)
-            if not iter:
+            iterx = self.treestore.iter_next(iterx)
+            if not iterx:
                 break
         if not iter:
             pass
@@ -1080,16 +1077,16 @@ class ListBox(Gtk.TreeView):
 
     def get_item(self, idx):
         cnt = 0; res = ""
-        iter = self.treestore.get_iter_first()
-        if not iter:
+        iterx = self.treestore.get_iter_first()
+        if not iterx:
             return ""
         cnt = 1
         while True:
-            iter = self.treestore.iter_next(iter)
-            if not iter:
+            iterx = self.treestore.iter_next(iter)
+            if not iterx:
                 break
             if cnt == idx:
-                res = self.treestore.get_value(iter, 0)
+                res = self.treestore.get_value(iterx, 0)
                 break
             cnt += 1
         return res
@@ -1100,11 +1097,11 @@ class ListBox(Gtk.TreeView):
             cnt = self.get_size()
             #print("limiting cnt=", cnt, "limit=", self.limit)
             for aa in range(cnt - self.limit):
-                iter = self.treestore.get_iter_first()
-                if not iter:
+                iterx = self.treestore.get_iter_first()
+                if not iterx:
                     break
                 try:
-                    self.treestore.remove(iter)
+                    self.treestore.remove(iterx)
                 except:
                     print("except: treestore remove lim")
 
@@ -1148,22 +1145,21 @@ class Spinner(Gtk.SpinButton):
         self.set_wrap(True)
         self.connect("value_changed", self.spinned)
 
-    def spinned(self, spin):
+    def spinned(self, spin = 0):
         #print("spinned", spin)
         if self.cb_func:
             self.cb_func(self.get_value())
 
-# ------------------------------------------------------------------------
-# Highlite test items
 
 def set_testmode(flag):
+    '''  Highlite test items '''
     global gui_testmode
     gui_testmode = flag
 
-# ------------------------------------------------------------------------
-# An N pixel spacer. Defaults to 1 char height / width
 
 class Spacer(Gtk.Label):
+
+    ''' An N pixel spacer. Defaults to 1 char height / width '''
 
     def __init__(self, sp = 1, title=None, left=False, bottom=False, test=False):
 
@@ -1196,11 +1192,11 @@ class Spacer(Gtk.Label):
         #self.set_property("label", "wtf")
         #self.set_property("background-set", True)
 
-# ------------------------------------------------------------------------
-# An N pixel horizontal spacer. Defaults to X pix  get_center
 
 class xSpacer(Gtk.HBox):
 
+    '''  An N pixel horizontal spacer. Defaults to X pix  get_center '''
+
     def __init__(self, sp = None):
         GObject.GObject.__init__(self)
         #self.pack_start()
@@ -1211,10 +1207,11 @@ class xSpacer(Gtk.HBox):
             sp = 6
         self.set_size_request(sp, sp)
 
-# An N pixel vertical spacer. Defaults to X pix  get_center
 
 class ySpacer(Gtk.VBox):
 
+    '''  An N pixel vertical spacer. Defaults to X pix  get_center '''
+
     def __init__(self, sp = None):
         GObject.GObject.__init__(self)
         #self.pack_start()
@@ -1225,10 +1222,10 @@ class ySpacer(Gtk.VBox):
             sp = 6
         self.set_size_request(sp, sp)
 
-# ------------------------------------------------------------------------
-# Added convenience methods
 
 class   xVBox(Gtk.VBox):
+
+    '''  Added convenience methods '''
 
     def __init__(self, col = None):
         GObject.GObject.__init__(self)
@@ -1263,8 +1260,6 @@ class   xHBox(Gtk.HBox):
         if pad == 0:
             pad = self.pad
         self.pack_start(obj, expand, expand, pad)
-
-# ------------------------------------------------------------------------
 
 class   RadioGroup(Gtk.Box):
 
@@ -1349,9 +1344,10 @@ class   RadioGroup(Gtk.Box):
     def border_width(self, width):
         self.vbox.set_border_width(width)
 
-# Bug fix in Gtk
 
 class   SeparatorMenuItem(Gtk.SeparatorMenuItem):
+
+    ''' Bug fix in Gtk '''
 
     def __init__(self):
         Gtk.SeparatorMenuItem.__init__(self);

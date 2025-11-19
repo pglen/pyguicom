@@ -84,10 +84,9 @@ def decode_bits(numx):
 
     return retx
 
-# ------------------------------------------------------------------------
-# Remove non printables
-
 def clean_str(strx):
+
+    ''' Remove non printables '''
 
     stry = ""
     for aa in range(len(strx)):
@@ -102,6 +101,7 @@ def clean_str(strx):
     return stry
 
 def clean_str2(strx):
+
     stry = ""
     skip = False
     for aa in range(len(strx)):
@@ -275,14 +275,83 @@ def kill_non_ascii(strx):
 
     return str2
 
-# ------------------------------------------------------------------------
-# Unescape unicode into displayable sequence
-
 xtab = []; xtablen = 0
+
+def cescape(strx):
+
+    retx = ""; pos = 0; lenx = len(strx)
+    while True:
+        if pos >= lenx:
+            break
+        chh = strx[pos]
+        #print("chh", chh, ord(chh))
+        was = False
+        if chh == '\\':
+            #print("backslash")
+            if pos+1 >= lenx:
+                break
+            elif strx[pos+1] == "n":
+                retx += "\n"
+                was = True ; pos += 1
+            elif strx[pos+1] == "r":
+                retx += "\r"
+                was = True ; pos += 1
+            elif strx[pos+1] == "b":
+                retx += "\b"
+                was = True ; pos += 1
+            elif strx[pos+1] == "a":
+                retx += "\a"
+                was = True ; pos += 1
+            elif strx[pos+1] == "t":
+                retx += "\t"
+                was = True ; pos += 1
+            elif strx[pos+1] == "'":
+                retx += "\'"
+                was = True ; pos += 1
+            elif strx[pos+1] == "\\":
+                retx += "\\"
+                was = True ; pos += 1
+        if not was:
+            retx += chh
+        pos += 1
+
+    return retx
+
+def cunescape(strx):
+
+    retx = ""; pos = 0; lenx = len(strx)
+    while True:
+        if pos >= lenx:
+            break
+        chh = strx[pos]
+        was = False
+        if chh == '\n':
+                retx += "\\n"
+        elif chh == '\r':
+                retx += "\\r"
+        elif chh == '\a':
+                retx += "\\a"
+        elif chh == '\'':
+                retx += "\\'"
+        elif chh == '\"':
+                retx += '\\"'
+        elif chh == '\\':
+                retx += "\\\\"
+        elif chh == '\t':
+                retx += "\\t"
+        elif chh == '\b':
+                retx += "\\b"
+        elif chh == '\f':
+                retx += "\\f"
+        else:
+            retx += chh
+        pos += 1
+    return retx
 
 def unescape(strx):
 
     #print " x[" + strx + "]x "
+    ''' Unescape unicode into displayable sequence '''
 
     global xtab, xtablen
     retx = ""; pos = 0; lenx = len(strx)
@@ -290,9 +359,7 @@ def unescape(strx):
     while True:
         if pos >= lenx:
             break
-
         chh = strx[pos]
-
         if chh == '\\':
             #print "backslash", strx[pos:]
             pos2 = pos + 1; strx2 = ""
@@ -606,7 +673,6 @@ def time_s2n(sss):
     rrr = time.strptime(sss)
     ttt = time.mktime(rrr)
     return ttt
-
 
 # ------------------------------------------------------------------------
 
