@@ -28,8 +28,13 @@
 </summary>
 <pre><code class="python">#!/usr/bin/env python
 
-import signal, os, time, sys, math, warnings, random
-import platform
+#pylint: disable=C0103
+#pylint: disable=C0209
+#pylint: disable=C0321
+#pylint: disable=C0116
+#pylint: disable=W0301
+
+import os, sys, math, warnings, random, platform
 
 import gi
 gi.require_version(&#34;Gtk&#34;, &#34;3.0&#34;)
@@ -45,18 +50,13 @@ from gi.repository import PangoCairo
 realinc = os.path.realpath(os.path.dirname(__file__) + os.sep + &#34;../pycommon&#34;)
 sys.path.append(realinc)
 
-import pgutils
-import pgsimp
-
 IDXERR = &#34;Index is larger than the available number of controls.&#34;
 
-VERSION = &#34;1.3.9&#34;
+VERSION = &#34;1.4.0&#34;
 
 gui_testmode = 0
 
-import gi
-gi.require_version(&#39;Gtk&#39;, &#39;3.0&#39;)
-from gi.repository import Gtk, Gdk
+import pgutils
 
 def screen_dims_under_cursor():
 
@@ -76,13 +76,14 @@ def screen_dims_under_cursor():
     warnings.simplefilter(&#34;default&#34;)
 
     # 3. Get the current cursor position on the screen
-    # The method needs an output variable for the screen, but we can pass None as we get the position later
+    # The method needs an output variable for the screen, but we can
+    # pass None as we get the position later
     _, xx, yy = pointer_device.get_position()
 
     # 4. Get the GdkMonitor at the cursor&#39;s position
     monitor = display.get_monitor_at_point(xx, yy)
     if not monitor:
-        print(f&#34;Could not find monitor at position ({x}, {y})&#34;)
+        print(f&#34;Could not find monitor at position ({xx}, {yy})&#34;)
         return None
 
     # 5. Get the monitor&#39;s geometry (position and size)
@@ -138,156 +139,6 @@ def register_stock_icons():
         except GObject.GError as error:
             print(&#39;failed to load GTK logo for toolbar&#39;)
 
-def  about(progname, verstr = &#34;1.0.0&#34;, imgfile = &#34;icon.png&#34;):
-
-    &#39;&#39;&#39; Show About dialog: &#39;&#39;&#39;
-
-    dialog = Gtk.AboutDialog()
-    dialog.set_name(progname)
-
-    dialog.set_version(verstr)
-    gver = (Gtk.get_major_version(), \
-                        Gtk.get_minor_version(), \
-                            Gtk.get_micro_version())
-
-    dialog.set_position(Gtk.WindowPosition.CENTER)
-    #dialog.set_transient_for(pedconfig.conf.pedwin.mywin)
-
-    #&#34;\nRunning PyGObject %d.%d.%d&#34; % GObject.pygobject_version +\
-
-    ddd = os.path.join(os.path.dirname(__file__))
-
-    # GLib.pyglib_version
-    vvv = gi.version_info
-    comm = \
-        &#34;Running PyGtk %d.%d.%d&#34; % vvv +\
-        &#34;\non GTK %d.%d.%d&#34; % gver +\
-        &#34;\nRunning Python %s&#34; % platform.python_version() +\
-        &#34;\non %s %s&#34; % (platform.system(), platform.release()) +\
-        &#34;\nExe Path:\n%s&#34; % os.path.realpath(ddd)
-
-    dialog.set_comments(comm)
-    dialog.set_copyright(progname + &#34; Created by Peter Glen.\n&#34;
-                          &#34;Project is in the Public Domain.&#34;)
-    dialog.set_program_name(progname)
-    img_path = os.path.join(os.path.dirname(__file__), imgfile)
-
-    try:
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
-        #print &#34;loaded pixbuf&#34;
-        dialog.set_logo(pixbuf)
-
-    except:
-        print(&#34;Cannot load logo for about dialog&#34;, img_path)
-        print(sys.exc_info())
-
-    #dialog.set_website(&#34;&#34;)
-
-    ## Close dialog on user response
-    dialog.connect (&#34;response&#34;, lambda d, r: d.destroy())
-    dialog.connect(&#34;key-press-event&#34;, _about_key)
-
-    dialog.show()
-
-def _about_key(win, event):
-    #print &#34;about_key&#34;, event
-    if  event.type == Gdk.EventType.KEY_PRESS:
-        if event.keyval == Gdk.KEY_x or event.keyval == Gdk.KEY_X:
-            if event.state &amp; Gdk.ModifierType.MOD1_MASK:
-                win.destroy()
-
-# ------------------------------------------------------------------------
-# Show a regular message:
-#
-#def message3(strx, title = None):
-#
-#    #print(&#34;called: message()&#34;, strx)
-#
-#    icon = Gtk.STOCK_INFO
-#    dialog = Gtk.MessageDialog(buttons=Gtk.ButtonsType.CLOSE,
-#                               message_type=Gtk.MessageType.INFO)
-#    dialog.props.text = strx
-#    #dialog.set_transient_for()
-#    if title:
-#        dialog.set_title(title)
-#    else:
-#        dialog.set_title(&#34;PyEdPro&#34;)
-#    dialog.set_position(Gtk.WindowPosition.CENTER)
-#    # Close dialog on user response
-#    dialog.connect(&#34;response&#34;, lambda d, r: d.destroy())
-#    dialog.show()
-#    dialog.run()
-
-
-# ------------------------------------------------------------------------
-# Find
-
-def find(self):
-
-    head = &#34;Find in text&#34;
-
-    dialog = Gtk.Dialog(head,
-                   None,
-                   Gtk.DIALOG_MODAL | Gtk.DIALOG_DESTROY_WITH_PARENT,
-                   (Gtk.STOCK_CANCEL, Gtk.RESPONSE_REJECT,
-                    Gtk.STOCK_OK, Gtk.RESPONSE_ACCEPT))
-    dialog.set_default_response(Gtk.RESPONSE_ACCEPT)
-
-    try:
-        dialog.set_icon_from_file(&#34;epub.png&#34;)
-    except:
-        print (&#34;Cannot load find dialog icon&#34;, sys.exc_info())
-
-    self.dialog = dialog
-
-    label3 = Gtk.Label(label=&#34;   &#34;);  label4 = Gtk.Label(label=&#34;   &#34;)
-    label5 = Gtk.Label(label=&#34;   &#34;);  label6 = Gtk.Label(label=&#34;   &#34;)
-    label7 = Gtk.Label(label=&#34;   &#34;);  label8 = Gtk.Label(label=&#34;   &#34;)
-
-    #warmings.simplefilter(&#34;ignore&#34;)
-    entry = Gtk.Entry()
-    #warmings.simplefilter(&#34;default&#34;)
-    entry.set_text(self.oldfind)
-
-    entry.set_activates_default(True)
-
-    dialog.vbox.pack_start(label4)
-
-    hbox2 = Gtk.HBox()
-    hbox2.pack_start(label6, False)
-    hbox2.pack_start(entry)
-    hbox2.pack_start(label7, False)
-
-    dialog.vbox.pack_start(hbox2)
-
-    dialog.checkbox = Gtk.CheckButton(&#34;Search _Backwards&#34;)
-    dialog.checkbox2 = Gtk.CheckButton(&#34;Case In_sensitive&#34;)
-    dialog.vbox.pack_start(label5)
-
-    hbox = Gtk.HBox()
-    #hbox.pack_start(label1);  hbox.pack_start(dialog.checkbox)
-    #hbox.pack_start(label2);  hbox.pack_start(dialog.checkbox2)
-    hbox.pack_start(label3)
-    dialog.vbox.pack_start(hbox)
-    dialog.vbox.pack_start(label8)
-
-    label32 = Gtk.Label(label=&#34;   &#34;)
-    hbox4 = Gtk.HBox()
-
-    hbox4.pack_start(label32)
-    dialog.vbox.pack_start(hbox4)
-
-    dialog.show_all()
-    response = dialog.run()
-    self.srctxt = entry.get_text()
-
-    dialog.destroy()
-
-    if response != Gtk.RESPONSE_ACCEPT:
-        return None
-
-    return self.srctxt, dialog.checkbox.get_active(), \
-                dialog.checkbox2.get_active()
 
 disp = Gdk.Display.get_default()
 scr = disp.get_default_screen()
@@ -372,111 +223,6 @@ def randcolstr(start = 0, endd = 255):
     bb =  random.randint(start, endd)
     strx = &#34;#%02x%02x%02x&#34; % (rr, gg, bb)
     return strx
-
-def opendialog(parent=None):
-
-    # We create an array, so it is passed around by reference
-    fname = [&#34;&#34;]
-
-    def makefilter(mask, name):
-        filter =  Gtk.FileFilter.new()
-        filter.add_pattern(mask)
-        filter.set_name(name)
-        return filter
-
-    def done_open_fc(win, resp, fname):
-        #print &#34;done_open_fc&#34;, win, resp
-        if resp == Gtk.ButtonsType.OK:
-            fname[0] = win.get_filename()
-            if not fname[0]:
-                #print &#34;Must have filename&#34;
-                pass
-            elif os.path.isdir(fname[0]):
-                os.chdir(fname[0])
-                win.set_current_folder(fname[0])
-                return
-            else:
-                #print(&#34;OFD&#34;, fname[0])
-                pass
-        win.destroy()
-
-    buts =   &#34;Cancel&#34;, Gtk.ButtonsType.CANCEL,\
-             &#34;Open File&#34;, Gtk.ButtonsType.OK
-    fc = Gtk.FileChooserDialog(title=&#34;Open file&#34;, transient_for=parent, \
-         action=Gtk.FileChooserAction.OPEN )
-    fc.add_buttons(*buts)
-    filters = []
-    filters.append(makefilter(&#34;*.*&#34;, &#34;All files (*.*)&#34;))
-    filters.append(makefilter(&#34;*.html&#34;, &#34;HTML files (*.html)&#34;))
-    filters.append(makefilter(&#34;*.txt&#34;, &#34;Text files (*.txt)&#34;))
-
-    if filters:
-        for aa in filters:
-            fc.add_filter(aa)
-
-    fc.set_default_response(Gtk.ButtonsType.OK)
-    fc.set_current_folder(os.getcwd())
-    fc.connect(&#34;response&#34;, done_open_fc, fname)
-    #fc.connect(&#34;current-folder-changed&#34;, self.folder_ch )
-    #fc.set_current_name(self.fname)
-    fc.run()
-    #print(&#34;OFD2&#34;, fname[0])
-    return fname[0]
-
-def savedialog(resp):
-
-    #print &#34;File dialog&#34;
-    fname = [&#34;&#34;]   # So it is passed around as a reference
-
-    def makefilter(mask, name):
-        filterx =  Gtk.FileFilter.new()
-        filterx.add_pattern(mask)
-        filterx.set_name(name)
-        return filterx
-
-    def done_fc(win, resp, fname):
-        #print( &#34;done_fc&#34;, win, resp)
-        if resp == Gtk.ResponseType.OK:
-            fname[0] = win.get_filename()
-            if not fname[0]:
-                print(&#34;Must have filename&#34;)
-            else:
-                pass
-        win.destroy()
-
-    but =   &#34;Cancel&#34;, Gtk.ResponseType.CANCEL,   \
-                    &#34;Save File&#34;, Gtk.ResponseType.OK
-    fc = Gtk.FileChooserDialog(title=&#34;Save file as ... &#34;, transient_for=None,
-            action=Gtk.FileChooserAction.SAVE)
-    fc.add_buttons(*but)
-    #fc.set_do_overwrite_confirmation(True)
-    filters = []
-    filters.append(makefilter(&#34;*.mup&#34;, &#34;MarkUp files (*.py)&#34;))
-    filters.append(makefilter(&#34;*.*&#34;, &#34;All files (*.*)&#34;))
-
-    if filters:
-        for aa in filters:
-            fc.add_filter(aa)
-
-    fc.set_current_name(os.path.basename(fname[0]))
-    fc.set_current_folder(os.path.dirname(fname[0]))
-    fc.set_default_response(Gtk.ResponseType.OK)
-    fc.connect(&#34;response&#34;, done_fc, fname)
-    fc.run()
-    return fname[0]
-
-&#39;&#39;&#39;
-for a in (style.base, style.fg, style.bg,
-      style.light, style.dark, style.mid,
-      style.text, style.base, style.text_aa):
-for st in (gtk.STATE_NORMAL, gtk.STATE_INSENSITIVE,
-           gtk.STATE_PRELIGHT, gtk.STATE_SELECTED,
-           gtk.STATE_ACTIVE):
-    a[st] = gtk.gdk.Color(0, 34251, 0)
-&#39;&#39;&#39;
-
-def version():
-    return VERSION
 
 # ------------------------------------------------------------------------
 # Bemd some of the parameters for us
@@ -652,7 +398,6 @@ class   TextRow(Gtk.HBox):
     def set_text(self, txt):
         return self.tbox.set_text(txt)
 
-
 class LabelButt(Gtk.EventBox):
 
     &#39;&#39;&#39; Imitate button &#39;&#39;&#39;
@@ -723,8 +468,10 @@ class IconButt(Gtk.EventBox):
         GObject.GObject.__init__(self)
 
         self.set_can_focus(True)
+        warnings.simplefilter(&#34;ignore&#34;)
         self.image = Gtk.Image.new_from_stock(front, 32)
-        print(&#34;image&#34;, self.image)
+        warnings.simplefilter(&#34;default&#34;)
+        #print(&#34;image&#34;, self.image)
         self.label = Gtk.Label.new_with_mnemonic(front)
         self.label.set_mnemonic_widget(self)
         #self.curve =  Gdk.Cursor(Gdk.CursorType.CROSSHAIR)
@@ -806,7 +553,7 @@ class Led(Gtk.DrawingArea):
         #cr.scale(width / 2., height / 2.)
         #cr.restore()
 
-        ccc = pgutils.str2float(self.color)
+        ccc = str2float(self.color)
 
         cr.set_source_rgba(ccc[0] * 0.5, ccc[1] * 0.5, ccc[2] * 0.5)
         cr.arc(rect.width/2, rect.height/2, rect.width / 2. * .85, 0., 2 * math.pi)
@@ -920,9 +667,6 @@ class MenuButt(Gtk.DrawingArea):
         self._draw_line(cr, self.border, 3*rect.height/4,
                                 rect.width - self.border, 3*rect.height/4);
 
-
-# ------------------------------------------------------------------------
-
 class WideButt(Gtk.Button):
 
     def __init__(self, labelx, callme = None, space = 2):
@@ -1017,11 +761,11 @@ class Logo(Gtk.VBox):
         self.forall(self.forallcallb)
 
 
-# ------------------------------------------------------------------------
-# This override covers / hides the complexity of the treeview and the
-# textlisbox did not have the needed detail
 
 class ListBox(Gtk.TreeView):
+
+    &#39;&#39;&#39; This override covers / hides the complexity of the treeview and the
+        textlisbox did not have the needed detail &#39;&#39;&#39;
 
     def __init__(self, callb = None, limit = -1, colname = &#39;&#39;):
 
@@ -1081,10 +825,10 @@ class ListBox(Gtk.TreeView):
         if idx == -1:
             ts.unselect_all()
             return
-        iter = self.treestore.get_iter_first()
+        iterx = self.treestore.get_iter_first()
         for aa in range(idx):
-            iter = self.treestore.iter_next(iter)
-            if not iter:
+            iterx = self.treestore.iter_next(iterx)
+            if not iterx:
                 break
         if not iter:
             pass
@@ -1107,16 +851,16 @@ class ListBox(Gtk.TreeView):
 
     def get_item(self, idx):
         cnt = 0; res = &#34;&#34;
-        iter = self.treestore.get_iter_first()
-        if not iter:
+        iterx = self.treestore.get_iter_first()
+        if not iterx:
             return &#34;&#34;
         cnt = 1
         while True:
-            iter = self.treestore.iter_next(iter)
-            if not iter:
+            iterx = self.treestore.iter_next(iter)
+            if not iterx:
                 break
             if cnt == idx:
-                res = self.treestore.get_value(iter, 0)
+                res = self.treestore.get_value(iterx, 0)
                 break
             cnt += 1
         return res
@@ -1127,11 +871,11 @@ class ListBox(Gtk.TreeView):
             cnt = self.get_size()
             #print(&#34;limiting cnt=&#34;, cnt, &#34;limit=&#34;, self.limit)
             for aa in range(cnt - self.limit):
-                iter = self.treestore.get_iter_first()
-                if not iter:
+                iterx = self.treestore.get_iter_first()
+                if not iterx:
                     break
                 try:
-                    self.treestore.remove(iter)
+                    self.treestore.remove(iterx)
                 except:
                     print(&#34;except: treestore remove lim&#34;)
 
@@ -1175,22 +919,21 @@ class Spinner(Gtk.SpinButton):
         self.set_wrap(True)
         self.connect(&#34;value_changed&#34;, self.spinned)
 
-    def spinned(self, spin):
+    def spinned(self, spin = 0):
         #print(&#34;spinned&#34;, spin)
         if self.cb_func:
             self.cb_func(self.get_value())
 
-# ------------------------------------------------------------------------
-# Highlite test items
 
 def set_testmode(flag):
+    &#39;&#39;&#39;  Highlite test items &#39;&#39;&#39;
     global gui_testmode
     gui_testmode = flag
 
-# ------------------------------------------------------------------------
-# An N pixel spacer. Defaults to 1 char height / width
 
 class Spacer(Gtk.Label):
+
+    &#39;&#39;&#39; An N pixel spacer. Defaults to 1 char height / width &#39;&#39;&#39;
 
     def __init__(self, sp = 1, title=None, left=False, bottom=False, test=False):
 
@@ -1223,11 +966,11 @@ class Spacer(Gtk.Label):
         #self.set_property(&#34;label&#34;, &#34;wtf&#34;)
         #self.set_property(&#34;background-set&#34;, True)
 
-# ------------------------------------------------------------------------
-# An N pixel horizontal spacer. Defaults to X pix  get_center
 
 class xSpacer(Gtk.HBox):
 
+    &#39;&#39;&#39;  An N pixel horizontal spacer. Defaults to X pix  get_center &#39;&#39;&#39;
+
     def __init__(self, sp = None):
         GObject.GObject.__init__(self)
         #self.pack_start()
@@ -1238,10 +981,11 @@ class xSpacer(Gtk.HBox):
             sp = 6
         self.set_size_request(sp, sp)
 
-# An N pixel vertical spacer. Defaults to X pix  get_center
 
 class ySpacer(Gtk.VBox):
 
+    &#39;&#39;&#39;  An N pixel vertical spacer. Defaults to X pix  get_center &#39;&#39;&#39;
+
     def __init__(self, sp = None):
         GObject.GObject.__init__(self)
         #self.pack_start()
@@ -1252,10 +996,10 @@ class ySpacer(Gtk.VBox):
             sp = 6
         self.set_size_request(sp, sp)
 
-# ------------------------------------------------------------------------
-# Added convenience methods
 
 class   xVBox(Gtk.VBox):
+
+    &#39;&#39;&#39;  Added convenience methods &#39;&#39;&#39;
 
     def __init__(self, col = None):
         GObject.GObject.__init__(self)
@@ -1290,8 +1034,6 @@ class   xHBox(Gtk.HBox):
         if pad == 0:
             pad = self.pad
         self.pack_start(obj, expand, expand, pad)
-
-# ------------------------------------------------------------------------
 
 class   RadioGroup(Gtk.Box):
 
@@ -1376,9 +1118,10 @@ class   RadioGroup(Gtk.Box):
     def border_width(self, width):
         self.vbox.set_border_width(width)
 
-# Bug fix in Gtk
 
 class   SeparatorMenuItem(Gtk.SeparatorMenuItem):
+
+    &#39;&#39;&#39; Bug fix in Gtk &#39;&#39;&#39;
 
     def __init__(self):
         Gtk.SeparatorMenuItem.__init__(self);
@@ -1602,7 +1345,7 @@ class   ComboBox(Gtk.ComboBox):
                     print(&#34;except: self.store remove&#34;)
         except:
             print(&#34;combo delall&#34;, sys.exc_info())
-            pass
+            #pass
 
     # --------------------------------------------------------------------
     def  sel_text(self, txt):
@@ -1610,26 +1353,24 @@ class   ComboBox(Gtk.ComboBox):
         #print(&#34;Sel combo text&#34;)
 
         model = self.get_model()
-        iter = model.get_iter_first()
-        if iter:
+        iterx = model.get_iter_first()
+        if iterx:
             cnt = 0
             while True:
-
                 #print(&#34;entry %d&#34; % cnt, model[iter][0], txt)
                 if  model[iter][0] == txt:
                     #print(&#34;Found %d&#34; % cnt, model[iter][0])
                     self.set_active_iter(iter)
                     break
-
-                iter = model.iter_next(iter)
-                if not iter:
+                iterx = model.iter_next(iter)
+                if not iterx:
                     break
                 cnt += 1
 
     def     sel_first(self):
         model = self.get_model()
-        iter = model.get_iter_first()
-        self.set_active_iter(iter)
+        iterx = model.get_iter_first()
+        self.set_active_iter(iterx)
 
 class Rectangle():
 
@@ -1809,7 +1550,8 @@ class Rectangle():
 
 class RCLButt(Gtk.Button):
 
-    def __init__(self, labelx, callme = None, rcallme = None, space = 2, ttip = None):
+    def __init__(self, labelx, callme = None, rcallme = None,
+                            space = 2, ttip = None):
         #super().__init__(self)
         GObject.GObject.__init__(self)
         self.rcallme = rcallme
@@ -1866,145 +1608,6 @@ class RCLButt(Gtk.Button):
         #if self.callme:
         #    self.callme(arg1)
 
-
-# ------------------------------------------------------------------------
-# Show a regular message:
-
-def message(strx, parent = None, title = None, icon = Gtk.MessageType.INFO):
-
-    #dialog = Gtk.MessageDialog(parent, Gtk.DialogFlags.DESTROY_WITH_PARENT,
-    #    icon, Gtk.ButtonsType.CLOSE, strx)
-
-    dialog = Gtk.MessageDialog(title=title, buttons=Gtk.ButtonsType.CLOSE,
-                text=strx, destroy_with_parent=True, modal=True,)
-
-    if parent:
-        dialog.set_transient_for(parent)
-
-    if title:
-        dialog.set_title(title)
-    else:
-        dialog.set_title(&#34;Message&#34;)
-
-    # Close dialog on user response
-    dialog.connect(&#34;response&#34;, lambda d, r: d.destroy())
-    dialog.show_all()
-    return dialog.run()
-
-def yes_no(message, title = &#34;Question&#34;, parent=None, default=&#34;Yes&#34;):
-
-    dialog = Gtk.MessageDialog(title=title)
-
-    warnings.simplefilter(&#34;ignore&#34;)
-    img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
-    dialog.set_image(img)
-    warnings.simplefilter(&#34;default&#34;)
-
-    dialog.set_markup(message)
-
-    if default == &#34;Yes&#34;:
-        dialog.set_default_response(Gtk.ResponseType.YES)
-        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
-        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
-    else:
-        dialog.set_default_response(Gtk.ResponseType.NO)
-        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
-        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
-
-    if parent:
-        dialog.set_transient_for(parent)
-
-    def _yn_key(win, event, cancel):
-        #print(&#34;_y_n key&#34;, event.keyval)
-        if event.keyval == Gdk.KEY_y or \
-            event.keyval == Gdk.KEY_Y:
-            win.response(Gtk.ResponseType.YES)
-        if event.keyval == Gdk.KEY_n or \
-            event.keyval == Gdk.KEY_N:
-            win.response(Gtk.ResponseType.NO)
-        #if cancel:
-        #    if event.keyval == Gdk.KEY_c or \
-        #        event.keyval == Gdk.KEY_C:
-        #        win.response(Gtk.ResponseType.CANCEL)
-
-    dialog.connect(&#34;key-press-event&#34;, _yn_key, 0)
-    # Fri 03.May.2024 destroyed return value
-    #dialog.connect(&#34;response&#34;, lambda d, r: d.destroy())
-    dialog.show_all()
-    response = dialog.run()
-    dialog.destroy()
-    #print(&#34;response&#34;, response, resp2str(response))
-
-    # Convert all other responses to default
-    if response == Gtk.ResponseType.REJECT or \
-          response == Gtk.ResponseType.CLOSE  or \
-             response == Gtk.ResponseType.DELETE_EVENT:
-        response = Gtk.ResponseType.NO
-
-        # Cancel means no
-        #if default == &#34;Yes&#34;:
-        #    response = Gtk.ResponseType.YES
-        #else:
-        #    response = Gtk.ResponseType.NO
-
-    return response
-
-# ------------------------------------------------------------------------
-
-def yes_no_cancel(message, title=&#34;Question&#34;, default=&#34;Yes&#34;):
-
-    dialog = Gtk.MessageDialog(title=title)
-
-    if default == &#34;Yes&#34;:
-        dialog.set_default_response(Gtk.ResponseType.YES)
-        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
-        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
-        dialog.add_button(&#34;_Cancel&#34;, Gtk.ResponseType.CANCEL)
-    elif default == &#34;No&#34;:
-        dialog.set_default_response(Gtk.ResponseType.NO)
-        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
-        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
-        dialog.add_button(&#34;_Cancel&#34;, Gtk.ResponseType.CANCEL)
-    else:
-        dialog.set_default_response(Gtk.ResponseType.CANCEL)
-        dialog.add_button(&#34;_Cancel&#34;, Gtk.ResponseType.CANCEL)
-        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
-        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
-
-    warnings.simplefilter(&#34;ignore&#34;)
-    img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
-    dialog.set_image(img)
-    warnings.simplefilter(&#34;default&#34;)
-    dialog.set_markup(message)
-
-    def _yn_keyc(win, event):
-        #print(&#34;key:&#34;,  event)
-        if event.keyval == Gdk.KEY_y or \
-            event.keyval == Gdk.KEY_Y:
-            win.response(Gtk.ResponseType.YES)
-        if event.keyval == Gdk.KEY_n or \
-            event.keyval == Gdk.KEY_N:
-            win.response(Gtk.ResponseType.NO)
-        if event.keyval == Gdk.KEY_c or \
-            event.keyval == Gdk.KEY_C:
-            win.response(Gtk.ResponseType.CANCEL)
-
-    dialog.connect(&#34;key-press-event&#34;, _yn_keyc)
-    dialog.show_all()
-    response = dialog.run()
-
-    # Convert all other responses to cancel
-    if  response == Gtk.ResponseType.CANCEL or \
-            response == Gtk.ResponseType.REJECT or \
-                response == Gtk.ResponseType.CLOSE  or \
-                    response == Gtk.ResponseType.DELETE_EVENT:
-        response = Gtk.ResponseType.CANCEL
-
-    dialog.destroy()
-
-    #print(&#34;yes_no_cancel() result:&#34;, response);
-    return  response
-
 def resp2str(resp):
 
     &#39;&#39;&#39; Translate response to string &#39;&#39;&#39;
@@ -2037,6 +1640,56 @@ def set_gui_testmode(flag):
     global gui_testmode
     gui_testmode = flag
 
+# ------------------------------------------------------------------------
+# Color conversions
+
+def str2col(strx):
+    ccc = str2float(strx)
+    return float2col(ccc)
+
+def str2float( col):
+    return ( float(int(col[1:3], base=16)) / 256,
+                    float(int(col[3:5], base=16)) / 256, \
+                        float(int(col[5:7], base=16)) / 256 )
+
+def float2str(col):
+    aa = min(col[0], 1.)
+    bb = min(col[1], 1.)
+    cc = min(col[2], 1.)
+    strx = &#34;#%02x%02x%02x&#34; % (aa * 256,  \
+                        bb * 256, cc * 256)
+    return strx
+
+def col2float(col):
+    rrr = [float(col.red) / 65535,
+            float(col.green) / 65535,
+                float(col.blue) / 65535]
+    return rrr
+
+def rgb2str(icol):
+    strx = &#34;#%02x%02x%02x&#34; % (int(icol.red) &amp; 0xff,  \
+                        int(icol.green) &amp; 0xff, int(icol.blue) &amp; 0xff)
+    return strx
+
+def col2str(icol):
+    strx = &#34;#%02x%02x%02x&#34; % (int(icol.red / 255),  \
+                        int(icol.green / 255), int(icol.blue / 255))
+    return strx
+
+def rgb2col(icol):
+    #print &#34;rgb2col&#34;, icol
+    col = [0, 0, 0]
+    col[0] = float(icol.red) / 256
+    col[1] = float(icol.green) / 256
+    col[2] = float(icol.blue) / 256
+    return col
+
+def float2col(col):
+    aa = min(col[0], 1.)
+    bb = min(col[1], 1.)
+    cc = min(col[2], 1.)
+    return Gdk.Color(aa * 65535, bb * 65535, cc * 65535)
+
 if __name__ == &#39;__main__&#39;:
     print(&#34;This file was not meant to run as the main module&#34;)
 
@@ -2050,69 +1703,8 @@ if __name__ == &#39;__main__&#39;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="pggui.about"><code class="name flex">
-<span>def <span class="ident">about</span></span>(<span>progname, verstr='1.0.0', imgfile='icon.png')</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Show About dialog:</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def  about(progname, verstr = &#34;1.0.0&#34;, imgfile = &#34;icon.png&#34;):
-
-    &#39;&#39;&#39; Show About dialog: &#39;&#39;&#39;
-
-    dialog = Gtk.AboutDialog()
-    dialog.set_name(progname)
-
-    dialog.set_version(verstr)
-    gver = (Gtk.get_major_version(), \
-                        Gtk.get_minor_version(), \
-                            Gtk.get_micro_version())
-
-    dialog.set_position(Gtk.WindowPosition.CENTER)
-    #dialog.set_transient_for(pedconfig.conf.pedwin.mywin)
-
-    #&#34;\nRunning PyGObject %d.%d.%d&#34; % GObject.pygobject_version +\
-
-    ddd = os.path.join(os.path.dirname(__file__))
-
-    # GLib.pyglib_version
-    vvv = gi.version_info
-    comm = \
-        &#34;Running PyGtk %d.%d.%d&#34; % vvv +\
-        &#34;\non GTK %d.%d.%d&#34; % gver +\
-        &#34;\nRunning Python %s&#34; % platform.python_version() +\
-        &#34;\non %s %s&#34; % (platform.system(), platform.release()) +\
-        &#34;\nExe Path:\n%s&#34; % os.path.realpath(ddd)
-
-    dialog.set_comments(comm)
-    dialog.set_copyright(progname + &#34; Created by Peter Glen.\n&#34;
-                          &#34;Project is in the Public Domain.&#34;)
-    dialog.set_program_name(progname)
-    img_path = os.path.join(os.path.dirname(__file__), imgfile)
-
-    try:
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
-        #print &#34;loaded pixbuf&#34;
-        dialog.set_logo(pixbuf)
-
-    except:
-        print(&#34;Cannot load logo for about dialog&#34;, img_path)
-        print(sys.exc_info())
-
-    #dialog.set_website(&#34;&#34;)
-
-    ## Close dialog on user response
-    dialog.connect (&#34;response&#34;, lambda d, r: d.destroy())
-    dialog.connect(&#34;key-press-event&#34;, _about_key)
-
-    dialog.show()</code></pre>
-</details>
-</dd>
-<dt id="pggui.find"><code class="name flex">
-<span>def <span class="ident">find</span></span>(<span>self)</span>
+<dt id="pggui.col2float"><code class="name flex">
+<span>def <span class="ident">col2float</span></span>(<span>col)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2120,72 +1712,60 @@ if __name__ == &#39;__main__&#39;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def find(self):
-
-    head = &#34;Find in text&#34;
-
-    dialog = Gtk.Dialog(head,
-                   None,
-                   Gtk.DIALOG_MODAL | Gtk.DIALOG_DESTROY_WITH_PARENT,
-                   (Gtk.STOCK_CANCEL, Gtk.RESPONSE_REJECT,
-                    Gtk.STOCK_OK, Gtk.RESPONSE_ACCEPT))
-    dialog.set_default_response(Gtk.RESPONSE_ACCEPT)
-
-    try:
-        dialog.set_icon_from_file(&#34;epub.png&#34;)
-    except:
-        print (&#34;Cannot load find dialog icon&#34;, sys.exc_info())
-
-    self.dialog = dialog
-
-    label3 = Gtk.Label(label=&#34;   &#34;);  label4 = Gtk.Label(label=&#34;   &#34;)
-    label5 = Gtk.Label(label=&#34;   &#34;);  label6 = Gtk.Label(label=&#34;   &#34;)
-    label7 = Gtk.Label(label=&#34;   &#34;);  label8 = Gtk.Label(label=&#34;   &#34;)
-
-    #warmings.simplefilter(&#34;ignore&#34;)
-    entry = Gtk.Entry()
-    #warmings.simplefilter(&#34;default&#34;)
-    entry.set_text(self.oldfind)
-
-    entry.set_activates_default(True)
-
-    dialog.vbox.pack_start(label4)
-
-    hbox2 = Gtk.HBox()
-    hbox2.pack_start(label6, False)
-    hbox2.pack_start(entry)
-    hbox2.pack_start(label7, False)
-
-    dialog.vbox.pack_start(hbox2)
-
-    dialog.checkbox = Gtk.CheckButton(&#34;Search _Backwards&#34;)
-    dialog.checkbox2 = Gtk.CheckButton(&#34;Case In_sensitive&#34;)
-    dialog.vbox.pack_start(label5)
-
-    hbox = Gtk.HBox()
-    #hbox.pack_start(label1);  hbox.pack_start(dialog.checkbox)
-    #hbox.pack_start(label2);  hbox.pack_start(dialog.checkbox2)
-    hbox.pack_start(label3)
-    dialog.vbox.pack_start(hbox)
-    dialog.vbox.pack_start(label8)
-
-    label32 = Gtk.Label(label=&#34;   &#34;)
-    hbox4 = Gtk.HBox()
-
-    hbox4.pack_start(label32)
-    dialog.vbox.pack_start(hbox4)
-
-    dialog.show_all()
-    response = dialog.run()
-    self.srctxt = entry.get_text()
-
-    dialog.destroy()
-
-    if response != Gtk.RESPONSE_ACCEPT:
-        return None
-
-    return self.srctxt, dialog.checkbox.get_active(), \
-                dialog.checkbox2.get_active()</code></pre>
+<pre><code class="python">def col2float(col):
+    rrr = [float(col.red) / 65535,
+            float(col.green) / 65535,
+                float(col.blue) / 65535]
+    return rrr</code></pre>
+</details>
+</dd>
+<dt id="pggui.col2str"><code class="name flex">
+<span>def <span class="ident">col2str</span></span>(<span>icol)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def col2str(icol):
+    strx = &#34;#%02x%02x%02x&#34; % (int(icol.red / 255),  \
+                        int(icol.green / 255), int(icol.blue / 255))
+    return strx</code></pre>
+</details>
+</dd>
+<dt id="pggui.float2col"><code class="name flex">
+<span>def <span class="ident">float2col</span></span>(<span>col)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def float2col(col):
+    aa = min(col[0], 1.)
+    bb = min(col[1], 1.)
+    cc = min(col[2], 1.)
+    return Gdk.Color(aa * 65535, bb * 65535, cc * 65535)</code></pre>
+</details>
+</dd>
+<dt id="pggui.float2str"><code class="name flex">
+<span>def <span class="ident">float2str</span></span>(<span>col)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def float2str(col):
+    aa = min(col[0], 1.)
+    bb = min(col[1], 1.)
+    cc = min(col[2], 1.)
+    strx = &#34;#%02x%02x%02x&#34; % (aa * 256,  \
+                        bb * 256, cc * 256)
+    return strx</code></pre>
 </details>
 </dd>
 <dt id="pggui.get_screen_wh"><code class="name flex">
@@ -2246,97 +1826,6 @@ if __name__ == &#39;__main__&#39;:
                 break
         if Gtk.main_iteration_do(True):
             break</code></pre>
-</details>
-</dd>
-<dt id="pggui.message"><code class="name flex">
-<span>def <span class="ident">message</span></span>(<span>strx, parent=None, title=None, icon=&lt;enum GTK_MESSAGE_INFO of type Gtk.MessageType&gt;)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def message(strx, parent = None, title = None, icon = Gtk.MessageType.INFO):
-
-    #dialog = Gtk.MessageDialog(parent, Gtk.DialogFlags.DESTROY_WITH_PARENT,
-    #    icon, Gtk.ButtonsType.CLOSE, strx)
-
-    dialog = Gtk.MessageDialog(title=title, buttons=Gtk.ButtonsType.CLOSE,
-                text=strx, destroy_with_parent=True, modal=True,)
-
-    if parent:
-        dialog.set_transient_for(parent)
-
-    if title:
-        dialog.set_title(title)
-    else:
-        dialog.set_title(&#34;Message&#34;)
-
-    # Close dialog on user response
-    dialog.connect(&#34;response&#34;, lambda d, r: d.destroy())
-    dialog.show_all()
-    return dialog.run()</code></pre>
-</details>
-</dd>
-<dt id="pggui.opendialog"><code class="name flex">
-<span>def <span class="ident">opendialog</span></span>(<span>parent=None)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def opendialog(parent=None):
-
-    # We create an array, so it is passed around by reference
-    fname = [&#34;&#34;]
-
-    def makefilter(mask, name):
-        filter =  Gtk.FileFilter.new()
-        filter.add_pattern(mask)
-        filter.set_name(name)
-        return filter
-
-    def done_open_fc(win, resp, fname):
-        #print &#34;done_open_fc&#34;, win, resp
-        if resp == Gtk.ButtonsType.OK:
-            fname[0] = win.get_filename()
-            if not fname[0]:
-                #print &#34;Must have filename&#34;
-                pass
-            elif os.path.isdir(fname[0]):
-                os.chdir(fname[0])
-                win.set_current_folder(fname[0])
-                return
-            else:
-                #print(&#34;OFD&#34;, fname[0])
-                pass
-        win.destroy()
-
-    buts =   &#34;Cancel&#34;, Gtk.ButtonsType.CANCEL,\
-             &#34;Open File&#34;, Gtk.ButtonsType.OK
-    fc = Gtk.FileChooserDialog(title=&#34;Open file&#34;, transient_for=parent, \
-         action=Gtk.FileChooserAction.OPEN )
-    fc.add_buttons(*buts)
-    filters = []
-    filters.append(makefilter(&#34;*.*&#34;, &#34;All files (*.*)&#34;))
-    filters.append(makefilter(&#34;*.html&#34;, &#34;HTML files (*.html)&#34;))
-    filters.append(makefilter(&#34;*.txt&#34;, &#34;Text files (*.txt)&#34;))
-
-    if filters:
-        for aa in filters:
-            fc.add_filter(aa)
-
-    fc.set_default_response(Gtk.ButtonsType.OK)
-    fc.set_current_folder(os.getcwd())
-    fc.connect(&#34;response&#34;, done_open_fc, fname)
-    #fc.connect(&#34;current-folder-changed&#34;, self.folder_ch )
-    #fc.set_current_name(self.fname)
-    fc.run()
-    #print(&#34;OFD2&#34;, fname[0])
-    return fname[0]</code></pre>
 </details>
 </dd>
 <dt id="pggui.randcol"><code class="name flex">
@@ -2456,8 +1945,8 @@ can be themed.</p></div>
     return strx</code></pre>
 </details>
 </dd>
-<dt id="pggui.savedialog"><code class="name flex">
-<span>def <span class="ident">savedialog</span></span>(<span>resp)</span>
+<dt id="pggui.rgb2col"><code class="name flex">
+<span>def <span class="ident">rgb2col</span></span>(<span>icol)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2465,47 +1954,28 @@ can be themed.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def savedialog(resp):
-
-    #print &#34;File dialog&#34;
-    fname = [&#34;&#34;]   # So it is passed around as a reference
-
-    def makefilter(mask, name):
-        filterx =  Gtk.FileFilter.new()
-        filterx.add_pattern(mask)
-        filterx.set_name(name)
-        return filterx
-
-    def done_fc(win, resp, fname):
-        #print( &#34;done_fc&#34;, win, resp)
-        if resp == Gtk.ResponseType.OK:
-            fname[0] = win.get_filename()
-            if not fname[0]:
-                print(&#34;Must have filename&#34;)
-            else:
-                pass
-        win.destroy()
-
-    but =   &#34;Cancel&#34;, Gtk.ResponseType.CANCEL,   \
-                    &#34;Save File&#34;, Gtk.ResponseType.OK
-    fc = Gtk.FileChooserDialog(title=&#34;Save file as ... &#34;, transient_for=None,
-            action=Gtk.FileChooserAction.SAVE)
-    fc.add_buttons(*but)
-    #fc.set_do_overwrite_confirmation(True)
-    filters = []
-    filters.append(makefilter(&#34;*.mup&#34;, &#34;MarkUp files (*.py)&#34;))
-    filters.append(makefilter(&#34;*.*&#34;, &#34;All files (*.*)&#34;))
-
-    if filters:
-        for aa in filters:
-            fc.add_filter(aa)
-
-    fc.set_current_name(os.path.basename(fname[0]))
-    fc.set_current_folder(os.path.dirname(fname[0]))
-    fc.set_default_response(Gtk.ResponseType.OK)
-    fc.connect(&#34;response&#34;, done_fc, fname)
-    fc.run()
-    return fname[0]</code></pre>
+<pre><code class="python">def rgb2col(icol):
+    #print &#34;rgb2col&#34;, icol
+    col = [0, 0, 0]
+    col[0] = float(icol.red) / 256
+    col[1] = float(icol.green) / 256
+    col[2] = float(icol.blue) / 256
+    return col</code></pre>
+</details>
+</dd>
+<dt id="pggui.rgb2str"><code class="name flex">
+<span>def <span class="ident">rgb2str</span></span>(<span>icol)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rgb2str(icol):
+    strx = &#34;#%02x%02x%02x&#34; % (int(icol.red) &amp; 0xff,  \
+                        int(icol.green) &amp; 0xff, int(icol.blue) &amp; 0xff)
+    return strx</code></pre>
 </details>
 </dd>
 <dt id="pggui.screen_dims_under_cursor"><code class="name flex">
@@ -2535,13 +2005,14 @@ can be themed.</p></div>
     warnings.simplefilter(&#34;default&#34;)
 
     # 3. Get the current cursor position on the screen
-    # The method needs an output variable for the screen, but we can pass None as we get the position later
+    # The method needs an output variable for the screen, but we can
+    # pass None as we get the position later
     _, xx, yy = pointer_device.get_position()
 
     # 4. Get the GdkMonitor at the cursor&#39;s position
     monitor = display.get_monitor_at_point(xx, yy)
     if not monitor:
-        print(f&#34;Could not find monitor at position ({x}, {y})&#34;)
+        print(f&#34;Could not find monitor at position ({xx}, {yy})&#34;)
         return None
 
     # 5. Get the monitor&#39;s geometry (position and size)
@@ -2571,14 +2042,44 @@ can be themed.</p></div>
 <span>def <span class="ident">set_testmode</span></span>(<span>flag)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Highlite test items</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_testmode(flag):
+    &#39;&#39;&#39;  Highlite test items &#39;&#39;&#39;
     global gui_testmode
     gui_testmode = flag</code></pre>
+</details>
+</dd>
+<dt id="pggui.str2col"><code class="name flex">
+<span>def <span class="ident">str2col</span></span>(<span>strx)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def str2col(strx):
+    ccc = str2float(strx)
+    return float2col(ccc)</code></pre>
+</details>
+</dd>
+<dt id="pggui.str2float"><code class="name flex">
+<span>def <span class="ident">str2float</span></span>(<span>col)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def str2float( col):
+    return ( float(int(col[1:3], base=16)) / 256,
+                    float(int(col[3:5], base=16)) / 256, \
+                        float(int(col[5:7], base=16)) / 256 )</code></pre>
 </details>
 </dd>
 <dt id="pggui.ubreed"><code class="name flex">
@@ -2617,19 +2118,6 @@ can be themed.</p></div>
         Gtk.main_iteration_do(False)</code></pre>
 </details>
 </dd>
-<dt id="pggui.version"><code class="name flex">
-<span>def <span class="ident">version</span></span>(<span>)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def version():
-    return VERSION</code></pre>
-</details>
-</dd>
 <dt id="pggui.wrapscroll"><code class="name flex">
 <span>def <span class="ident">wrapscroll</span></span>(<span>what)</span>
 </code></dt>
@@ -2646,138 +2134,6 @@ can be themed.</p></div>
     frame2 = Gtk.Frame()
     frame2.add(scroll2)
     return frame2</code></pre>
-</details>
-</dd>
-<dt id="pggui.yes_no"><code class="name flex">
-<span>def <span class="ident">yes_no</span></span>(<span>message, title='Question', parent=None, default='Yes')</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def yes_no(message, title = &#34;Question&#34;, parent=None, default=&#34;Yes&#34;):
-
-    dialog = Gtk.MessageDialog(title=title)
-
-    warnings.simplefilter(&#34;ignore&#34;)
-    img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
-    dialog.set_image(img)
-    warnings.simplefilter(&#34;default&#34;)
-
-    dialog.set_markup(message)
-
-    if default == &#34;Yes&#34;:
-        dialog.set_default_response(Gtk.ResponseType.YES)
-        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
-        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
-    else:
-        dialog.set_default_response(Gtk.ResponseType.NO)
-        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
-        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
-
-    if parent:
-        dialog.set_transient_for(parent)
-
-    def _yn_key(win, event, cancel):
-        #print(&#34;_y_n key&#34;, event.keyval)
-        if event.keyval == Gdk.KEY_y or \
-            event.keyval == Gdk.KEY_Y:
-            win.response(Gtk.ResponseType.YES)
-        if event.keyval == Gdk.KEY_n or \
-            event.keyval == Gdk.KEY_N:
-            win.response(Gtk.ResponseType.NO)
-        #if cancel:
-        #    if event.keyval == Gdk.KEY_c or \
-        #        event.keyval == Gdk.KEY_C:
-        #        win.response(Gtk.ResponseType.CANCEL)
-
-    dialog.connect(&#34;key-press-event&#34;, _yn_key, 0)
-    # Fri 03.May.2024 destroyed return value
-    #dialog.connect(&#34;response&#34;, lambda d, r: d.destroy())
-    dialog.show_all()
-    response = dialog.run()
-    dialog.destroy()
-    #print(&#34;response&#34;, response, resp2str(response))
-
-    # Convert all other responses to default
-    if response == Gtk.ResponseType.REJECT or \
-          response == Gtk.ResponseType.CLOSE  or \
-             response == Gtk.ResponseType.DELETE_EVENT:
-        response = Gtk.ResponseType.NO
-
-        # Cancel means no
-        #if default == &#34;Yes&#34;:
-        #    response = Gtk.ResponseType.YES
-        #else:
-        #    response = Gtk.ResponseType.NO
-
-    return response</code></pre>
-</details>
-</dd>
-<dt id="pggui.yes_no_cancel"><code class="name flex">
-<span>def <span class="ident">yes_no_cancel</span></span>(<span>message, title='Question', default='Yes')</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def yes_no_cancel(message, title=&#34;Question&#34;, default=&#34;Yes&#34;):
-
-    dialog = Gtk.MessageDialog(title=title)
-
-    if default == &#34;Yes&#34;:
-        dialog.set_default_response(Gtk.ResponseType.YES)
-        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
-        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
-        dialog.add_button(&#34;_Cancel&#34;, Gtk.ResponseType.CANCEL)
-    elif default == &#34;No&#34;:
-        dialog.set_default_response(Gtk.ResponseType.NO)
-        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
-        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
-        dialog.add_button(&#34;_Cancel&#34;, Gtk.ResponseType.CANCEL)
-    else:
-        dialog.set_default_response(Gtk.ResponseType.CANCEL)
-        dialog.add_button(&#34;_Cancel&#34;, Gtk.ResponseType.CANCEL)
-        dialog.add_button(&#34;_Yes&#34;, Gtk.ResponseType.YES)
-        dialog.add_button(&#34;_No&#34;, Gtk.ResponseType.NO)
-
-    warnings.simplefilter(&#34;ignore&#34;)
-    img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
-    dialog.set_image(img)
-    warnings.simplefilter(&#34;default&#34;)
-    dialog.set_markup(message)
-
-    def _yn_keyc(win, event):
-        #print(&#34;key:&#34;,  event)
-        if event.keyval == Gdk.KEY_y or \
-            event.keyval == Gdk.KEY_Y:
-            win.response(Gtk.ResponseType.YES)
-        if event.keyval == Gdk.KEY_n or \
-            event.keyval == Gdk.KEY_N:
-            win.response(Gtk.ResponseType.NO)
-        if event.keyval == Gdk.KEY_c or \
-            event.keyval == Gdk.KEY_C:
-            win.response(Gtk.ResponseType.CANCEL)
-
-    dialog.connect(&#34;key-press-event&#34;, _yn_keyc)
-    dialog.show_all()
-    response = dialog.run()
-
-    # Convert all other responses to cancel
-    if  response == Gtk.ResponseType.CANCEL or \
-            response == Gtk.ResponseType.REJECT or \
-                response == Gtk.ResponseType.CLOSE  or \
-                    response == Gtk.ResponseType.DELETE_EVENT:
-        response = Gtk.ResponseType.CANCEL
-
-    dialog.destroy()
-
-    #print(&#34;yes_no_cancel() result:&#34;, response);
-    return  response</code></pre>
 </details>
 </dd>
 </dl>
@@ -3047,7 +2403,7 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
                     print(&#34;except: self.store remove&#34;)
         except:
             print(&#34;combo delall&#34;, sys.exc_info())
-            pass
+            #pass
 
     # --------------------------------------------------------------------
     def  sel_text(self, txt):
@@ -3055,26 +2411,24 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
         #print(&#34;Sel combo text&#34;)
 
         model = self.get_model()
-        iter = model.get_iter_first()
-        if iter:
+        iterx = model.get_iter_first()
+        if iterx:
             cnt = 0
             while True:
-
                 #print(&#34;entry %d&#34; % cnt, model[iter][0], txt)
                 if  model[iter][0] == txt:
                     #print(&#34;Found %d&#34; % cnt, model[iter][0])
                     self.set_active_iter(iter)
                     break
-
-                iter = model.iter_next(iter)
-                if not iter:
+                iterx = model.iter_next(iter)
+                if not iterx:
                     break
                 cnt += 1
 
     def     sel_first(self):
         model = self.get_model()
-        iter = model.get_iter_first()
-        self.set_active_iter(iter)</code></pre>
+        iterx = model.get_iter_first()
+        self.set_active_iter(iterx)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -3149,7 +2503,7 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
                 print(&#34;except: self.store remove&#34;)
     except:
         print(&#34;combo delall&#34;, sys.exc_info())
-        pass</code></pre>
+        #pass</code></pre>
 </details>
 </dd>
 <dt id="pggui.ComboBox.sel_first"><code class="name flex">
@@ -3163,8 +2517,8 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
 </summary>
 <pre><code class="python">def     sel_first(self):
     model = self.get_model()
-    iter = model.get_iter_first()
-    self.set_active_iter(iter)</code></pre>
+    iterx = model.get_iter_first()
+    self.set_active_iter(iterx)</code></pre>
 </details>
 </dd>
 <dt id="pggui.ComboBox.sel_text"><code class="name flex">
@@ -3181,19 +2535,17 @@ new_with_model_and_entry(model:Gtk.TreeModel) -&gt; Gtk.Widget
     #print(&#34;Sel combo text&#34;)
 
     model = self.get_model()
-    iter = model.get_iter_first()
-    if iter:
+    iterx = model.get_iter_first()
+    if iterx:
         cnt = 0
         while True:
-
             #print(&#34;entry %d&#34; % cnt, model[iter][0], txt)
             if  model[iter][0] == txt:
                 #print(&#34;Found %d&#34; % cnt, model[iter][0])
                 self.set_active_iter(iter)
                 break
-
-            iter = model.iter_next(iter)
-            if not iter:
+            iterx = model.iter_next(iter)
+            if not iterx:
                 break
             cnt += 1</code></pre>
 </details>
@@ -3310,8 +2662,10 @@ new(label:str=None) -&gt; Gtk.Widget
         GObject.GObject.__init__(self)
 
         self.set_can_focus(True)
+        warnings.simplefilter(&#34;ignore&#34;)
         self.image = Gtk.Image.new_from_stock(front, 32)
-        print(&#34;image&#34;, self.image)
+        warnings.simplefilter(&#34;default&#34;)
+        #print(&#34;image&#34;, self.image)
         self.label = Gtk.Label.new_with_mnemonic(front)
         self.label.set_mnemonic_widget(self)
         #self.curve =  Gdk.Cursor(Gdk.CursorType.CROSSHAIR)
@@ -3708,7 +3062,7 @@ new() -&gt; Gtk.Widget
         #cr.scale(width / 2., height / 2.)
         #cr.restore()
 
-        ccc = pgutils.str2float(self.color)
+        ccc = str2float(self.color)
 
         cr.set_source_rgba(ccc[0] * 0.5, ccc[1] * 0.5, ccc[2] * 0.5)
         cr.arc(rect.width/2, rect.height/2, rect.width / 2. * .85, 0., 2 * math.pi)
@@ -3764,7 +3118,7 @@ new() -&gt; Gtk.Widget
     #cr.scale(width / 2., height / 2.)
     #cr.restore()
 
-    ccc = pgutils.str2float(self.color)
+    ccc = str2float(self.color)
 
     cr.set_source_rgba(ccc[0] * 0.5, ccc[1] * 0.5, ccc[2] * 0.5)
     cr.arc(rect.width/2, rect.height/2, rect.width / 2. * .85, 0., 2 * math.pi)
@@ -3986,12 +3340,8 @@ new(label:str=None) -&gt; Gtk.Widget
 <span>(</span><span>callb=None, limit=-1, colname='')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>:Constructors:</p>
-<p>::</p>
-<pre><code>TreeView(**properties)
-new() -&gt; Gtk.Widget
-new_with_model(model:Gtk.TreeModel) -&gt; Gtk.Widget
-</code></pre>
+<div class="desc"><p>This override covers / hides the complexity of the treeview and the
+textlisbox did not have the needed detail </p>
 <p>Initializer for a GObject based classes with support for property
 sets through the use of explicit keyword arguments.</p></div>
 <details class="source">
@@ -3999,6 +3349,9 @@ sets through the use of explicit keyword arguments.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ListBox(Gtk.TreeView):
+
+    &#39;&#39;&#39; This override covers / hides the complexity of the treeview and the
+        textlisbox did not have the needed detail &#39;&#39;&#39;
 
     def __init__(self, callb = None, limit = -1, colname = &#39;&#39;):
 
@@ -4058,10 +3411,10 @@ sets through the use of explicit keyword arguments.</p></div>
         if idx == -1:
             ts.unselect_all()
             return
-        iter = self.treestore.get_iter_first()
+        iterx = self.treestore.get_iter_first()
         for aa in range(idx):
-            iter = self.treestore.iter_next(iter)
-            if not iter:
+            iterx = self.treestore.iter_next(iterx)
+            if not iterx:
                 break
         if not iter:
             pass
@@ -4084,16 +3437,16 @@ sets through the use of explicit keyword arguments.</p></div>
 
     def get_item(self, idx):
         cnt = 0; res = &#34;&#34;
-        iter = self.treestore.get_iter_first()
-        if not iter:
+        iterx = self.treestore.get_iter_first()
+        if not iterx:
             return &#34;&#34;
         cnt = 1
         while True:
-            iter = self.treestore.iter_next(iter)
-            if not iter:
+            iterx = self.treestore.iter_next(iter)
+            if not iterx:
                 break
             if cnt == idx:
-                res = self.treestore.get_value(iter, 0)
+                res = self.treestore.get_value(iterx, 0)
                 break
             cnt += 1
         return res
@@ -4104,11 +3457,11 @@ sets through the use of explicit keyword arguments.</p></div>
             cnt = self.get_size()
             #print(&#34;limiting cnt=&#34;, cnt, &#34;limit=&#34;, self.limit)
             for aa in range(cnt - self.limit):
-                iter = self.treestore.get_iter_first()
-                if not iter:
+                iterx = self.treestore.get_iter_first()
+                if not iterx:
                     break
                 try:
-                    self.treestore.remove(iter)
+                    self.treestore.remove(iterx)
                 except:
                     print(&#34;except: treestore remove lim&#34;)
 
@@ -4172,11 +3525,11 @@ sets through the use of explicit keyword arguments.</p></div>
         cnt = self.get_size()
         #print(&#34;limiting cnt=&#34;, cnt, &#34;limit=&#34;, self.limit)
         for aa in range(cnt - self.limit):
-            iter = self.treestore.get_iter_first()
-            if not iter:
+            iterx = self.treestore.get_iter_first()
+            if not iterx:
                 break
             try:
-                self.treestore.remove(iter)
+                self.treestore.remove(iterx)
             except:
                 print(&#34;except: treestore remove lim&#34;)
 
@@ -4246,16 +3599,16 @@ sets through the use of explicit keyword arguments.</p></div>
 </summary>
 <pre><code class="python">def get_item(self, idx):
     cnt = 0; res = &#34;&#34;
-    iter = self.treestore.get_iter_first()
-    if not iter:
+    iterx = self.treestore.get_iter_first()
+    if not iterx:
         return &#34;&#34;
     cnt = 1
     while True:
-        iter = self.treestore.iter_next(iter)
-        if not iter:
+        iterx = self.treestore.iter_next(iter)
+        if not iterx:
             break
         if cnt == idx:
-            res = self.treestore.get_value(iter, 0)
+            res = self.treestore.get_value(iterx, 0)
             break
         cnt += 1
     return res</code></pre>
@@ -4314,10 +3667,10 @@ sets through the use of explicit keyword arguments.</p></div>
     if idx == -1:
         ts.unselect_all()
         return
-    iter = self.treestore.get_iter_first()
+    iterx = self.treestore.get_iter_first()
     for aa in range(idx):
-        iter = self.treestore.iter_next(iter)
-        if not iter:
+        iterx = self.treestore.iter_next(iterx)
+        if not iterx:
             break
     if not iter:
         pass
@@ -4796,7 +4149,8 @@ new_with_mnemonic(label:str) -&gt; Gtk.Widget
 </summary>
 <pre><code class="python">class RCLButt(Gtk.Button):
 
-    def __init__(self, labelx, callme = None, rcallme = None, space = 2, ttip = None):
+    def __init__(self, labelx, callme = None, rcallme = None,
+                            space = 2, ttip = None):
         #super().__init__(self)
         GObject.GObject.__init__(self)
         self.rcallme = rcallme
@@ -5671,11 +5025,7 @@ new(label:str=None) -&gt; Gtk.Widget
 <span>class <span class="ident">SeparatorMenuItem</span></span>
 </code></dt>
 <dd>
-<div class="desc"><p>:Constructors:</p>
-<p>::</p>
-<pre><code>SeparatorMenuItem(**properties)
-new() -&gt; Gtk.Widget
-</code></pre>
+<div class="desc"><p>Bug fix in Gtk </p>
 <p>Initializer for a GObject based classes with support for property
 sets through the use of explicit keyword arguments.</p></div>
 <details class="source">
@@ -5683,6 +5033,8 @@ sets through the use of explicit keyword arguments.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class   SeparatorMenuItem(Gtk.SeparatorMenuItem):
+
+    &#39;&#39;&#39; Bug fix in Gtk &#39;&#39;&#39;
 
     def __init__(self):
         Gtk.SeparatorMenuItem.__init__(self);
@@ -5714,12 +5066,7 @@ sets through the use of explicit keyword arguments.</p></div>
 <span>(</span><span>sp=1, title=None, left=False, bottom=False, test=False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>:Constructors:</p>
-<p>::</p>
-<pre><code>Label(**properties)
-new(str:str=None) -&gt; Gtk.Widget
-new_with_mnemonic(str:str=None) -&gt; Gtk.Widget
-</code></pre>
+<div class="desc"><p>An N pixel spacer. Defaults to 1 char height / width </p>
 <p>Initializer for a GObject based classes with support for property
 sets through the use of explicit keyword arguments.</p></div>
 <details class="source">
@@ -5727,6 +5074,8 @@ sets through the use of explicit keyword arguments.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Spacer(Gtk.Label):
+
+    &#39;&#39;&#39; An N pixel spacer. Defaults to 1 char height / width &#39;&#39;&#39;
 
     def __init__(self, sp = 1, title=None, left=False, bottom=False, test=False):
 
@@ -5804,7 +5153,7 @@ new_with_range(min:float, max:float, step:float) -&gt; Gtk.Widget
         self.set_wrap(True)
         self.connect(&#34;value_changed&#34;, self.spinned)
 
-    def spinned(self, spin):
+    def spinned(self, spin = 0):
         #print(&#34;spinned&#34;, spin)
         if self.cb_func:
             self.cb_func(self.get_value())</code></pre>
@@ -5830,7 +5179,7 @@ new_with_range(min:float, max:float, step:float) -&gt; Gtk.Widget
 <h3>Methods</h3>
 <dl>
 <dt id="pggui.Spinner.spinned"><code class="name flex">
-<span>def <span class="ident">spinned</span></span>(<span>self, spin)</span>
+<span>def <span class="ident">spinned</span></span>(<span>self, spin=0)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -5838,7 +5187,7 @@ new_with_range(min:float, max:float, step:float) -&gt; Gtk.Widget
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def spinned(self, spin):
+<pre><code class="python">def spinned(self, spin = 0):
     #print(&#34;spinned&#34;, spin)
     if self.cb_func:
         self.cb_func(self.get_value())</code></pre>
@@ -6276,11 +5625,8 @@ sets through the use of explicit keyword arguments.</p></div>
 <span>(</span><span>sp=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>:Constructors:</p>
-<p>::</p>
-<pre><code>HBox(**properties)
-new(homogeneous:bool, spacing:int) -&gt; Gtk.Widget
-</code></pre>
+<div class="desc"><p>An N pixel horizontal spacer. Defaults to X pix
+get_center </p>
 <p>Initializer for a GObject based classes with support for property
 sets through the use of explicit keyword arguments.</p></div>
 <details class="source">
@@ -6288,6 +5634,8 @@ sets through the use of explicit keyword arguments.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class xSpacer(Gtk.HBox):
+
+    &#39;&#39;&#39;  An N pixel horizontal spacer. Defaults to X pix  get_center &#39;&#39;&#39;
 
     def __init__(self, sp = None):
         GObject.GObject.__init__(self)
@@ -6323,11 +5671,7 @@ sets through the use of explicit keyword arguments.</p></div>
 <span>(</span><span>col=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>:Constructors:</p>
-<p>::</p>
-<pre><code>VBox(**properties)
-new(homogeneous:bool, spacing:int) -&gt; Gtk.Widget
-</code></pre>
+<div class="desc"><p>Added convenience methods </p>
 <p>Initializer for a GObject based classes with support for property
 sets through the use of explicit keyword arguments.</p></div>
 <details class="source">
@@ -6335,6 +5679,8 @@ sets through the use of explicit keyword arguments.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class   xVBox(Gtk.VBox):
+
+    &#39;&#39;&#39;  Added convenience methods &#39;&#39;&#39;
 
     def __init__(self, col = None):
         GObject.GObject.__init__(self)
@@ -6407,11 +5753,8 @@ sets through the use of explicit keyword arguments.</p></div>
 <span>(</span><span>sp=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>:Constructors:</p>
-<p>::</p>
-<pre><code>VBox(**properties)
-new(homogeneous:bool, spacing:int) -&gt; Gtk.Widget
-</code></pre>
+<div class="desc"><p>An N pixel vertical spacer. Defaults to X pix
+get_center </p>
 <p>Initializer for a GObject based classes with support for property
 sets through the use of explicit keyword arguments.</p></div>
 <details class="source">
@@ -6419,6 +5762,8 @@ sets through the use of explicit keyword arguments.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ySpacer(Gtk.VBox):
+
+    &#39;&#39;&#39;  An N pixel vertical spacer. Defaults to X pix  get_center &#39;&#39;&#39;
 
     def __init__(self, sp = None):
         GObject.GObject.__init__(self)
@@ -6460,27 +5805,27 @@ sets through the use of explicit keyword arguments.</p></div>
 <ul id="index">
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="pggui.about" href="#pggui.about">about</a></code></li>
-<li><code><a title="pggui.find" href="#pggui.find">find</a></code></li>
+<li><code><a title="pggui.col2float" href="#pggui.col2float">col2float</a></code></li>
+<li><code><a title="pggui.col2str" href="#pggui.col2str">col2str</a></code></li>
+<li><code><a title="pggui.float2col" href="#pggui.float2col">float2col</a></code></li>
+<li><code><a title="pggui.float2str" href="#pggui.float2str">float2str</a></code></li>
 <li><code><a title="pggui.get_screen_wh" href="#pggui.get_screen_wh">get_screen_wh</a></code></li>
 <li><code><a title="pggui.get_screen_xy" href="#pggui.get_screen_xy">get_screen_xy</a></code></li>
 <li><code><a title="pggui.mainloop" href="#pggui.mainloop">mainloop</a></code></li>
-<li><code><a title="pggui.message" href="#pggui.message">message</a></code></li>
-<li><code><a title="pggui.opendialog" href="#pggui.opendialog">opendialog</a></code></li>
 <li><code><a title="pggui.randcol" href="#pggui.randcol">randcol</a></code></li>
 <li><code><a title="pggui.randcolstr" href="#pggui.randcolstr">randcolstr</a></code></li>
 <li><code><a title="pggui.register_stock_icons" href="#pggui.register_stock_icons">register_stock_icons</a></code></li>
 <li><code><a title="pggui.resp2str" href="#pggui.resp2str">resp2str</a></code></li>
-<li><code><a title="pggui.savedialog" href="#pggui.savedialog">savedialog</a></code></li>
+<li><code><a title="pggui.rgb2col" href="#pggui.rgb2col">rgb2col</a></code></li>
+<li><code><a title="pggui.rgb2str" href="#pggui.rgb2str">rgb2str</a></code></li>
 <li><code><a title="pggui.screen_dims_under_cursor" href="#pggui.screen_dims_under_cursor">screen_dims_under_cursor</a></code></li>
 <li><code><a title="pggui.set_gui_testmode" href="#pggui.set_gui_testmode">set_gui_testmode</a></code></li>
 <li><code><a title="pggui.set_testmode" href="#pggui.set_testmode">set_testmode</a></code></li>
+<li><code><a title="pggui.str2col" href="#pggui.str2col">str2col</a></code></li>
+<li><code><a title="pggui.str2float" href="#pggui.str2float">str2float</a></code></li>
 <li><code><a title="pggui.ubreed" href="#pggui.ubreed">ubreed</a></code></li>
 <li><code><a title="pggui.usleep" href="#pggui.usleep">usleep</a></code></li>
-<li><code><a title="pggui.version" href="#pggui.version">version</a></code></li>
 <li><code><a title="pggui.wrapscroll" href="#pggui.wrapscroll">wrapscroll</a></code></li>
-<li><code><a title="pggui.yes_no" href="#pggui.yes_no">yes_no</a></code></li>
-<li><code><a title="pggui.yes_no_cancel" href="#pggui.yes_no_cancel">yes_no_cancel</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

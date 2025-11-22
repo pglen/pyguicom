@@ -32,9 +32,11 @@
 # pylint: disable=C0209
 # pylint: disable=C0321
 
-import os, sys, getopt, string,  math
-import random, time, traceback, stat
-import platform, datetime
+import string, random, datetime
+
+#import os, sys, getopt, math
+#import time, traceback, stat
+#import platform
 
 # Add the new line twice for more balaced string
 
@@ -106,8 +108,24 @@ def simname(lenx):
     return strx
 
 def randisodate():
+
+    &#39;&#39;&#39; Give us a random date in iso str &#39;&#39;&#39;
+
     dd = datetime.datetime.now()
-    dd = dd.replace(microsecond=0)
+    while True:
+        try:
+            dd = dd.replace(year=random.randint(1980, 2050),
+                        month=random.randint(1, 12),
+                           day=random.randint(1, 31),
+                             hour=random.randint(0, 23),
+                                minute=random.randint(0, 59),
+                                    second=random.randint(0, 59),
+                                        microsecond=0)
+            break
+        except:
+            #print(&#34;inval&#34;, dd)
+            pass
+
     return dd.isoformat()
 
 def randate():
@@ -115,12 +133,33 @@ def randate():
     &#39;&#39;&#39; Give us a random date in str &#39;&#39;&#39;
 
     dd = datetime.datetime.now()
-    dd = dd.replace(year=random.randint(1980, 2024),
+    while True:
+        try:
+            dd = dd.replace(year=random.randint(1980, 2050),
                         month=random.randint(1, 12),
-                           day=random.randint(1, 28),
+                           day=random.randint(1, 31),
                              hour=0, minute=0, second=0, microsecond=0)
+            break
+        except:
+            pass
 
     return dd.strftime(&#34;%Y/%m/%d&#34;)
+
+def randtime():
+
+    dd = datetime.datetime.now()
+    while True:
+        try:
+            dd = dd.replace(
+                             hour=random.randint(0, 59),
+                                minute=random.randint(0, 59),
+                                    second=random.randint(0, 59),
+                                        microsecond=0)
+            break
+        except:
+            pass
+
+    return dd.strftime(&#34;%H:%M:%S&#34;)
 
 # ------------------------------------------------------------------------
 # Get random str
@@ -297,10 +336,15 @@ def randcolstr(start = 0, endd = 255):
     &#39;&#39;&#39; Give us a random date in str &#39;&#39;&#39;
 
     dd = datetime.datetime.now()
-    dd = dd.replace(year=random.randint(1980, 2024),
+    while True:
+        try:
+            dd = dd.replace(year=random.randint(1980, 2050),
                         month=random.randint(1, 12),
-                           day=random.randint(1, 28),
+                           day=random.randint(1, 31),
                              hour=0, minute=0, second=0, microsecond=0)
+            break
+        except:
+            pass
 
     return dd.strftime(&#34;%Y/%m/%d&#34;)</code></pre>
 </details>
@@ -357,14 +401,30 @@ def randcolstr(start = 0, endd = 255):
 <span>def <span class="ident">randisodate</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Give us a random date in iso str</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def randisodate():
+
+    &#39;&#39;&#39; Give us a random date in iso str &#39;&#39;&#39;
+
     dd = datetime.datetime.now()
-    dd = dd.replace(microsecond=0)
+    while True:
+        try:
+            dd = dd.replace(year=random.randint(1980, 2050),
+                        month=random.randint(1, 12),
+                           day=random.randint(1, 31),
+                             hour=random.randint(0, 23),
+                                minute=random.randint(0, 59),
+                                    second=random.randint(0, 59),
+                                        microsecond=0)
+            break
+        except:
+            #print(&#34;inval&#34;, dd)
+            pass
+
     return dd.isoformat()</code></pre>
 </details>
 </dd>
@@ -488,6 +548,32 @@ def randcolstr(start = 0, endd = 255):
     return strx</code></pre>
 </details>
 </dd>
+<dt id="pgtests.randtime"><code class="name flex">
+<span>def <span class="ident">randtime</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def randtime():
+
+    dd = datetime.datetime.now()
+    while True:
+        try:
+            dd = dd.replace(
+                             hour=random.randint(0, 59),
+                                minute=random.randint(0, 59),
+                                    second=random.randint(0, 59),
+                                        microsecond=0)
+            break
+        except:
+            pass
+
+    return dd.strftime(&#34;%H:%M:%S&#34;)</code></pre>
+</details>
+</dd>
 <dt id="pgtests.randupper"><code class="name flex">
 <span>def <span class="ident">randupper</span></span>(<span>lenx)</span>
 </code></dt>
@@ -585,6 +671,7 @@ def randcolstr(start = 0, endd = 255):
 <li><code><a title="pgtests.randphone" href="#pgtests.randphone">randphone</a></code></li>
 <li><code><a title="pgtests.randstr" href="#pgtests.randstr">randstr</a></code></li>
 <li><code><a title="pgtests.randstrrand" href="#pgtests.randstrrand">randstrrand</a></code></li>
+<li><code><a title="pgtests.randtime" href="#pgtests.randtime">randtime</a></code></li>
 <li><code><a title="pgtests.randupper" href="#pgtests.randupper">randupper</a></code></li>
 <li><code><a title="pgtests.simaddr" href="#pgtests.simaddr">simaddr</a></code></li>
 <li><code><a title="pgtests.simname" href="#pgtests.simname">simname</a></code></li>

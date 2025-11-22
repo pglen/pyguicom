@@ -4,10 +4,11 @@
 # pylint: disable=C0209
 # pylint: disable=C0321
 
-import string, random
+import string, random, datetime
+
 #import os, sys, getopt, math
 #import time, traceback, stat
-#import platform, datetime
+#import platform
 
 # Add the new line twice for more balaced string
 
@@ -79,8 +80,24 @@ def simname(lenx):
     return strx
 
 def randisodate():
+
+    ''' Give us a random date in iso str '''
+
     dd = datetime.datetime.now()
-    dd = dd.replace(microsecond=0)
+    while True:
+        try:
+            dd = dd.replace(year=random.randint(1980, 2050),
+                        month=random.randint(1, 12),
+                           day=random.randint(1, 31),
+                             hour=random.randint(0, 23),
+                                minute=random.randint(0, 59),
+                                    second=random.randint(0, 59),
+                                        microsecond=0)
+            break
+        except:
+            #print("inval", dd)
+            pass
+
     return dd.isoformat()
 
 def randate():
@@ -88,12 +105,33 @@ def randate():
     ''' Give us a random date in str '''
 
     dd = datetime.datetime.now()
-    dd = dd.replace(year=random.randint(1980, 2024),
+    while True:
+        try:
+            dd = dd.replace(year=random.randint(1980, 2050),
                         month=random.randint(1, 12),
-                           day=random.randint(1, 28),
+                           day=random.randint(1, 31),
                              hour=0, minute=0, second=0, microsecond=0)
+            break
+        except:
+            pass
 
     return dd.strftime("%Y/%m/%d")
+
+def randtime():
+
+    dd = datetime.datetime.now()
+    while True:
+        try:
+            dd = dd.replace(
+                             hour=random.randint(0, 59),
+                                minute=random.randint(0, 59),
+                                    second=random.randint(0, 59),
+                                        microsecond=0)
+            break
+        except:
+            pass
+
+    return dd.strftime("%H:%M:%S")
 
 # ------------------------------------------------------------------------
 # Get random str

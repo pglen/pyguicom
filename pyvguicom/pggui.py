@@ -1628,8 +1628,8 @@ def float2str(col):
     aa = min(col[0], 1.)
     bb = min(col[1], 1.)
     cc = min(col[2], 1.)
-    strx = "#%02x%02x%02x" % (aa * 256,  \
-                        bb * 256, cc * 256)
+    strx = "#%02x%02x%02x" % (int(aa * 256),  \
+                        int(bb * 256), int(cc * 256))
     return strx
 
 def col2float(col):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os, sys, getopt, signal, select, string, time
-import struct, stat, base64, random, zlib
+import struct, stat, base64, random, zlib, datetime
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -28,7 +28,7 @@ def test_randstrrand(arg2, arg3):
     print(rrr)
     arg3.set_text(rrr)
 
-def test_rand(arg2, arg3):
+def test_randascii(arg2, arg3):
     rrr = pgtests.randascii(12)
     print(rrr)
     arg3.set_text(rrr)
@@ -45,6 +45,11 @@ def test_rand3(arg2, arg3):
 
 def test_rand4(arg2, arg3):
     rrr = pgtests.randate()
+    print(rrr)
+    arg3.set_text(rrr)
+
+def test_rand4a(arg2, arg3):
+    rrr = pgtests.randtime()
     print(rrr)
     arg3.set_text(rrr)
 
@@ -77,7 +82,7 @@ if __name__ == "__main__":
     vbox = Gtk.VBox()
     hbox = Gtk.HBox()
 
-    lab1 = Gtk.Label(label="Test Label")
+    lab1 = Gtk.Label(label="Test Label: see results here")
     hbox.pack_start(lab1, 1, 1, 0)
     vbox.pack_start(hbox, 1, 1, 0)
 
@@ -89,8 +94,8 @@ if __name__ == "__main__":
     butt.connect("clicked", test_randstrrand, lab1)
     vbox.pack_start(butt, 0, 0, 2)
 
-    butt = Gtk.Button.new_with_mnemonic("Test Rand")
-    butt.connect("clicked", test_rand, lab1)
+    butt = Gtk.Button.new_with_mnemonic("Test Rand ASCII")
+    butt.connect("clicked", test_randascii, lab1)
     vbox.pack_start(butt, 0, 0, 2)
 
     butt = Gtk.Button.new_with_mnemonic("Test randisodate")
@@ -105,11 +110,15 @@ if __name__ == "__main__":
     butt.connect("clicked", test_rand4, lab1)
     vbox.pack_start(butt, 0, 0, 2)
 
+    butt = Gtk.Button.new_with_mnemonic("Test randtime")
+    butt.connect("clicked", test_rand4a, lab1)
+    vbox.pack_start(butt, 0, 0, 2)
+
     butt = Gtk.Button.new_with_mnemonic("Test randnumstr")
     butt.connect("clicked", test_rand5, lab1)
     vbox.pack_start(butt, 0, 0, 2)
 
-    butt = Gtk.Button.new_with_mnemonic("Test randemail")
+    butt = Gtk.Button.new_with_mnemonic("Test randemail adress")
     butt.connect("clicked", test_rand7, lab1)
     vbox.pack_start(butt, 0, 0, 2)
 

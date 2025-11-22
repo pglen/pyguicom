@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>pgutils API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="General utilities" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,17 +22,21 @@
 <h1 class="title">Module <code>pgutils</code></h1>
 </header>
 <section id="section-intro">
+<p>General utilities</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">#!/usr/bin/python
 
-# pylint: disable=C0103
-# pylint: disable=C0209
-# pylint: disable=C0321
+#pylint: disable=C0103
+#pylint: disable=C0209
+#pylint: disable=C0321
+#pylint: disable=C0116
 
-import os, sys, time, traceback
+&#39;&#39;&#39; General utilities &#39;&#39;&#39;
+
+import os, sys, time, traceback, stat
 
 #import getopt, string,  math
 #import random, traceback, stat, platform
@@ -62,56 +66,6 @@ def respath(fname):
     except:
         print (&#34;Cannot resolve path&#34;, fname, sys.exc_info())
     return None
-
-# ------------------------------------------------------------------------
-# Color conversions
-
-def str2col(strx):
-    ccc = str2float(strx)
-    return float2col(ccc)
-
-def str2float( col):
-    return ( float(int(col[1:3], base=16)) / 256,
-                    float(int(col[3:5], base=16)) / 256, \
-                        float(int(col[5:7], base=16)) / 256 )
-
-def float2col(col):
-    aa = min(col[0], 1.)
-    bb = min(col[1], 1.)
-    cc = min(col[2], 1.)
-    return Gdk.Color(aa * 65535, bb * 65535, cc * 65535)
-
-def float2str(col):
-    aa = min(col[0], 1.)
-    bb = min(col[1], 1.)
-    cc = min(col[2], 1.)
-    strx = &#34;#%02x%02x%02x&#34; % (aa * 256,  \
-                        bb * 256, cc * 256)
-    return strx
-
-def col2float(col):
-    rrr = [float(col.red) / 65535,
-            float(col.green) / 65535,
-                float(col.blue) / 65535]
-    return rrr
-
-def rgb2str(icol):
-    strx = &#34;#%02x%02x%02x&#34; % (int(icol.red) &amp; 0xff,  \
-                        int(icol.green) &amp; 0xff, int(icol.blue) &amp; 0xff)
-    return strx
-
-def col2str(icol):
-    strx = &#34;#%02x%02x%02x&#34; % (int(icol.red / 255),  \
-                        int(icol.green / 255), int(icol.blue / 255))
-    return strx
-
-def rgb2col(icol):
-    #print &#34;rgb2col&#34;, icol
-    col = [0, 0, 0]
-    col[0] = float(icol.red) / 256
-    col[1] = float(icol.green) / 256
-    col[2] = float(icol.blue) / 256
-    return col
 
 def put_debug2(xstr):
     try:
@@ -159,10 +113,9 @@ def decode_bits(numx):
 
     return retx
 
-# ------------------------------------------------------------------------
-# Remove non printables
-
 def clean_str(strx):
+
+    &#39;&#39;&#39; Remove non printables &#39;&#39;&#39;
 
     stry = &#34;&#34;
     for aa in range(len(strx)):
@@ -177,6 +130,7 @@ def clean_str(strx):
     return stry
 
 def clean_str2(strx):
+
     stry = &#34;&#34;
     skip = False
     for aa in range(len(strx)):
@@ -197,6 +151,7 @@ def clean_str2(strx):
 # This is crafted to Py2 so has clock with the same name
 
 start_time = time.clock()
+#start_time = get_time()
 
 def  get_time():
 
@@ -272,9 +227,9 @@ def oct2int(strx):
 # ------------------------------------------------------------------------
 # Convert unicode sequence to unicode char
 
-def uni(xtab):
+def uni(xtab2):
 
-    #print str.format(&#34;{0:b}&#34;,  xtab[0])
+    #print str.format(&#34;{0:b}&#34;,  xtab2[0])
     try:
         unichr
     except NameError:
@@ -282,31 +237,31 @@ def uni(xtab):
 
     cc = 0
     try:
-        if xtab[0] &amp; 0xe0 == 0xc0:  # two numbers
-            cc = (xtab[0] &amp; 0x1f) &lt;&lt; 6
-            cc += (xtab[1] &amp; 0x3f)
-        elif xtab[0] &amp; 0xf0 == 0xe0: # three numbers
-            cc = (xtab[0] &amp; 0x0f) &lt;&lt; 12
-            cc += (xtab[1] &amp; 0x3f) &lt;&lt; 6
-            cc += (xtab[2] &amp; 0x3f)
-        elif xtab[0] &amp; 0xf8 == 0xf0: # four numbers
-            cc = (xtab[0] &amp; 0x0e)  &lt;&lt; 18
-            cc += (xtab[1] &amp; 0x3f) &lt;&lt; 12
-            cc += (xtab[2] &amp; 0x3f) &lt;&lt; 6
-            cc += (xtab[3] &amp; 0x3f)
-        elif xtab[0] &amp; 0xfc == 0xf8: # five numbers
-            cc = (xtab[0] &amp; 0x03)  &lt;&lt; 24
-            cc += (xtab[1] &amp; 0x3f) &lt;&lt; 18
-            cc += (xtab[2] &amp; 0x3f) &lt;&lt; 12
-            cc += (xtab[3] &amp; 0x3f) &lt;&lt; 6
-            cc += (xtab[4] &amp; 0x3f)
-        elif xtab[0] &amp; 0xfe == 0xf8: # six numbers
-            cc = (xtab[0] &amp; 0x01)  &lt;&lt; 30
-            cc += (xtab[1] &amp; 0x3f) &lt;&lt; 24
-            cc += (xtab[2] &amp; 0x3f) &lt;&lt; 18
-            cc += (xtab[3] &amp; 0x3f) &lt;&lt; 12
-            cc += (xtab[4] &amp; 0x3f) &lt;&lt; 6
-            cc += (xtab[5] &amp; 0x3f)
+        if xtab2[0] &amp; 0xe0 == 0xc0:  # two numbers
+            cc = (xtab2[0] &amp; 0x1f) &lt;&lt; 6
+            cc += (xtab2[1] &amp; 0x3f)
+        elif xtab2[0] &amp; 0xf0 == 0xe0: # three numbers
+            cc = (xtab2[0] &amp; 0x0f) &lt;&lt; 12
+            cc += (xtab2[1] &amp; 0x3f) &lt;&lt; 6
+            cc += (xtab2[2] &amp; 0x3f)
+        elif xtab2[0] &amp; 0xf8 == 0xf0: # four numbers
+            cc = (xtab2[0] &amp; 0x0e)  &lt;&lt; 18
+            cc += (xtab2[1] &amp; 0x3f) &lt;&lt; 12
+            cc += (xtab2[2] &amp; 0x3f) &lt;&lt; 6
+            cc += (xtab2[3] &amp; 0x3f)
+        elif xtab2[0] &amp; 0xfc == 0xf8: # five numbers
+            cc = (xtab2[0] &amp; 0x03)  &lt;&lt; 24
+            cc += (xtab2[1] &amp; 0x3f) &lt;&lt; 18
+            cc += (xtab2[2] &amp; 0x3f) &lt;&lt; 12
+            cc += (xtab2[3] &amp; 0x3f) &lt;&lt; 6
+            cc += (xtab2[4] &amp; 0x3f)
+        elif xtab2[0] &amp; 0xfe == 0xf8: # six numbers
+            cc = (xtab2[0] &amp; 0x01)  &lt;&lt; 30
+            cc += (xtab2[1] &amp; 0x3f) &lt;&lt; 24
+            cc += (xtab2[2] &amp; 0x3f) &lt;&lt; 18
+            cc += (xtab2[3] &amp; 0x3f) &lt;&lt; 12
+            cc += (xtab2[4] &amp; 0x3f) &lt;&lt; 6
+            cc += (xtab2[5] &amp; 0x3f)
 
         ccc = unichr(cc)
     except:
@@ -349,24 +304,91 @@ def kill_non_ascii(strx):
 
     return str2
 
-# ------------------------------------------------------------------------
-# Unescape unicode into displayable sequence
-
 xtab = []; xtablen = 0
+
+def cescape(strx):
+
+    retx = &#34;&#34;; pos = 0; lenx = len(strx)
+    while True:
+        if pos &gt;= lenx:
+            break
+        chh = strx[pos]
+        #print(&#34;chh&#34;, chh, ord(chh))
+        was = False
+        if chh == &#39;\\&#39;:
+            #print(&#34;backslash&#34;)
+            if pos+1 &gt;= lenx:
+                break
+            elif strx[pos+1] == &#34;n&#34;:
+                retx += &#34;\n&#34;
+                was = True ; pos += 1
+            elif strx[pos+1] == &#34;r&#34;:
+                retx += &#34;\r&#34;
+                was = True ; pos += 1
+            elif strx[pos+1] == &#34;b&#34;:
+                retx += &#34;\b&#34;
+                was = True ; pos += 1
+            elif strx[pos+1] == &#34;a&#34;:
+                retx += &#34;\a&#34;
+                was = True ; pos += 1
+            elif strx[pos+1] == &#34;t&#34;:
+                retx += &#34;\t&#34;
+                was = True ; pos += 1
+            elif strx[pos+1] == &#34;&#39;&#34;:
+                retx += &#34;\&#39;&#34;
+                was = True ; pos += 1
+            elif strx[pos+1] == &#34;\\&#34;:
+                retx += &#34;\\&#34;
+                was = True ; pos += 1
+        if not was:
+            retx += chh
+        pos += 1
+
+    return retx
+
+def cunescape(strx):
+
+    retx = &#34;&#34;; pos = 0; lenx = len(strx)
+    while True:
+        if pos &gt;= lenx:
+            break
+        chh = strx[pos]
+        was = False
+        if chh == &#39;\n&#39;:
+                retx += &#34;\\n&#34;
+        elif chh == &#39;\r&#39;:
+                retx += &#34;\\r&#34;
+        elif chh == &#39;\a&#39;:
+                retx += &#34;\\a&#34;
+        elif chh == &#39;\&#39;&#39;:
+                retx += &#34;\\&#39;&#34;
+        elif chh == &#39;\&#34;&#39;:
+                retx += &#39;\\&#34;&#39;
+        elif chh == &#39;\\&#39;:
+                retx += &#34;\\\\&#34;
+        elif chh == &#39;\t&#39;:
+                retx += &#34;\\t&#34;
+        elif chh == &#39;\b&#39;:
+                retx += &#34;\\b&#34;
+        elif chh == &#39;\f&#39;:
+                retx += &#34;\\f&#34;
+        else:
+            retx += chh
+        pos += 1
+    return retx
 
 def unescape(strx):
 
     #print &#34; x[&#34; + strx + &#34;]x &#34;
+    &#39;&#39;&#39; Unescape unicode into displayable sequence &#39;&#39;&#39;
 
     global xtab, xtablen
-    retx = u&#34;&#34;; pos = 0; lenx = len(strx)
+    retx = &#34;&#34;; pos = 0; lenx = len(strx)
 
     while True:
         if pos &gt;= lenx:
             break
-
         chh = strx[pos]
-
         if chh == &#39;\\&#39;:
             #print &#34;backslash&#34;, strx[pos:]
             pos2 = pos + 1; strx2 = &#34;&#34;
@@ -490,7 +512,8 @@ def put_exception2_old(xstr):
 
 def hash_name(strx):
 
-    lenx = len(strx);  hashx = int(0)
+    #lenx = len(strx);
+    hashx = int(0)
     for aa in strx:
         bb = ord(aa)
         hashx +=  int((bb &lt;&lt; 12) + bb)
@@ -511,7 +534,7 @@ def untab_str(strx, tabstop = 4):
             # Generate string
             spaces = tabstop - (cnt % tabstop)
             ttt = &#34;&#34;
-            for aa in range(spaces):
+            for _ in range(spaces):
                 ttt += &#34; &#34;
             res += ttt
             cnt += spaces
@@ -651,7 +674,10 @@ def tmpname(indir, template):
             break
     return fname
 
-class Unbuffered(object):
+class Unbuffered():
+
+    &#39;&#39;&#39; Unbuffered std in / out &#39;&#39;&#39;
+
     def __init__(self, stream):
         self.stream = stream
 
@@ -676,7 +702,6 @@ def time_s2n(sss):
     rrr = time.strptime(sss)
     ttt = time.mktime(rrr)
     return ttt
-
 
 # ------------------------------------------------------------------------
 
@@ -732,8 +757,8 @@ if __name__ == &#39;__main__&#39;:
     return &#34;%02d %s&#34; % (bb, dd)</code></pre>
 </details>
 </dd>
-<dt id="pgutils.clean_str"><code class="name flex">
-<span>def <span class="ident">clean_str</span></span>(<span>strx)</span>
+<dt id="pgutils.cescape"><code class="name flex">
+<span>def <span class="ident">cescape</span></span>(<span>strx)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -741,7 +766,59 @@ if __name__ == &#39;__main__&#39;:
 <summary>
 <span>Expand source code</span>
 </summary>
+<pre><code class="python">def cescape(strx):
+
+    retx = &#34;&#34;; pos = 0; lenx = len(strx)
+    while True:
+        if pos &gt;= lenx:
+            break
+        chh = strx[pos]
+        #print(&#34;chh&#34;, chh, ord(chh))
+        was = False
+        if chh == &#39;\\&#39;:
+            #print(&#34;backslash&#34;)
+            if pos+1 &gt;= lenx:
+                break
+            elif strx[pos+1] == &#34;n&#34;:
+                retx += &#34;\n&#34;
+                was = True ; pos += 1
+            elif strx[pos+1] == &#34;r&#34;:
+                retx += &#34;\r&#34;
+                was = True ; pos += 1
+            elif strx[pos+1] == &#34;b&#34;:
+                retx += &#34;\b&#34;
+                was = True ; pos += 1
+            elif strx[pos+1] == &#34;a&#34;:
+                retx += &#34;\a&#34;
+                was = True ; pos += 1
+            elif strx[pos+1] == &#34;t&#34;:
+                retx += &#34;\t&#34;
+                was = True ; pos += 1
+            elif strx[pos+1] == &#34;&#39;&#34;:
+                retx += &#34;\&#39;&#34;
+                was = True ; pos += 1
+            elif strx[pos+1] == &#34;\\&#34;:
+                retx += &#34;\\&#34;
+                was = True ; pos += 1
+        if not was:
+            retx += chh
+        pos += 1
+
+    return retx</code></pre>
+</details>
+</dd>
+<dt id="pgutils.clean_str"><code class="name flex">
+<span>def <span class="ident">clean_str</span></span>(<span>strx)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Remove non printables</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def clean_str(strx):
+
+    &#39;&#39;&#39; Remove non printables &#39;&#39;&#39;
 
     stry = &#34;&#34;
     for aa in range(len(strx)):
@@ -766,6 +843,7 @@ if __name__ == &#39;__main__&#39;:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def clean_str2(strx):
+
     stry = &#34;&#34;
     skip = False
     for aa in range(len(strx)):
@@ -784,8 +862,8 @@ if __name__ == &#39;__main__&#39;:
     return stry</code></pre>
 </details>
 </dd>
-<dt id="pgutils.col2float"><code class="name flex">
-<span>def <span class="ident">col2float</span></span>(<span>col)</span>
+<dt id="pgutils.cunescape"><code class="name flex">
+<span>def <span class="ident">cunescape</span></span>(<span>strx)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -793,26 +871,36 @@ if __name__ == &#39;__main__&#39;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def col2float(col):
-    rrr = [float(col.red) / 65535,
-            float(col.green) / 65535,
-                float(col.blue) / 65535]
-    return rrr</code></pre>
-</details>
-</dd>
-<dt id="pgutils.col2str"><code class="name flex">
-<span>def <span class="ident">col2str</span></span>(<span>icol)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def col2str(icol):
-    strx = &#34;#%02x%02x%02x&#34; % (int(icol.red / 255),  \
-                        int(icol.green / 255), int(icol.blue / 255))
-    return strx</code></pre>
+<pre><code class="python">def cunescape(strx):
+
+    retx = &#34;&#34;; pos = 0; lenx = len(strx)
+    while True:
+        if pos &gt;= lenx:
+            break
+        chh = strx[pos]
+        was = False
+        if chh == &#39;\n&#39;:
+                retx += &#34;\\n&#34;
+        elif chh == &#39;\r&#39;:
+                retx += &#34;\\r&#34;
+        elif chh == &#39;\a&#39;:
+                retx += &#34;\\a&#34;
+        elif chh == &#39;\&#39;&#39;:
+                retx += &#34;\\&#39;&#34;
+        elif chh == &#39;\&#34;&#39;:
+                retx += &#39;\\&#34;&#39;
+        elif chh == &#39;\\&#39;:
+                retx += &#34;\\\\&#34;
+        elif chh == &#39;\t&#39;:
+                retx += &#34;\\t&#34;
+        elif chh == &#39;\b&#39;:
+                retx += &#34;\\b&#34;
+        elif chh == &#39;\f&#39;:
+                retx += &#34;\\f&#34;
+        else:
+            retx += chh
+        pos += 1
+    return retx</code></pre>
 </details>
 </dd>
 <dt id="pgutils.decode_bits"><code class="name flex">
@@ -837,40 +925,6 @@ if __name__ == &#39;__main__&#39;:
         mask &gt;&gt;= 1
 
     return retx</code></pre>
-</details>
-</dd>
-<dt id="pgutils.float2col"><code class="name flex">
-<span>def <span class="ident">float2col</span></span>(<span>col)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def float2col(col):
-    aa = min(col[0], 1.)
-    bb = min(col[1], 1.)
-    cc = min(col[2], 1.)
-    return Gdk.Color(aa * 65535, bb * 65535, cc * 65535)</code></pre>
-</details>
-</dd>
-<dt id="pgutils.float2str"><code class="name flex">
-<span>def <span class="ident">float2str</span></span>(<span>col)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def float2str(col):
-    aa = min(col[0], 1.)
-    bb = min(col[1], 1.)
-    cc = min(col[2], 1.)
-    strx = &#34;#%02x%02x%02x&#34; % (aa * 256,  \
-                        bb * 256, cc * 256)
-    return strx</code></pre>
 </details>
 </dd>
 <dt id="pgutils.get_realtime"><code class="name flex">
@@ -919,7 +973,8 @@ if __name__ == &#39;__main__&#39;:
 </summary>
 <pre><code class="python">def hash_name(strx):
 
-    lenx = len(strx);  hashx = int(0)
+    #lenx = len(strx);
+    hashx = int(0)
     for aa in strx:
         bb = ord(aa)
         hashx +=  int((bb &lt;&lt; 12) + bb)
@@ -1262,68 +1317,6 @@ if __name__ == &#39;__main__&#39;:
     return None</code></pre>
 </details>
 </dd>
-<dt id="pgutils.rgb2col"><code class="name flex">
-<span>def <span class="ident">rgb2col</span></span>(<span>icol)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def rgb2col(icol):
-    #print &#34;rgb2col&#34;, icol
-    col = [0, 0, 0]
-    col[0] = float(icol.red) / 256
-    col[1] = float(icol.green) / 256
-    col[2] = float(icol.blue) / 256
-    return col</code></pre>
-</details>
-</dd>
-<dt id="pgutils.rgb2str"><code class="name flex">
-<span>def <span class="ident">rgb2str</span></span>(<span>icol)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def rgb2str(icol):
-    strx = &#34;#%02x%02x%02x&#34; % (int(icol.red) &amp; 0xff,  \
-                        int(icol.green) &amp; 0xff, int(icol.blue) &amp; 0xff)
-    return strx</code></pre>
-</details>
-</dd>
-<dt id="pgutils.str2col"><code class="name flex">
-<span>def <span class="ident">str2col</span></span>(<span>strx)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def str2col(strx):
-    ccc = str2float(strx)
-    return float2col(ccc)</code></pre>
-</details>
-</dd>
-<dt id="pgutils.str2float"><code class="name flex">
-<span>def <span class="ident">str2float</span></span>(<span>col)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def str2float( col):
-    return ( float(int(col[1:3], base=16)) / 256,
-                    float(int(col[3:5], base=16)) / 256, \
-                        float(int(col[5:7], base=16)) / 256 )</code></pre>
-</details>
-</dd>
 <dt id="pgutils.time_n2s"><code class="name flex">
 <span>def <span class="ident">time_n2s</span></span>(<span>ttt)</span>
 </code></dt>
@@ -1385,7 +1378,7 @@ if __name__ == &#39;__main__&#39;:
 <span>def <span class="ident">unescape</span></span>(<span>strx)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Unescape unicode into displayable sequence</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1393,16 +1386,15 @@ if __name__ == &#39;__main__&#39;:
 <pre><code class="python">def unescape(strx):
 
     #print &#34; x[&#34; + strx + &#34;]x &#34;
+    &#39;&#39;&#39; Unescape unicode into displayable sequence &#39;&#39;&#39;
 
     global xtab, xtablen
-    retx = u&#34;&#34;; pos = 0; lenx = len(strx)
+    retx = &#34;&#34;; pos = 0; lenx = len(strx)
 
     while True:
         if pos &gt;= lenx:
             break
-
         chh = strx[pos]
-
         if chh == &#39;\\&#39;:
             #print &#34;backslash&#34;, strx[pos:]
             pos2 = pos + 1; strx2 = &#34;&#34;
@@ -1477,7 +1469,7 @@ if __name__ == &#39;__main__&#39;:
 </details>
 </dd>
 <dt id="pgutils.uni"><code class="name flex">
-<span>def <span class="ident">uni</span></span>(<span>xtab)</span>
+<span>def <span class="ident">uni</span></span>(<span>xtab2)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1485,9 +1477,9 @@ if __name__ == &#39;__main__&#39;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def uni(xtab):
+<pre><code class="python">def uni(xtab2):
 
-    #print str.format(&#34;{0:b}&#34;,  xtab[0])
+    #print str.format(&#34;{0:b}&#34;,  xtab2[0])
     try:
         unichr
     except NameError:
@@ -1495,31 +1487,31 @@ if __name__ == &#39;__main__&#39;:
 
     cc = 0
     try:
-        if xtab[0] &amp; 0xe0 == 0xc0:  # two numbers
-            cc = (xtab[0] &amp; 0x1f) &lt;&lt; 6
-            cc += (xtab[1] &amp; 0x3f)
-        elif xtab[0] &amp; 0xf0 == 0xe0: # three numbers
-            cc = (xtab[0] &amp; 0x0f) &lt;&lt; 12
-            cc += (xtab[1] &amp; 0x3f) &lt;&lt; 6
-            cc += (xtab[2] &amp; 0x3f)
-        elif xtab[0] &amp; 0xf8 == 0xf0: # four numbers
-            cc = (xtab[0] &amp; 0x0e)  &lt;&lt; 18
-            cc += (xtab[1] &amp; 0x3f) &lt;&lt; 12
-            cc += (xtab[2] &amp; 0x3f) &lt;&lt; 6
-            cc += (xtab[3] &amp; 0x3f)
-        elif xtab[0] &amp; 0xfc == 0xf8: # five numbers
-            cc = (xtab[0] &amp; 0x03)  &lt;&lt; 24
-            cc += (xtab[1] &amp; 0x3f) &lt;&lt; 18
-            cc += (xtab[2] &amp; 0x3f) &lt;&lt; 12
-            cc += (xtab[3] &amp; 0x3f) &lt;&lt; 6
-            cc += (xtab[4] &amp; 0x3f)
-        elif xtab[0] &amp; 0xfe == 0xf8: # six numbers
-            cc = (xtab[0] &amp; 0x01)  &lt;&lt; 30
-            cc += (xtab[1] &amp; 0x3f) &lt;&lt; 24
-            cc += (xtab[2] &amp; 0x3f) &lt;&lt; 18
-            cc += (xtab[3] &amp; 0x3f) &lt;&lt; 12
-            cc += (xtab[4] &amp; 0x3f) &lt;&lt; 6
-            cc += (xtab[5] &amp; 0x3f)
+        if xtab2[0] &amp; 0xe0 == 0xc0:  # two numbers
+            cc = (xtab2[0] &amp; 0x1f) &lt;&lt; 6
+            cc += (xtab2[1] &amp; 0x3f)
+        elif xtab2[0] &amp; 0xf0 == 0xe0: # three numbers
+            cc = (xtab2[0] &amp; 0x0f) &lt;&lt; 12
+            cc += (xtab2[1] &amp; 0x3f) &lt;&lt; 6
+            cc += (xtab2[2] &amp; 0x3f)
+        elif xtab2[0] &amp; 0xf8 == 0xf0: # four numbers
+            cc = (xtab2[0] &amp; 0x0e)  &lt;&lt; 18
+            cc += (xtab2[1] &amp; 0x3f) &lt;&lt; 12
+            cc += (xtab2[2] &amp; 0x3f) &lt;&lt; 6
+            cc += (xtab2[3] &amp; 0x3f)
+        elif xtab2[0] &amp; 0xfc == 0xf8: # five numbers
+            cc = (xtab2[0] &amp; 0x03)  &lt;&lt; 24
+            cc += (xtab2[1] &amp; 0x3f) &lt;&lt; 18
+            cc += (xtab2[2] &amp; 0x3f) &lt;&lt; 12
+            cc += (xtab2[3] &amp; 0x3f) &lt;&lt; 6
+            cc += (xtab2[4] &amp; 0x3f)
+        elif xtab2[0] &amp; 0xfe == 0xf8: # six numbers
+            cc = (xtab2[0] &amp; 0x01)  &lt;&lt; 30
+            cc += (xtab2[1] &amp; 0x3f) &lt;&lt; 24
+            cc += (xtab2[2] &amp; 0x3f) &lt;&lt; 18
+            cc += (xtab2[3] &amp; 0x3f) &lt;&lt; 12
+            cc += (xtab2[4] &amp; 0x3f) &lt;&lt; 6
+            cc += (xtab2[5] &amp; 0x3f)
 
         ccc = unichr(cc)
     except:
@@ -1547,7 +1539,7 @@ if __name__ == &#39;__main__&#39;:
             # Generate string
             spaces = tabstop - (cnt % tabstop)
             ttt = &#34;&#34;
-            for aa in range(spaces):
+            for _ in range(spaces):
                 ttt += &#34; &#34;
             res += ttt
             cnt += spaces
@@ -1591,12 +1583,15 @@ if __name__ == &#39;__main__&#39;:
 <span>(</span><span>stream)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Unbuffered std in / out</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Unbuffered(object):
+<pre><code class="python">class Unbuffered():
+
+    &#39;&#39;&#39; Unbuffered std in / out &#39;&#39;&#39;
+
     def __init__(self, stream):
         self.stream = stream
 
@@ -1655,13 +1650,11 @@ if __name__ == &#39;__main__&#39;:
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="two-column">
 <li><code><a title="pgutils.ampmstr" href="#pgutils.ampmstr">ampmstr</a></code></li>
+<li><code><a title="pgutils.cescape" href="#pgutils.cescape">cescape</a></code></li>
 <li><code><a title="pgutils.clean_str" href="#pgutils.clean_str">clean_str</a></code></li>
 <li><code><a title="pgutils.clean_str2" href="#pgutils.clean_str2">clean_str2</a></code></li>
-<li><code><a title="pgutils.col2float" href="#pgutils.col2float">col2float</a></code></li>
-<li><code><a title="pgutils.col2str" href="#pgutils.col2str">col2str</a></code></li>
+<li><code><a title="pgutils.cunescape" href="#pgutils.cunescape">cunescape</a></code></li>
 <li><code><a title="pgutils.decode_bits" href="#pgutils.decode_bits">decode_bits</a></code></li>
-<li><code><a title="pgutils.float2col" href="#pgutils.float2col">float2col</a></code></li>
-<li><code><a title="pgutils.float2str" href="#pgutils.float2str">float2str</a></code></li>
 <li><code><a title="pgutils.get_realtime" href="#pgutils.get_realtime">get_realtime</a></code></li>
 <li><code><a title="pgutils.get_time" href="#pgutils.get_time">get_time</a></code></li>
 <li><code><a title="pgutils.hash_name" href="#pgutils.hash_name">hash_name</a></code></li>
@@ -1677,10 +1670,6 @@ if __name__ == &#39;__main__&#39;:
 <li><code><a title="pgutils.put_exception2_old" href="#pgutils.put_exception2_old">put_exception2_old</a></code></li>
 <li><code><a title="pgutils.readfile" href="#pgutils.readfile">readfile</a></code></li>
 <li><code><a title="pgutils.respath" href="#pgutils.respath">respath</a></code></li>
-<li><code><a title="pgutils.rgb2col" href="#pgutils.rgb2col">rgb2col</a></code></li>
-<li><code><a title="pgutils.rgb2str" href="#pgutils.rgb2str">rgb2str</a></code></li>
-<li><code><a title="pgutils.str2col" href="#pgutils.str2col">str2col</a></code></li>
-<li><code><a title="pgutils.str2float" href="#pgutils.str2float">str2float</a></code></li>
 <li><code><a title="pgutils.time_n2s" href="#pgutils.time_n2s">time_n2s</a></code></li>
 <li><code><a title="pgutils.time_s2n" href="#pgutils.time_s2n">time_s2n</a></code></li>
 <li><code><a title="pgutils.tmpname" href="#pgutils.tmpname">tmpname</a></code></li>
