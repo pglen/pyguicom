@@ -200,6 +200,10 @@ class Canvas(Gtk.DrawingArea):
 
     def __init__(self, parent, statbox = None, config = None):
         Gtk.DrawingArea.__init__(self)
+
+        if config.verbose:
+            print(config)
+
         self.statbox = statbox
         self.parewin = parent
         self.set_can_focus(True)
@@ -479,6 +483,8 @@ class Canvas(Gtk.DrawingArea):
                     for aa in self.coll:
                         if aa.selected:
                             cnt += 1
+                    if cnt == 0:
+                       bb.selected = True
 
                     mms = ("Alignment",
                             "Align Left","Align Right",

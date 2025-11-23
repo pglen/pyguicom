@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import warnings
+
 import gi; gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk
 from gi.repository import GObject
@@ -84,9 +86,29 @@ def canv_colsel(oldcol, title):
     csd.destroy()
     return pggui.col2float(color)
 
+class   Tablex(Gtk.Table):
+
+    def __init__(self):
+        super(Tablex, self).__init__()
+        warnings.simplefilter("ignore")
+        self.set_col_spacings(4); self.set_row_spacings(4)
+        warnings.simplefilter("default")
+        self.col = 0; self.row = 0
+
+    def add(self, widg, width = 1):
+        warnings.simplefilter("ignore")
+        self.attach(widg, self.col, self.col + width, self.row,
+                self.row + width, Gtk.AttachOptions.FILL,
+                    Gtk.AttachOptions.FILL, width, width);
+        warnings.simplefilter("default")
+        self.col += 1
+
+    def newrow(self):
+        self.row += 1 ; self.col = 0
+
 def propdlg(objectx, parent = None):
 
-    print("propdlg()", objectx)
+    #print("propdlg()", objectx)
 
     dialog = Gtk.Dialog(title="Object Properties", modal = True)
     dialog.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT,
@@ -98,6 +120,18 @@ def propdlg(objectx, parent = None):
 
     # Spacers
     label1 = Gtk.Label(label="   ");  label2 = Gtk.Label(label="   ")
+    row = 0
+    dtab = Tablex();
+    texts = []
+    labels = ["Text", "Tooltip", "Hello"]
+    for aa in range(3):
+        texts.append(Gtk.Entry())
+        dtab.add(pggui.Label(labels[row]))
+        dtab.add(texts[row])
+        dtab.newrow()
+        row += 1
+
+    dialog.get_content_area().pack_start(dtab, 0, 0, 4)
 
     dialog.show_all()
     response = dialog.run()

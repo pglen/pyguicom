@@ -5,7 +5,6 @@
 # pylint: disable=C0321
 
 import string, random, datetime
-
 import os, sys, getopt, math
 
 import gi
@@ -18,6 +17,7 @@ from gi.repository import Pango
 
 sys.path.append(".")
 
+import comline
 import pgcanv
 
 '''
@@ -62,11 +62,11 @@ def tbc(arg1, arg2):
     pass
 
 def callb(arg1):
-    print("ExitStrip:", arg1.cnt)
+    #print("ExitStrip:", arg1.cnt)
     if arg1.cnt == 2:
         sys.exit(0)
 
-if __name__ == "__main__":
+def mainfunc(conf):
 
     w = Gtk.Window()
     w.set_size_request(800, 600)
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     hbox.pack_start(pgcanv.ToolBox(tbc, w), 0, 0, 0)
     vbox.pack_start(hbox, 0, 0, 4)
 
-    canv = pgcanv.Canvas(w)
+    canv = pgcanv.Canvas(w, config=config)
     vbox.pack_start(canv, 1, 1, 0)
 
     statcall = pgcanv.StatusBar(w, "Idle.")
@@ -91,5 +91,21 @@ if __name__ == "__main__":
     w.add(vbox)
     w.show_all()
     Gtk.main()
+
+optx =  \
+[  # option - longname - action - type - defval - help
+  ("d", "debug",     "=",    int,   0,   "Debug level (0-9) default=0", ),
+  ("f", "fname",     "=",    str,   "untitled", "Filename for out data. defval: untitled"),
+  ("t", "trace",     "=",    str,   "None", "Trace flag string.",),
+  ("v", "verbose",   "+",    int,   0,   "Increase verbosity level.",),
+  ("V", "version",   "b",    bool,  False,   "Show version.",),
+]
+
+if __name__ == '__main__':
+
+    import comparse
+    config = comparse.parse(sys.argv, optx)
+    #print(config)
+    mainfunc(config)
 
 # EOF
