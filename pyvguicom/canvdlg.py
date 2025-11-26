@@ -10,16 +10,12 @@ from gi.repository import Pango
 from gi.repository import cairo
 
 import pggui
+import pgbutt
 import pgtests
 
 def textdlg(oldtext = "", parent = None):
 
-    #warnings.simplefilter("ignore")
-
     #print("textdlg()", oldtext)
-
-    #Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-
     dialog = Gtk.Dialog(title="Get text", modal = True)
     dialog.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT,
                             Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT)
@@ -38,16 +34,7 @@ def textdlg(oldtext = "", parent = None):
     entry = Gtk.Entry();
     entry.set_text(oldtext)
     #warnings.simplefilter("default")
-
     entry.set_activates_default(True)
-
-    #if  self2.oldgoto == "":
-    #    self2.oldgoto = pedconfig.conf.sql.get_str("goto")
-    #    if  self2.oldgoto == None:
-    #        self2.oldgoto = ""
-    #
-    #entry.set_text(self2.oldgoto)
-
     entry.set_width_chars(24)
     dialog.vbox.pack_start(label4, 0, 0, 0)
 
@@ -75,16 +62,22 @@ def textdlg(oldtext = "", parent = None):
 
 def canv_colsel(oldcol, title):
 
-    csd = Gtk.ColorSelectionDialog(title)
+    #print ("oldcol", oldcol)
+    csd = Gtk.ColorSelectionDialog(title=title)
     col = csd.get_color_selection()
-    #col.set_current_color(pggui.float2col(oldcol))
+    warnings.simplefilter("ignore")
+    col.set_current_color(pggui.float2col(oldcol))
+    warnings.simplefilter("default")
     response = csd.run()
-    color = 0
+    color = oldcol
+    csd.destroy()
     if response == Gtk.ResponseType.OK:
         color = col.get_current_color()
-        #print ("color", color)
-    csd.destroy()
-    return pggui.col2float(color)
+        col = pggui.col2float(color)
+    else:
+        col = oldcol
+    #print ("new color", col)
+    return col
 
 class   Tablex(Gtk.Table):
 
@@ -108,7 +101,7 @@ class   Tablex(Gtk.Table):
 
 def propdlg(objectx, parent = None):
 
-    #print("propdlg()", objectx)
+    print("propdlg()", objectx[0].dump())
 
     dialog = Gtk.Dialog(title="Object Properties", modal = True)
     dialog.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT,
@@ -130,14 +123,35 @@ def propdlg(objectx, parent = None):
         dtab.add(texts[row])
         dtab.newrow()
         row += 1
+    def callb(arg1):
+        if arg1.cnt == 1:
+            col1 = pggui.float2str(objectx[0].col1)
+            col1 = canv_colsel(0, "FG Color")
+            for aa in objectx:
+                if aa.selected:
+                    aa.col1 = col1
+
+        if arg1.cnt == 2:
+            col2 = pggui.float2str(objectx[0].col2)
+            col2 = canv_colsel(0, "BG Color")
+            for aa in objectx:
+                if aa.selected:
+                    aa.col2 = col2
+
+    hbox2 = Gtk.HBox()
+    sb1 = pgbutt.smallbutt("Foreground Color", callb) ; sb1.cnt = 1
+    sb2 = pgbutt.smallbutt("background Color", callb) ; sb2.cnt = 2
+
+    hbox2.pack_start(sb1, 0, 0, 4)
+    hbox2.pack_start(sb2, 0, 0, 4)
 
     dialog.get_content_area().pack_start(dtab, 0, 0, 4)
+    dialog.get_content_area().pack_start(hbox2, 0, 0, 4)
 
     dialog.show_all()
     response = dialog.run()
     #gotxt = entry.get_text()
     dialog.destroy()
-
 
 # EOF
 

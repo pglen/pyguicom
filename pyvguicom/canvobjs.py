@@ -43,7 +43,7 @@ class DrawObj(object):
         self.groupid = 0
         self.pgroupid = 0
         self.orgdrag = ()
-        self.other = []
+        self.others = []
         self.mouse = pggui.Rectangle()
         globzorder = globzorder + 1
         self.zorder = globzorder
@@ -63,13 +63,13 @@ class DrawObj(object):
 
         return (self.id, self.text, self.type, str(self.zorder),
                     str(self.groupid), rect2.dump(),
-                        str(col1), str(col2), self.other)
+                        str(col1), str(col2), self.others)
 
     def __str__(self):
         return str(
                 (
                 self.id, "[" + self.text + "]", self.type, str(self.zorder),
-                    str(self.groupid), str(self.rect), str(self.other))
+                    str(self.groupid), str(self.rect), str(self.others))
              )
 
     def expand_size(self, self2):
@@ -337,7 +337,8 @@ class TextObj(DrawObj):
 
             self2.crh.set_source_rgb(self.col2);
             self.fd.set_family("Arial")
-            self.fd.set_size(self.rect.h * Pango.SCALE);
+            sss = max(self.rect.h, 6)
+            self.fd.set_size(sss * Pango.SCALE)
 
             self.pangolayout = self2.create_pango_layout("a")
             self.pangolayout.set_font_description(self.fd)
@@ -550,6 +551,5 @@ class StrokeObj(DrawObj):
 
     def center(self):
         return (self.rect.x, self.rect.y)
-
 
 # eof

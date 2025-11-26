@@ -201,7 +201,8 @@ class Canvas(Gtk.DrawingArea):
     def __init__(self, parent, statbox = None, config = None):
         Gtk.DrawingArea.__init__(self)
 
-        if config.verbose:
+        self.config = config
+        if self.config.verbose:
             print(config)
 
         self.statbox = statbox
@@ -239,8 +240,8 @@ class Canvas(Gtk.DrawingArea):
         self.fname = "untitled.ped"
 
     def area_key(self, area, event):
-        #if pedconfig.conf.pgdebug > 2:
-        #    print ("area_key", event.keyval)
+        if self.config.debug > 6:
+            print ("area_key", event.keyval)
         if event.keyval == Gdk.KEY_Delete or event.keyval == Gdk.KEY_KP_Delete:
             #print("Del key")
             for bb in self.coll:
@@ -250,12 +251,12 @@ class Canvas(Gtk.DrawingArea):
             self.queue_draw()
 
         if event.keyval == Gdk.KEY_Up:
-            #if pedconfig.conf.pgdebug > 2:
+            #if self.config.debug > 6:
             #    print("UP key")
             pass
 
         if event.keyval == Gdk.KEY_Down:
-            #if pedconfig.conf.pgdebug > 2:
+            #if self.config.debug > 6:
             #        print("DN key")
             pass
 
@@ -462,7 +463,9 @@ class Canvas(Gtk.DrawingArea):
 
                 if not hitx:
                     self.noop_down = True
+                    warnings.simplefilter("ignore")
                     gdk_window = self.get_root_window()
+                    warnings.simplefilter("default")
                     gdk_window.set_cursor(self.hair)
 
                     # Turn on draw
@@ -491,31 +494,31 @@ class Canvas(Gtk.DrawingArea):
                             "Align Top","Align Buttom",
                             "Align Mid X","Align Mid Y",)
                     warnings.simplefilter("ignore")
-                    sss = pggui.Menu(mms, self.menu_sss, event, True)
+                    align = pggui.Menu(mms, self.menu_align, event, True)
                     warnings.simplefilter("default")
 
                     mmz = ( "Z-Order",
                             "To Front","To Back",
                             "One forward","One Backward",)
                     warnings.simplefilter("ignore")
-                    zzz = pggui.Menu(mmz, self.menu_zzz, event, True)
+                    zord = pggui.Menu(mmz, self.menu_zord, event, True)
                     warnings.simplefilter("default")
 
                     ccs = ( "Connect",
-                            "Connect Objects (Reg)", "Connect Objects (Yes)",
-                            "Connect Objects (No)", "Disconnect Objects",)
+                            "Connect Objects", "Connect Objects (arrow ->)",
+                            "Connect Objects (arrow <-)", "Disconnect Objects",)
 
-                    ccc = pggui.Menu(ccs, self.menu_ccc, event, True)
+                    cmenu = pggui.Menu(ccs, self.menu_connect, event, True)
 
                     if cnt > 1:
-                        mmm = ("Multiple Selection", "Properties", ccc,
-                         "Group Objects", "Ungroup Objects", sss, zzz)
+                        mmm = ("Multiple Selection", "Properties", cmenu,
+                         "Group Objects", "Ungroup Objects", align, zord)
                         warnings.simplefilter("ignore")
                         pggui.Menu(mmm, self.menu_action, event)
                         warnings.simplefilter("default")
                     else:
                         mmm = (bb.text, "Object Properties", "Text",
-                                "FG Color", "BG Color", "Ungroup", "Delete", zzz)
+                                "FG Color", "BG Color", "Ungroup", "Delete", zord)
                         warnings.simplefilter("ignore")
                         pggui.Menu(mmm, self.menu_action2, event)
                         warnings.simplefilter("default")
@@ -562,8 +565,7 @@ class Canvas(Gtk.DrawingArea):
                     self.fname = fname
                     self.writeout()
                     pass
-                #pedconfig.conf.pedwin.mywin.set_title("pyedpro: " + self.fname)
-
+                #self.set_title("pyedpro: " + self.fname)
         win.destroy()
 
     def file_dlg(self, resp):
@@ -580,16 +582,16 @@ class Canvas(Gtk.DrawingArea):
             fc.connect("response", self.done_fc)
             fc.run()
 
-    def menu_ccc(self, item, num):
+    def menu_connect(self, item, num):
         print ("Connect", item, num)
-        if num == 1:
-            #print ("Conn obj", item, num)
+        if num >= 1 and num <= 3:
+            print ("Conn obj", item, num)
             ccc = []
             for aa in self.coll:
                 if aa.selected:
                     ccc.append(aa)
             for aa in ccc[1:]:
-                ccc[0].other.append(aa.id)
+                ccc[0].others.append((aa.id, num))
 
         if num == 4:
             ccc = []
@@ -600,15 +602,17 @@ class Canvas(Gtk.DrawingArea):
             if len(ccc) == 2:
                 #print("Please select two objects to disconnect")
                 print("disconnecting", ccc[0].text, ccc[1].text)
-                try:    ccc[0].other.remove(ccc[1].id)
+                try:
+                    #ccc[0].others.remove(ccc[1].id)
+                    ccc[0].others = []
                 except: pass
             else:
                 for dd in ccc:
-                    dd.other = []
+                    dd.others = []
 
             self.queue_draw()
 
-    def menu_zzz(self, item, num):
+    def menu_zord(self, item, num):
 
         #print ("Z order", item, num)
         global globzorder
@@ -629,7 +633,7 @@ class Canvas(Gtk.DrawingArea):
 
         self.queue_draw()
 
-    def menu_sss(self, item, num):
+    def menu_align(self, item, num):
             print ("Align", item, num)
 
     def menu_action(self, item, num):
@@ -647,15 +651,17 @@ class Canvas(Gtk.DrawingArea):
                 self.show_status("Property dialog: Nothing selected")
 
         # Group
-        if num == 2:
+        if num == 3:
             global globgroup
             globgroup += 1
+            print("Group", globgroup)
             for aa in self.coll:
                 if aa.selected:
                     aa.groupid = globgroup
 
         # Ungroup
-        if num == 3:
+        if num == 4:
+            print("unGroup", globgroup)
             for aa in self.coll:
                 if aa.selected:
                     for bb in self.coll:
@@ -700,14 +706,22 @@ class Canvas(Gtk.DrawingArea):
                     self.queue_draw()
 
         if num == 3:
-            ccc = canvdlg.canv_colsel(0, "Foreground Color")
+            colx = None
+            for aa in self.coll:
+                if aa.selected:
+                    colx = aa
+            ccc = canvdlg.canv_colsel(colx.col2, "Foreground Color")
             for aa in self.coll:
                 if aa.selected:
                     aa.col2 = ccc
             self.queue_draw()
 
         if num == 4:
-            ccc = canvdlg.canv_colsel(0, "Background Color")
+            colx = None
+            for aa in self.coll:
+                if aa.selected:
+                    colx = aa
+            ccc = canvdlg.canv_colsel(colx.col1, "Background Color")
             for aa in self.coll:
                 if aa.selected:
                     aa.col1 = ccc
@@ -742,7 +756,7 @@ class Canvas(Gtk.DrawingArea):
         if num == 2:
             rstr = pgtests.randstr(6)
             coord = pggui.Rectangle(self.mouse.x, self.mouse.y, 120, 120)
-            self.add_rect(coord, rstr, pggui.randcolstr())
+            self.add_rect(coord, rstr, "#0000000") # pggui.randcolstr())
 
         if num == 3:
             rstr = pgtests.randstr(6)
@@ -755,9 +769,9 @@ class Canvas(Gtk.DrawingArea):
             self.add_circle(coord, rstr, pggui.randcolstr())
 
         if num == 5:
-            rstr = pgtests.randstr(6)
+            rstr = "Edit text here ... " # pgtests.randstr(6)
             coord = pggui.Rectangle(self.mouse.x, self.mouse.y, 40, 40)
-            self.add_text(coord, rstr, pggui.randcolstr())
+            self.add_text(coord, rstr, "#000000") # pggui.randcolstr())
 
         if num == 6:
             rstr = pgtests.randstr(6)
@@ -865,7 +879,7 @@ class Canvas(Gtk.DrawingArea):
                 obj.id = aa[0]
                 obj.zorder = int(aa[3])
                 obj.groupid = int(aa[4])
-                obj.other  = list(aa[8])
+                obj.others  = list((aa[8], 1))
 
     # Add rectangle to collection of objects
     def add_rect(self, coord, text, crf, crb = "#ffffff", border = 2, fill = False):
@@ -919,8 +933,31 @@ class Canvas(Gtk.DrawingArea):
         self.queue_draw()
         return rob
 
-    def draw_event(self, doc, cr):
+    def calc_angle(self, aac, bbc):
 
+        dd = bbc[1] - aac[1] ; ee = bbc[0] - aac[0]
+        try:
+            rat = abs(dd / ee)
+        except:
+            # Fake infinity
+            rat  = 1000
+        atan  = math.atan(rat)
+        deg = math.degrees(atan)
+        #print("dd:", dd, "ee:", ee, "deg: %0.2f" % deg)
+
+        # Determine quadrant
+        base = 0
+        if ee < 0 and dd < 0:
+            base = 180 + deg
+        elif ee < 0:
+            base = 90 + (90 - deg)
+        elif dd < 0:
+            base = 270 + (90 - deg)
+        else:
+            base = deg
+        return base
+
+    def draw_event(self, doc, cr):
         #print ("Painting .. ", self.cnt)
         self.cnt += 1
         ctx = self.get_style_context()
@@ -941,14 +978,43 @@ class Canvas(Gtk.DrawingArea):
         # Draw connections
         cr.set_source_rgba(55/255, 55/255, 55/255)
         for aa in self.coll:
-            for cc in aa.other:
+            for cc, dd in aa.others:
                 for bb in self.coll:
                     if cc == bb.id:
-                        #print("connect draw", aa.text, bb.text)
+                        #print("connect draw", aa.text, bb.text, dd)
                         aac = aa.center()
                         cr.move_to(aac[0], aac[1])
                         bbc = bb.center()
                         cr.line_to(bbc[0], bbc[1])
+                        cent = (aac[0] + bbc[0]) / 2, (aac[1] + bbc[1]) / 2
+                        if dd == 1:
+                            pass
+                        elif dd == 2:
+                            #print("Arrow left")
+                            deg = self.calc_angle(aac, bbc)
+                            #print("deg: %0.2f" % deg )
+                            #cr.set_source_rgba(0/255, 0/255, 0/255)
+                            cr.move_to(*cent)
+                            rads = math.radians(deg - 70)
+                            cr.line_to(cent[0] + 24 * (math.sin(rads)),
+                                       cent[1] - 24 * (math.cos(rads)) )
+                            cr.move_to(*cent)
+                            rads = math.radians(deg - 110)
+                            cr.line_to(cent[0] + 24 * (math.sin(rads)),
+                                       cent[1] - 24 * (math.cos(rads)) )
+                        elif dd == 3:
+                            #print("Arrow right")
+                            deg = self.calc_angle(aac, bbc)
+                            #print("deg: %0.2f" % deg )
+                            #cr.set_source_rgba(0/255, 0/255, 0/255)
+                            cr.move_to(*cent)
+                            rads = math.radians(deg - 70)
+                            cr.line_to(cent[0] - 24 * (math.sin(rads)),
+                                       cent[1] + 24 * (math.cos(rads)) )
+                            cr.move_to(*cent)
+                            rads = math.radians(deg - 110)
+                            cr.line_to(cent[0] - 24 * (math.sin(rads)),
+                                       cent[1] + 24 * (math.cos(rads)) )
                         cr.stroke()
 
         #for aa in self.coll:
@@ -973,7 +1039,6 @@ class Canvas(Gtk.DrawingArea):
                 self.cr.line_to(aa, bb)
             init += 1
         self.cr.stroke()
-
 
 def set_canv_testmode(flag):
     global canv_testmode

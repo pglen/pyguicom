@@ -40,7 +40,6 @@ class smallbutt(Gtk.EventBox):
         self.add(self.lab)
         self.set_above_child(True)
 
-
         warnings.simplefilter("ignore")
         self.arrow  =  Gdk.Cursor(Gdk.CursorType.ARROW)
         self.hand   =  Gdk.Cursor(Gdk.CursorType.HAND1)
@@ -211,7 +210,6 @@ class smallbutt(Gtk.EventBox):
         if self.down:
             cr.move_to(1, 1)
             PangoCairo.show_layout(cr, self.layout)
-
 
         if self.mnem:
             #print("corr", self.chary.width, self.chary.height)
