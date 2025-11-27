@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
-import signal, os, time, sys, subprocess, platform
-import ctypes, datetime, sqlite3, warnings, math, pickle
-
-#from six.moves import range
+import os, time, sys, datetime, warnings, math, pickle
 
 import gi; gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk
@@ -16,13 +13,20 @@ gi.require_version('PangoCairo', '1.0')
 from gi.repository import PangoCairo
 
 import pggui
+import pgdlgs
 import canvdlg
-
-from canvobjs import *
-
 import pgtests
+import canvobjs
+
+piclename = "outline.pickle"
+untitled = "untitled.ped"
+signon = "PGCANV Version 1.0\n"
 
 canv_testmode = 0
+
+def set_canv_testmode(flag):
+    global canv_testmode
+    canv_testmode = flag
 
 class StatusBar(Gtk.VBox):
 
@@ -41,11 +45,11 @@ class StatusBar(Gtk.VBox):
 
         self.add(self.hbox)
 
-    def set_text(self, text):
+    def set_status_text(self, text):
         self.text.set_text(text)
         if self.tout:
             GLib.source_remove(self.tout)
-        self.tout = GLib.timeout_add(500 + len(text) * 100, self.idlecall)
+        self.tout = GLib.timeout_add(500 + len(text) * 200, self.idlecall)
 
     def idlecall(self):
         #print("Idle")
@@ -125,11 +129,6 @@ class ToolBox(Gtk.VBox):
         #vbox.add(self.hbox2)
         self.add(vbox)
 
-        '''openbtn = Gtk.ToolButton(Gtk.STOCK_OPEN)
-        self.insert(openbtn, 0)
-        self.show_all()
-        '''
-
     def callb2(self, arg1, arg2):
 
         ''' Internal callback '''
@@ -202,9 +201,9 @@ class Canvas(Gtk.DrawingArea):
         Gtk.DrawingArea.__init__(self)
 
         self.config = config
-        if self.config.verbose:
+        if self.config.verbose > 2:
             print(config)
-
+        self.changed = False
         self.statbox = statbox
         self.parewin = parent
         self.set_can_focus(True)
@@ -236,8 +235,7 @@ class Canvas(Gtk.DrawingArea):
         self.curve =  Gdk.Cursor(Gdk.CursorType.TARGET)
         self.pencil =  Gdk.Cursor(Gdk.CursorType.PENCIL)
         warnings.simplefilter("default")
-
-        self.fname = "untitled.ped"
+        self.fname = untitled
 
     def area_key(self, area, event):
         if self.config.debug > 6:
@@ -264,11 +262,12 @@ class Canvas(Gtk.DrawingArea):
 
     def show_status(self, strx):
         if self.statcall:
-            self.statcall.set_text(strx)
+            self.statcall.set_status_text(strx)
 
     def area_motion(self, area, event):
         #print ("motion event", event.state, event.x, event.y)
         if self.drag:
+            self.changed = True
             gdk_window = self.get_root_window()
             gdk_window.set_cursor(self.hand)
             #print ("drag coord", self.dragcoord[0],  self.dragcoord[1], event.x, event.y)
@@ -350,6 +349,14 @@ class Canvas(Gtk.DrawingArea):
                 self.stroke.append((int(event.x), int(event.y)))
                 self.queue_draw()
 
+    def findsel(self):
+        cc = None
+        for bb in self.coll:
+            if bb.selected:
+                cc = bb
+                break
+        return cc
+
     def area_button(self, area, event):
 
         self.grab_focus()
@@ -365,8 +372,17 @@ class Canvas(Gtk.DrawingArea):
         # GTK Does not send mod clicks
         #if event.state & Gdk.ModifierType.MOD1_MASK:
         #    print( "ALT ButPress x =", event.x, "y =", event.y)
-        #if  event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS:
-        #    print("DBL click", event.button)
+
+        if  event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS:
+            cc = self.findsel()
+            print("DBL click", event.button, cc)
+            response, txt = canvdlg.textdlg(cc.text, self.get_toplevel())
+            if response == Gtk.ResponseType.ACCEPT:
+                #print("Got text", txt)
+                cc.text = txt
+                self.queue_draw()
+            self.drag = None
+            return
 
         if  event.type == Gdk.EventType.BUTTON_RELEASE:
             self.curl = None
@@ -377,7 +393,7 @@ class Canvas(Gtk.DrawingArea):
                 self.drawline = False
                 self.show_status("Added freehand line.")
                 rstr = "" #randstr(6)
-                coord = pggui.Rectangle(stroke_dims(self.stroke))
+                coord = pggui.Rectangle(canvobjs.stroke_dims(self.stroke))
                 self.add_stroke(coord, rstr, pggui.randcolstr(), arr = self.stroke)
                 self.stroke = []
             self.get_root_window().set_cursor(self.arrow)
@@ -525,62 +541,42 @@ class Canvas(Gtk.DrawingArea):
 
                     self.queue_draw()
                 else:
-                    mmm = ("Main Menu", "Dump Objects", "Add Rectangle",
-                                "Add Rombus", "Add Circle", "Add Text", "Add Line",
-                                    "Save Objects", "Load Objects", "-", "Clear Canvas", "-",
-                                        "Export",  "-", "Open", "-", "Save", "Save As")
+
+                    #"-", "Load Objects", "Persist Objects",
+                    # "Export Image", "Dump Objects",
+
+                    mmm = ("Main Menu", "Add Rectangle", "Add Text",
+                        "Add Rombus", "Add Circle", "Add Line",
+                        "-", "Clear Canvas",
+                        "-", "Open", "Save", "Save As")
                     warnings.simplefilter("ignore")
                     pggui.Menu(mmm, self.menu_action3, event)
                     warnings.simplefilter("default")
             else:
                 print("??? click", event.button)
 
-    def writeout(self):
-        print( "writeout", self.fname)
+    def writeout(self, fnamex):
+
+        if not self.changed:
+            self.show_status("Not changed: %s" % os.path.basename(fnamex))
+            return
+
+        if self.config.verbose:
+            print("Saving to:", fnamex)
         sum = []
+        ff = open(fnamex, "wb")
+        sum = []
+        pickle.dump(signon, ff)
+        pickle.dump(len(self.coll), ff)
         for aa in self.coll:
-            sum.append(aa.dump())
-        ff = open(self.fname, "wb")
-        pickle.dump(sum, ff)
+            try:
+                pickle.dump(aa, ff)
+            except:
+                print(aa, sys.exc_info())
+
         ff.close()
-
-    def done_fc(self, win, resp):
-        #print( "done_fc", win, resp)
-        if resp == Gtk.ResponseType.OK:
-            fname = win.get_filename()
-            if not fname:
-                print("Must have filename")
-            else:
-                if os.path.isfile(fname):
-                    resp = pedync.yes_no_cancel("Overwrite File Prompt",
-                                "Overwrite existing file?\n '%s'" % fname, False)
-                    print("resp", resp)
-                    if resp == Gtk.ResponseType.YES:
-                        self.fname = fname
-                        self.writeout()
-                        self.mained.update_statusbar("Saved under new filename '%s'" % fname)
-                    else:
-                        self.mained.update_statusbar("No new file name supplied, cancelled 'Save As'")
-                else:
-                    self.fname = fname
-                    self.writeout()
-                    pass
-                #self.set_title("pyedpro: " + self.fname)
-        win.destroy()
-
-    def file_dlg(self, resp):
-        #print "File dialog"
-        if resp == Gtk.ResponseType.YES:
-            but =   "Cancel", Gtk.ResponseType.CANCEL,   \
-                            "Save File", Gtk.ResponseType.OK
-            fc = Gtk.FileChooserDialog("Save file as ... ", None,
-                    Gtk.FileChooserAction.SAVE, but)
-            #fc.set_do_overwrite_confirmation(True)
-            fc.set_current_name(os.path.basename(self.fname))
-            fc.set_current_folder(os.path.dirname(self.fname))
-            fc.set_default_response(Gtk.ResponseType.OK)
-            fc.connect("response", self.done_fc)
-            fc.run()
+        self.show_status("Written: %s" % os.path.basename(fnamex))
+        self.changed = False
 
     def menu_connect(self, item, num):
         print ("Connect", item, num)
@@ -615,12 +611,12 @@ class Canvas(Gtk.DrawingArea):
     def menu_zord(self, item, num):
 
         #print ("Z order", item, num)
-        global globzorder
+        #global globzorder
         if num == 1:
             for aa in self.coll:
                 if aa.selected:
-                    globzorder = globzorder + 1
-                    aa.zorder = globzorder
+                    canvobjs.globzorder = canvobjs.globzorder + 1
+                    aa.zorder = canvobjs.globzorder
                     break
 
         if num == 2:
@@ -744,65 +740,55 @@ class Canvas(Gtk.DrawingArea):
                     self.coll.remove(bb)
             self.queue_draw()
 
-
     def menu_action3(self, item, num):
 
-        #print("menu action ", item, num)
+        if self.config.verbose > 2:
+            print("menu action3 ", item, num)
 
-        if num == 1:
+        if "Dump" in item:
             for aa in self.coll:
                 print(aa.dump())
 
-        if num == 2:
+        elif "Rect" in item:
             rstr = pgtests.randstr(6)
             coord = pggui.Rectangle(self.mouse.x, self.mouse.y, 120, 120)
             self.add_rect(coord, rstr, "#0000000") # pggui.randcolstr())
 
-        if num == 3:
+        elif "Romb" in item:
             rstr = pgtests.randstr(6)
             coord = pggui.Rectangle(self.mouse.x, self.mouse.y, 120, 120)
             self.add_romb(coord, rstr, pggui.randcolstr())
 
-        if num == 4:
+        elif "Circ" in item:
             rstr = pgtests.randstr(6)
             coord = pggui.Rectangle(self.mouse.x, self.mouse.y, 70, 70)
             self.add_circle(coord, rstr, pggui.randcolstr())
 
-        if num == 5:
-            rstr = "Edit text here ... " # pgtests.randstr(6)
-            coord = pggui.Rectangle(self.mouse.x, self.mouse.y, 40, 40)
+        elif "Text" in item:
+            rstr = "Edit text here ... "
+            coord = pggui.Rectangle(self.mouse.x, self.mouse.y, 16, 16)
             self.add_text(coord, rstr, "#000000") # pggui.randcolstr())
 
-        if num == 6:
+        elif "Line" in item:
             rstr = pgtests.randstr(6)
             coord = pggui.Rectangle(self.mouse.x, self.mouse.y, 40, 40)
             self.add_line(coord, rstr, pggui.randcolstr())
 
-        if num == 7:
-            fff = "outline.pickle"
-            #print("Saving to:", fff)
-            sum = []
-            for aa in self.coll:
-                sum.append(aa.dump())
-            ff = open(fff, "wb")
-            pickle.dump(sum, ff)
-            ff.close()
+        elif "Load" in item:
+            self.readfile(piclename)
 
-        if num == 8:
-            fff = "outline.pickle"
-            #print("Loading:", fff)
-            self.readfile(fff)
+        elif "Persist" in item:
+            self.writeout(piclename)
 
-        if num == 9:
-            pass
-
-        if num == 10:
+        elif "Clear" in item:
             # Clear canvas
             self.coll = []
             self.queue_draw()
 
-        if num == 11:
-            # crate PNG
+        elif "Export" in item:
+            print("Export")
+
+            # Create PNG
             for aa in self.coll:
                 aa.selected = False
             self.queue_draw()
@@ -820,120 +806,135 @@ class Canvas(Gtk.DrawingArea):
             pixbuf = Gdk.pixbuf_get_from_surface(cr.get_target(), 0, 0, rect.width, rect.height)
             pixbuf.savev("buff.png", "png", [None], [])
 
-        if num == 12:
-            print("Export")
+        elif "Open" in item:
+            if self.config.verbose:
+                print("Open")
+            self.open()
 
-        if num == 14:
-            #print("Open")
-            filter =  Gtk.FileFilter.new()
-            filter.add_pattern("*.ped"); filter.set_name("PED files (*.ped)")
-            filter2 =  Gtk.FileFilter.new()
-            filter2.add_pattern("*.*"); filter2.set_name("ALL files (*.*)")
-            filters = (filter2, filter)
-            ofn = OpenFname(self.parewin.get_toplevel(), filters)
-            fff = ofn.run()
-            if not fff.fc_code:
+        elif "Save" in item:
+            if self.config.verbose:
+                print("Save")
+            self.save()
+
+        elif "Save As" in item:
+            if self.config.verbose:
+                print("Save As")
+                #fff = pgdlgs.savedialog(self.fname)
+        else:
+            print("Invalid menu item")
+
+    def save(self):
+        if self.fname == untitled:
+            fnamex = pgdlgs.savedialog(self.fname)
+            if not fnamex:
                 return
-            print("Open filename", fff.fname)
+            self.fname = fnamex
 
-            # Clear canvas
-            self.coll = []
-            self.queue_draw()
+        self.writeout(self.fname)
 
-            self.readfile(fff.fname)
+    def open(self):
+        if self.config.verbose:
+            print("Open")
+        filter =  [ ("*.ped", "PED files (*.ped)"),
+                    ("*.*", "ALL files (*.*)"),
+                  ]
+        fff = pgdlgs.opendialog(filter=filter)
+        if not fff:
+            return
 
-        if num == 16:
-            #print("Save")
-            if self.fname == "untitled.ped":
-                fff = self.file_dlg(Gtk.ResponseType.YES)
-            else:
-                self.writeout()
-
-        if num == 17:
-            #print("Save As")
-            fff = self.file_dlg(Gtk.ResponseType.YES)
+        if self.config.verbose:
+            print("Open filename:", fff)
+        # Clear canvas and load
+        self.coll = []
+        self.queue_draw()
+        self.readfile(fff)
+        self.fname = fff
+        self.queue_draw()
 
     def show_objects(self):
         for aa in self.coll:
             print ("GUI Object", aa)
 
-    def readfile(self, fname):
-        ff = open(fname, "rb")
-        sum2  = pickle.load(ff)
+    def readfile(self, fnamex):
+        ff = open(fnamex, "rb")
+        sig = pickle.load(ff)
+        try:
+            if "PGCANV" not in sig:
+                raise ValueError
+        except:
+            self.show_status("Not a valid pgcanv file: '%s'" % os.path.basename(fnamex))
+            ff.close()
+            return
+        aa = pickle.load(ff)
+        for aa in range(aa):
+            try:
+                aa = pickle.load(ff)
+            except:
+                break
+            self.coll.append(aa)
         ff.close()
-        #print(sum2)
-
-        for aa in sum2:
-            obj = None
-            rectx = pggui.Rectangle(aa[5])
-            if aa[2] == "Rect":
-                obj = self.add_rect(rectx, aa[1], aa[7], aa[6])
-            if aa[2] == "Circ":
-                obj = self.add_circle(rectx, aa[1], aa[7], aa[6])
-            if aa[2] == "Text":
-                obj = self.add_text(rectx, aa[1], aa[7], aa[6])
-            if aa[2] == "Romb":
-                obj = self.add_romb(rectx, aa[1], aa[7], aa[6])
-
-            if obj:
-                obj.id = aa[0]
-                obj.zorder = int(aa[3])
-                obj.groupid = int(aa[4])
-                obj.others  = list((aa[8], 1))
+        self.show_status("Loaded: '%s'" % os.path.basename(fnamex))
+        self.queue_draw()
 
     # Add rectangle to collection of objects
     def add_rect(self, coord, text, crf, crb = "#ffffff", border = 2, fill = False):
         col1 = pggui.str2float(crb);    col2 = pggui.str2float(crf)
-        rob = RectObj(coord, text, col1, col2, border, fill)
+        rob = canvobjs.RectObj(coord, text, col1, col2, border, fill)
         self.coll.append(rob)
         self.queue_draw()
         self.show_status("Added rectangle")
+        self.changed = True
         return rob
 
     def add_line(self, coord, text, crf, crb = "#ffffff", border = 2, fill = False):
         col1 = pggui.str2float(crb);    col2 = pggui.str2float(crf)
-        rob = LineObj(coord, text, col1, col2, border, fill)
+        rob = canvobjs.LineObj(coord, text, col1, col2, border, fill)
         self.coll.append(rob)
         self.queue_draw()
+        self.changed = True
         return rob
 
     def add_curve(self, coord, text, crf, crb = "#ffffff", border = 2, fill = False):
         col1 = pggui.str2float(crb);    col2 = pggui.str2float(crf)
-        rob = CurveObj(coord, text, col1, col2, border, fill)
+        rob = canvobjs.CurveObj(coord, text, col1, col2, border, fill)
         self.coll.append(rob)
         self.queue_draw()
+        self.changed = True
         return rob
 
-    def add_text(self, coord, text, crf, crb = "#ffffff", border = 2, fill = False):
-        col1 = pggui.str2float(crb);    col2 = pggui.str2float(crf)
-        rob = TextObj(coord, text, col1, col2, border, fill)
-
+    def add_text(self, coord, text, crf, crb="#ffffff", border=2, fill=False):
+        col1 = pggui.str2float(crb);  col2 = pggui.str2float(crf)
+        rob = canvobjs.TextObj(coord, text, col1, col2, border, fill)
         self.coll.append(rob)
         self.queue_draw()
+        self.changed = True
         return rob
 
     def add_circle(self, coord, text, crf, crb = "#ffffff", border = 2, fill = False):
         col1 = pggui.str2float(crb);    col2 = pggui.str2float(crf)
-        rob = CircObj(coord, text, col1, col2, border, fill)
+        rob = canvobjs.CircObj(coord, text, col1, col2, border, fill)
         self.coll.append(rob)
         self.queue_draw()
+        self.changed = True
         return rob
 
     def add_stroke(self, coord, text, crf, crb = "#ffffff", border = 2, fill = False, arr = []):
         col1 = pggui.str2float(crb);    col2 = pggui.str2float(crf)
-        rob = StrokeObj(coord, text, col1, col2, border, fill, arr)
+        rob = canvobjs.StrokeObj(coord, text, col1, col2, border, fill, arr)
         self.coll.append(rob)
         self.queue_draw()
+        self.changed = True
         return rob
 
     def add_romb(self, coord, text, crf, crb = "#ffffff", border = 2, fill = False):
         col1 = pggui.str2float(crb);    col2 = pggui.str2float(crf)
-        rob = RombObj(coord, text, col1, col2, border, fill)
+        rob = canvobjs.RombObj(coord, text, col1, col2, border, fill)
         self.coll.append(rob)
         self.queue_draw()
+        self.changed = True
         return rob
 
-    def calc_angle(self, aac, bbc):
+    def _calc_angle(self, aac, bbc):
 
         dd = bbc[1] - aac[1] ; ee = bbc[0] - aac[0]
         try:
@@ -991,7 +992,7 @@ class Canvas(Gtk.DrawingArea):
                             pass
                         elif dd == 2:
                             #print("Arrow left")
-                            deg = self.calc_angle(aac, bbc)
+                            deg = self._calc_angle(aac, bbc)
                             #print("deg: %0.2f" % deg )
                             #cr.set_source_rgba(0/255, 0/255, 0/255)
                             cr.move_to(*cent)
@@ -1004,7 +1005,7 @@ class Canvas(Gtk.DrawingArea):
                                        cent[1] - 24 * (math.cos(rads)) )
                         elif dd == 3:
                             #print("Arrow right")
-                            deg = self.calc_angle(aac, bbc)
+                            deg = self._calc_angle(aac, bbc)
                             #print("deg: %0.2f" % deg )
                             #cr.set_source_rgba(0/255, 0/255, 0/255)
                             cr.move_to(*cent)
@@ -1039,9 +1040,5 @@ class Canvas(Gtk.DrawingArea):
                 self.cr.line_to(aa, bb)
             init += 1
         self.cr.stroke()
-
-def set_canv_testmode(flag):
-    global canv_testmode
-    canv_testmode = flag
 
 # EOF

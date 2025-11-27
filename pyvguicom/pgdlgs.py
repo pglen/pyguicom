@@ -16,7 +16,7 @@ from gi.repository import GObject
 from gi.repository import Pango
 from gi.repository import GdkPixbuf
 
-def opendialog(parent=None):
+def opendialog(parent=None, filter=[]):
 
     # We create an array, so it is passed around by reference
     fname = [""]
@@ -49,9 +49,17 @@ def opendialog(parent=None):
          action=Gtk.FileChooserAction.OPEN )
     fc.add_buttons(*buts)
     filters = []
-    filters.append(makefilter("*.*", "All files (*.*)"))
-    filters.append(makefilter("*.html", "HTML files (*.html)"))
-    filters.append(makefilter("*.txt", "Text files (*.txt)"))
+
+    if not filter:
+        #filters.append(makefilter("*.mup", "MarkUp files (*.py)"))
+        filters.append(makefilter("*.*", "All files (*.*)"))
+    else:
+        for aa, bb in filter:
+            filters.append(makefilter(aa, bb))
+
+    #filters.append(makefilter("*.*", "All files (*.*)"))
+    #filters.append(makefilter("*.html", "HTML files (*.html)"))
+    #filters.append(makefilter("*.txt", "Text files (*.txt)"))
 
     if filters:
         for aa in filters:
@@ -66,9 +74,11 @@ def opendialog(parent=None):
     #print("OFD2", fname[0])
     return fname[0]
 
-def savedialog(resp):
+def savedialog(resp, filter = []):
 
-    #print "File dialog"
+    ''' Filter format: '''
+
+    #print "File save dialog"
     fname = [""]   # So it is passed around as a reference
 
     def makefilter(mask, name):
@@ -94,12 +104,13 @@ def savedialog(resp):
     fc.add_buttons(*but)
     #fc.set_do_overwrite_confirmation(True)
     filters = []
-    filters.append(makefilter("*.mup", "MarkUp files (*.py)"))
-    filters.append(makefilter("*.*", "All files (*.*)"))
 
-    if filters:
-        for aa in filters:
-            fc.add_filter(aa)
+    if not filter:
+        #filters.append(makefilter("*.mup", "MarkUp files (*.py)"))
+        filters.append(makefilter("*.*", "All files (*.*)"))
+    else:
+        for aa, bb in filter:
+            filters.append(makefilter.add_filter(aa, bb))
 
     fc.set_current_name(os.path.basename(fname[0]))
     fc.set_current_folder(os.path.dirname(fname[0]))
@@ -107,16 +118,6 @@ def savedialog(resp):
     fc.connect("response", done_fc, fname)
     fc.run()
     return fname[0]
-
-'''
-for a in (style.base, style.fg, style.bg,
-      style.light, style.dark, style.mid,
-      style.text, style.base, style.text_aa):
-for st in (gtk.STATE_NORMAL, gtk.STATE_INSENSITIVE,
-           gtk.STATE_PRELIGHT, gtk.STATE_SELECTED,
-           gtk.STATE_ACTIVE):
-    a[st] = gtk.gdk.Color(0, 34251, 0)
-'''
 
 def version():
     return VERSION

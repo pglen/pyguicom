@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-import signal, os, time, sys, subprocess, platform
-import ctypes, datetime, sqlite3, warnings, math, pickle
+import os, time, sys, datetime, warnings, math
+#import signal, subprocess, platform, ctypes, sqlite3,
 
 import gi; gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk
@@ -174,19 +174,6 @@ class RectObj(DrawObj):
 
         cr.set_line_width(1);
 
-    #def hittest(self, rectx):
-    #    inte = rectx.intersect(self.rect)
-    #    return inte[0]
-
-    '''def hitmarker(self, rectx):
-        ret = False
-        for aa in range(len(self.mx)):
-            if self.mx[aa]:
-                if rectx.intersect(self.mx[aa])[0]:
-                    ret = aa
-                    break
-        return ret
-    '''
     def center(self):
         return (self.rect.x + self.rect.w / 2, self.rect.y + self.rect.h / 2)
 
@@ -229,20 +216,6 @@ class LineObj(DrawObj):
             cr.move_to(self.rect.x + xxx, self.rect.y + yyy)
             PangoCairo.show_layout(cr, self2.layout)'''
 
-    #def hittest(self, rectx):
-    #    inte = rectx.intersect(self.rect)
-    #    #print("intersect", inte, "rectx", str(rectx), str(self.rect))
-    #    return inte[0]
-
-    '''def hitmarker(self, rectx):
-        ret = False
-        for aa in self.mx:
-            if aa:
-                if rectx.intersect(aa)[0]:
-                    ret = True
-                    break
-        return ret
-    '''
     def center(self):
         return (self.rect.x + self.rect.w / 2, self.rect.y + self.rect.h / 2)
 
@@ -290,11 +263,6 @@ class CurveObj(DrawObj):
             self2.crh.rectangle(self.crect)
             cr.stroke()
 
-    #def hittest(self, rectx):
-    #    inte = rectx.intersect(self.rect)
-    #    #print("intersect", inte, "rectx", str(rectx), str(self.rect))
-    #    return inte[0]
-
     def hitmarker(self, rectx):
         ret = 0
         ret = super(CurveObj, self).hitmarker(rectx)
@@ -320,7 +288,8 @@ class TextObj(DrawObj):
 
         self.mx = [0, 0, 0, 0]      # side markers
         self.rsize = 12             # Marker size
-        self.fd = Pango.FontDescription()
+        self.family =  ("Arial")
+        self.fsize = 12
         self.txx = 0
         self.tyy = 0
         self.type = "Text"
@@ -335,37 +304,28 @@ class TextObj(DrawObj):
 
         if self.text:
 
+            fd = Pango.FontDescription()
             self2.crh.set_source_rgb(self.col2);
-            self.fd.set_family("Arial")
-            sss = max(self.rect.h, 6)
-            self.fd.set_size(sss * Pango.SCALE)
+            fd.set_family
+            self.fsize = max(self.rect.h, 6)
+            fd.set_size(self.fsize * Pango.SCALE)
 
-            self.pangolayout = self2.create_pango_layout("a")
-            self.pangolayout.set_font_description(self.fd)
-            self.pangolayout.set_text(self.text, len(self.text))
-            self.txx, self.tyy = self.pangolayout.get_pixel_size()
+            pangolayout = self2.create_pango_layout("a")
+            pangolayout.set_font_description(fd)
+            pangolayout.set_text(self.text, len(self.text))
+            self.txx, self.tyy = pangolayout.get_pixel_size()
 
             self2.crh.set_source_rgb(self.col2);
             cr.move_to(self.rect.x, self.rect.y)
-            PangoCairo.show_layout(cr, self.pangolayout)
+            PangoCairo.show_layout(cr, pangolayout)
 
     def hittest(self, rectx):
         recttxt = pggui.Rectangle(self.rect.x, self.rect.y, self.txx, self.tyy)
         inte = rectx.intersect(recttxt)
         return inte[0]
 
-    '''def hitmarker(self, rectx):
-        ret = False
-        for aa in self.mx:
-            if aa:
-                if rectx.intersect(aa)[0]:
-                    ret = True
-                    break
-        return ret
-    '''
     def center(self):
         return (self.rect.x + self.txx / 2, self.rect.y + self.tyy / 2)
-
 
 class RombObj(DrawObj):
 
@@ -382,16 +342,6 @@ class RombObj(DrawObj):
         #    rect = pggui.Rectangle(aa[1][0], aa[1][1], aa[1][2], aa[1][2])
         inte = rectx.intersect(self.rect)
         return inte[0]
-
-    '''def hitmarker(self, rectx):
-        ret = False
-        for aa in self.mx:
-            if aa:
-                if rectx.intersect(aa)[0]:
-                    ret = True
-                    break
-        return ret
-    '''
 
     def draw(self, cr, self2):
 
@@ -435,15 +385,6 @@ class CircObj(DrawObj):
         inte = rectx.intersect(rectc)
         return inte[0]
 
-    '''def hitmarker(self, rectx):
-        ret = False
-        for aa in self.mx:
-            if aa:
-                if rectx.intersect(aa)[0]:
-                    ret = True
-                    break
-        return ret
-    '''
     def draw(self, cr, self2):
 
         self2.crh.set_source_rgb(self.col1)
@@ -510,10 +451,6 @@ class StrokeObj(DrawObj):
         # Convert to relative coords
         for aa, bb in arr:
             self.arr.append((aa - rect[0], bb - rect[1]))
-
-    #def hittest(self, rectx):
-    #    inte = rectx.intersect(self.rect)
-    #    return inte[0]
 
     def draw(self, cr, self2):
 

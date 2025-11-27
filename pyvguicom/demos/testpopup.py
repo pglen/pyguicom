@@ -13,11 +13,11 @@ from gi.repository import Pango
 
 sys.path.append(".")
 
-warnings.simplefilter("default")
-
 import pgbutt
 import pggui
 import pgtests
+
+warnings.simplefilter("default")
 
 class testWin(Gtk.Window):
 
@@ -58,7 +58,7 @@ class testWin(Gtk.Window):
 
     def testone(self, arg1):
         self.base.cnt = 0
-        GLib.timeout_add(500, self.popone)
+        GLib.timeout_add(300, self.popone)
 
     def popone(self):
         sss = "%d " % self.base.cnt + pgtests.randstrrand(26, 148)

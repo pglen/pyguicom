@@ -19,15 +19,7 @@ sys.path.append(".")
 
 import comline
 import pgcanv
-
-'''
-    def onsave(self, arg1):
-        print("Onsave")
-    def onopen(self, arg1):
-        print("Onopen")
-    def OnExit(self, arg1):
-        print("Onexit")
-'''
+import pgdlgs
 
 class ExitStrip(Gtk.HBox):
 
@@ -62,16 +54,42 @@ def tbc(arg1, arg2):
     pass
 
 def callb(arg1):
+
     #print("ExitStrip:", arg1.cnt)
+    global canv
+
+    if arg1.cnt == 0:
+        #print("Load")
+        canv.open()
+    if arg1.cnt == 1:
+        #print("Save")
+        canv.save()
     if arg1.cnt == 2:
+        #print("Exit")
+        if canv.changed:
+            ret = pgdlgs.yes_no_cancel("Save File?",
+                                title="File changed.", default="Yes")
+            if ret == Gtk.ResponseType.YES:
+                canv.save()
+            elif ret == Gtk.ResponseType.NO:
+                pass
+            else:
+                return
         sys.exit(0)
 
 def mainfunc(conf):
+
+    global canv
 
     w = Gtk.Window()
     w.set_size_request(800, 600)
     w.set_position(Gtk.WindowPosition.CENTER)
     w.connect("destroy", Gtk.main_quit)
+    try:
+        w.set_icon_from_file("images/canv.png")
+    except:
+        #print(sys.exc_info())
+        pass
 
     vbox = Gtk.VBox()
     hbox = Gtk.HBox()
@@ -87,6 +105,11 @@ def mainfunc(conf):
     canv.statcall = statcall
     estrip = ExitStrip(callb)
     statcall.hbox.pack_start(estrip, 0, 0, 0)
+
+    if config.xargs:
+        #print("Loading:", config.xargs[0])
+        canv.readfile(config.xargs[0])
+        canv.fname = config.xargs[0]
 
     w.add(vbox)
     w.show_all()
@@ -105,7 +128,8 @@ if __name__ == '__main__':
 
     import comparse
     config = comparse.parse(sys.argv, optx)
-    #print(config)
+    if config.verbose > 2:
+        print(config)
     mainfunc(config)
 
 # EOF

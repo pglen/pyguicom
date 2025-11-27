@@ -108,7 +108,7 @@ class MainWin(Gtk.Window):
         #self.connect("button-press-event", self.button_press_event)
 
         try:
-            self.set_icon_from_file("icon.png")
+            self.set_icon_from_file("images/icon.png")
         except:
             pass
 
@@ -393,7 +393,7 @@ class MainWin(Gtk.Window):
         #print("OnExit", win)
         resp = None
         if self.editor.is_modified():
-            resp = pggui.yes_no_cancel("File modified",
+            resp = pgdlgs.yes_no_cancel("File modified",
             "Save file? \n\n '%s' \n" % self.filename, False)
             if resp == Gtk.ResponseType.YES:
                 #print("saving")

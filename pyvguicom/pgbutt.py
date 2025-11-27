@@ -229,4 +229,63 @@ class smallbutt(Gtk.EventBox):
 
         cr.stroke()
 
+class PopBase(Gtk.Window):
+
+    def __init__(self, parent):
+        self.parent = parent
+        self.curr = 0
+        self.cnt = 0
+        self.poparr = []
+
+    def submit(self, strx, tout):
+        pw = PopWin(strx[:64], self)
+        self.poparr.append(pw)
+        self.cnt += 1
+
+class PopWin(Gtk.Window):
+
+    def __init__(self, labelx, base, tout = 3000):
+
+        self.base = base
+        self.tout = tout
+
+        super(PopWin, self).__init__()
+
+        self.set_transient_for(self.base.parent)
+        self.set_decorated(False)
+        self.set_skip_pager_hint(True)
+        self.set_skip_taskbar_hint(True)
+        self.set_accept_focus(False)
+
+        self.label = Gtk.Label.new(labelx)
+        self.frame = Gtk.Frame()
+        self.vbox = Gtk.VBox()
+        self.hbox = Gtk.HBox()
+        self.hbox.pack_start(self.label, 0, 0, 8)
+        self.vbox.pack_start(self.hbox, 0, 0, 8)
+        self.frame.add(self.vbox)
+        self.add(self.frame)
+        self.connect("map-event", self.mapped)
+        self.tout = GLib.timeout_add(tout, self.remove)
+        self.show_all()
+
+    def remove(self):
+        self.base.poparr.remove(self)
+        self.destroy()
+
+    def mapped(self, arg1, arg2):
+        xx, yy = self.base.parent.get_position()
+        ww, hh = self.base.parent.get_size()
+        www, hhh = self.get_size()
+        # Push old windows UP
+        old = 0
+        for aa in self.base.poparr:
+            it = aa.get_position() ; ss = aa.get_size()
+            old +=  ss[1]
+            aa.move(it[0], it[1] - ss[1] - 4)
+        # Present current
+        self.move(xx + 10, yy + hh - hhh)
+        self.base.curr += 1
+        self.set_keep_above(True)
+
 # EOF
