@@ -14,13 +14,15 @@ from gi.repository import PangoCairo
 
 import pggui
 import pgdlgs
-import canvdlg
 import pgtests
+import pgbutt
+import canvdlg
 import canvobjs
 
 piclename = "outline.pickle"
 untitled = "untitled.ped"
 signon = "PGCANV Version 1.0\n"
+gl_canv = None
 
 canv_testmode = 0
 
@@ -32,6 +34,7 @@ class StatusBar(Gtk.VBox):
 
     def __init__(self, parent, initial = "Idle"):
         self.tout = 0
+        self.parent = parent
         super(StatusBar, self).__init__()
         self.hbox = Gtk.HBox()
         self.idle = initial
@@ -198,11 +201,12 @@ class ToolBox(Gtk.VBox):
 class Canvas(Gtk.DrawingArea):
 
     def __init__(self, parent, statbox = None, config = None):
-        Gtk.DrawingArea.__init__(self)
 
         self.config = config
+        self.parent = parent
         if self.config.verbose > 2:
             print(config)
+        Gtk.DrawingArea.__init__(self)
         self.changed = False
         self.statbox = statbox
         self.parewin = parent
@@ -236,6 +240,9 @@ class Canvas(Gtk.DrawingArea):
         self.pencil =  Gdk.Cursor(Gdk.CursorType.PENCIL)
         warnings.simplefilter("default")
         self.fname = untitled
+        self.popbase = pgbutt.PopBase(self.parent)
+        global gl_canv
+        gl_canv = self
 
     def area_key(self, area, event):
         if self.config.debug > 6:
@@ -263,6 +270,7 @@ class Canvas(Gtk.DrawingArea):
     def show_status(self, strx):
         if self.statcall:
             self.statcall.set_status_text(strx)
+        self.popbase.submit(strx, 4000)
 
     def area_motion(self, area, event):
         #print ("motion event", event.state, event.x, event.y)
