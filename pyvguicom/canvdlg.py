@@ -12,6 +12,7 @@ from gi.repository import cairo
 import pggui
 import pgbutt
 import pgtests
+import pgdlgs
 
 def textdlg(oldtext = "", parent = None):
 
@@ -120,17 +121,45 @@ def propdlg(objectx, parent = None):
     row = 0
     dtab = Tablex();
     texts = []
-    labels = ["Text", "Tooltip", "Hello"]
-    for aa in range(3):
+    labels = ["Text", "Tooltip"]
+    if  objectx[0].type == "Image":
+        labels.append("Image")
+
+    def imgok(arg):
+        filter =  [
+                    ("*.png", "PNG Image files (*.png)"),
+                    ("*.jpg", "JPG Image files (*.jpg)"),
+                    ("*.jpeg", "JPEG Image files (*.jpeg)"),
+                    ("*.*", "ALL files (*.*)"),
+                  ]
+        fff = pgdlgs.opendialog(filter=filter)
+        if not fff:
+            return
+        print("imgok", fff)
+        texts[0].set_text(fff)
+
+    def fontok(arg):
+        fff = pgdlgs.fontdialog()
+        print("fontok", fff)
+
+    for aa in range(len(labels)):
         texts.append(Gtk.Entry())
         dtab.add(pggui.Label(labels[row]))
         dtab.add(texts[row])
+        if aa == 0 and objectx[0].type == "Text":
+            bbutt = pgbutt.smallbutt("Select Font", fontok)
+            dtab.add(bbutt)
+        if aa == 2 and objectx[0].type == "Image":
+            bbutt = pgbutt.smallbutt("Browse Image", imgok, font="Arial 20")
+            dtab.add(bbutt)
         dtab.newrow()
         row += 1
 
     texts[0].set_text(objectx[0].text)
     texts[1].set_text(objectx[0].tooltip)
-    texts[2].set_text("")
+
+    if  objectx[0].type == "Image":
+        texts[2].set_text(objectx[0].image)
 
     def callb(arg1):
         if arg1.cnt == 1:
@@ -161,11 +190,15 @@ def propdlg(objectx, parent = None):
     response = dialog.run()
     gotxt  = texts[0].get_text()
     gotxt2 = texts[1].get_text()
-    gotxt3 = texts[2].get_text()
+    #if  objectx[0].type == "Image":
+    #    gotxt3 = texts[2].get_text()
     dialog.destroy()
     if response == Gtk.ResponseType.ACCEPT:
         objectx[0].text = gotxt
         objectx[0].tooltip = gotxt2
+        if  objectx[0].type == "Image":
+            objectx[0].image = gotxt3
+            objectx[0].loadimg()
 
 # EOF
 

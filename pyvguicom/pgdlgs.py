@@ -119,6 +119,23 @@ def savedialog(resp, filter = []):
     fc.run()
     return fname[0]
 
+def fontdialog(parent=None, defaults=""):
+
+    #strx
+    fontpar = []
+    def done_fsel(win, resp, parx):
+        #if resp == Gtk.ButtonsType.OK:
+        parx.append(win.get_font_family().get_name())
+        parx.append(win.get_font_face().get_face_name())
+        parx.append(win.get_font_size())
+        win.destroy()
+
+    fc = Gtk.FontChooserDialog(title="Select font", transient_for=parent)
+    fc.set_default_response(Gtk.ButtonsType.OK)
+    fc.connect("response", done_fsel, fontpar)
+    fc.run()
+    return fontpar
+
 def version():
     return VERSION
 

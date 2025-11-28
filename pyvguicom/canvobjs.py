@@ -8,7 +8,12 @@ from gi.repository import Gtk, Gdk
 from gi.repository import GObject
 from gi.repository import GLib
 from gi.repository import Pango
+from gi.repository import GdkPixbuf
 from gi.repository import cairo
+
+from cairo import ImageSurface
+
+#from gi.repository import ImageSurface
 
 gi.require_version('PangoCairo', '1.0')
 from gi.repository import PangoCairo
@@ -144,8 +149,7 @@ class RectObj(DrawObj):
 
         #print("RectObj draw", str(self.rect))
 
-        www = self.rect.w / 40
-
+        www = self.rect.w / 50
         if www < .1: www = .1
         cr.set_line_width(www);
 
@@ -158,6 +162,124 @@ class RectObj(DrawObj):
 
         if self.selected:
             self.corners(self2, self.rect, self.rsize)
+
+        if self.text:
+            self2.crh.set_source_rgb(self.col2);
+            self2.layout.set_text(self.text, len(self.text))
+            xx, yy = self2.layout.get_pixel_size()
+            xxx = self.rect.w / 2 - xx / 2
+            yyy = self.rect.h / 2 - yy / 2
+            cr.move_to(self.rect.x + xxx, self.rect.y + yyy)
+            PangoCairo.show_layout(cr, self2.layout)
+
+        cr.set_line_width(1);
+
+# ------------------------------------------------------------------------
+# Image object
+
+class ImgObj(DrawObj):
+
+    def __init__(self, rect, text, col1, col2, border, fill):
+        super(ImgObj, self).__init__( rect, text, col1, col2, border, fill)
+
+        self.mx = [0, 0, 0, 0]      # side markers
+        self.rsize = 12             # Marker size
+        self.type   = "Image"
+        self.image  = "images/icon.png"
+        self.loadimg()
+
+    def loadimg(self):
+        self.widget = Gtk.Image.new_from_file(self.image)
+        self.pixbuf = self.widget.get_pixbuf()
+        self.pixbuf2 = self.widget.get_pixbuf()
+        self.rect.w = self.pixbuf.get_width()
+        self.rect.h = self.pixbuf.get_height()
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        # Remove the unpicklable entries.
+        del state['widget']
+        del state['pixbuf']
+        del state['pixbuf2']
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self.widget  = Gtk.Image.new_from_file(self.image)
+        self.pixbuf  = self.widget.get_pixbuf()
+        self.pixbuf2 = self.widget.get_pixbuf()
+
+    def draw(self, cr, self2):
+
+        #print("ImgObj draw", str(self.rect))
+
+        ww = self.pixbuf2.get_width()
+        hh = self.pixbuf2.get_height()
+
+        # Scale image to new WW / HH
+        if self.rect.x > 0 and self.rect.h > 0:
+
+            if self.rect.w != ww or self.rect.h != hh:
+                print("Scale:",     ww, hh, self.rect.w, self.rect.h)
+                self.pixbuf2 = self.pixbuf.scale_simple(self.rect.w, self.rect.h,
+                                        GdkPixbuf.InterpType.BILINEAR )
+
+            Gdk.cairo_set_source_pixbuf(cr, self.pixbuf2,
+                        self.rect.x, self.rect.y)
+            cr.paint()
+
+        if self.selected:
+            self.corners(self2, self.rect, self.rsize)
+
+        #if self.text:
+        #    self2.crh.set_source_rgb(self.col2);
+        #    self2.layout.set_text(self.text, len(self.text))
+        #    xx, yy = self2.layout.get_pixel_size()
+        #    xxx = self.rect.w / 2 - xx / 2
+        #    yyy = self.rect.h / 2 - yy / 2
+        #    cr.move_to(self.rect.x + xxx, self.rect.y + yyy)
+        #    PangoCairo.show_layout(cr, self2.layout)
+        #cr.set_line_width(1);
+
+
+class RoundRectObj(DrawObj):
+
+    def __init__(self, rect, text, col1, col2, border, fill):
+
+        rect2 = pggui.Rectangle(rect[0], rect[1], rect[2], rect[3])
+
+        super(RoundRectObj, self).__init__( rect2, text, col1, col2, \
+                                                        border, fill)
+
+        self.mx = [0, 0, 0, 0]      # side markers
+        self.rsize = 12             # Marker size
+        self.type = "RoundRect"
+        self.arr = []
+
+    def hittest(self, rectx):
+        inte = rectx.intersect(self.rect)
+        return inte[0]
+
+    def draw(self, cr, self2):
+
+        """ Draws a rectangle with rounded corners using cairo. """
+
+        self.expand_size(self2)
+
+        if self.selected:
+            self.corners(self2, self.rect, self.rsize)
+
+        www = self.rect.w / 40
+        if www < .1: www = .1
+        cr.set_line_width(www);
+
+        self2.crh.set_source_rgb(self.col2);
+        self2.crh.roundrect(cr, self.rect)
+        cr.stroke()
+
+        self2.crh.set_source_rgb(self.col1);
+        self2.crh.roundrect(cr, self.rect)
+        cr.fill()
 
         if self.text:
             self2.crh.set_source_rgb(self.col2);
@@ -280,8 +402,25 @@ class TextObj(DrawObj):
         self.txx = 0
         self.tyy = 0
         self.type = "Text"
+        self.fd = Pango.FontDescription()
+        self.pangolayout = None
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        # Remove the unpicklable entries.
+        del state['fd']
+        del state['pangolayout']
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self.fd = Pango.FontDescription()
+        self.pangolayout = None
 
     def draw(self, cr, self2):
+
+        if not self.pangolayout:
+            self.pangolayout = self2.create_pango_layout("a")
 
         self.expand_size(self2)
 
@@ -291,20 +430,18 @@ class TextObj(DrawObj):
 
         if self.text:
 
-            fd = Pango.FontDescription()
             self2.crh.set_source_rgb(self.col2);
-            fd.set_family
+            self.fd.set_family
             self.fsize = max(self.rect.h, 6)
-            fd.set_size(self.fsize * Pango.SCALE)
+            self.fd.set_size(self.fsize * Pango.SCALE)
 
-            pangolayout = self2.create_pango_layout("a")
-            pangolayout.set_font_description(fd)
-            pangolayout.set_text(self.text, len(self.text))
-            self.txx, self.tyy = pangolayout.get_pixel_size()
+            self.pangolayout.set_font_description(self.fd)
+            self.pangolayout.set_text(self.text, len(self.text))
+            self.txx, self.tyy = self.pangolayout.get_pixel_size()
 
             self2.crh.set_source_rgb(self.col2);
             cr.move_to(self.rect.x, self.rect.y)
-            PangoCairo.show_layout(cr, pangolayout)
+            PangoCairo.show_layout(cr, self.pangolayout)
 
     def hittest(self, rectx):
         recttxt = pggui.Rectangle(self.rect.x, self.rect.y, self.txx, self.tyy)
@@ -328,6 +465,10 @@ class RombObj(DrawObj):
         return inte[0]
 
     def draw(self, cr, self2):
+
+        www = self.rect.w / 40
+        if www < .1: www = .1
+        cr.set_line_width(www);
 
         self2.crh.set_source_rgb(self.col1); self2.crh.romb(self.rect)
         cr.fill()
@@ -367,6 +508,10 @@ class CircObj(DrawObj):
 
     def draw(self, cr, self2):
 
+        www = self.rect.w / 40
+        if www < .1: www = .1
+        cr.set_line_width(www);
+
         self2.crh.set_source_rgb(self.col1)
         self2.crh.circle(self.rect.x, self.rect.y, self.rect.w)
         cr.fill()
@@ -375,9 +520,10 @@ class CircObj(DrawObj):
         self2.crh.circle(self.rect.x, self.rect.y, self.rect.w)
         cr.stroke()
 
+        ulx = self.rect.x - self.rect.w
+        uly = self.rect.y - self.rect.w
+
         if self.selected:
-            ulx = self.rect.x - self.rect.w
-            uly = self.rect.y - self.rect.w
             www = 2 * self.rect.w
             rrr = pggui.Rectangle(ulx, uly, www, www)
             self.corners(self2, rrr, self.rsize)
@@ -388,6 +534,9 @@ class CircObj(DrawObj):
             xx, yy = self2.layout.get_pixel_size()
             cr.move_to(self.rect.x - xx / 2, self.rect.y - yy / 2 )
             PangoCairo.show_layout(cr, self2.layout)
+
+    def center(self):
+        return (self.rect.x, self.rect.y)
 
 # ---------------------------------------------------------------
 
@@ -462,79 +611,5 @@ class StrokeObj(DrawObj):
             xx, yy = self2.layout.get_pixel_size()
             cr.move_to(self.rect.x - xx / 2, self.rect.y - yy / 2 )
             PangoCairo.show_layout(cr, self2.layout)
-
-class RoundRectObj(DrawObj):
-
-    def __init__(self, rect, text, col1, col2, border, fill):
-
-        rect2 = pggui.Rectangle(rect[0], rect[1], rect[2], rect[3])
-
-        super(RoundRectObj, self).__init__( rect2, text, col1, col2, \
-                                                        border, fill)
-
-        self.mx = [0, 0, 0, 0]      # side markers
-        self.rsize = 12             # Marker size
-        self.type = "RoundRect"
-        self.arr = []
-
-    def hittest(self, rectx):
-        inte = rectx.intersect(self.rect)
-        return inte[0]
-
-    def _draw2(self, cr):
-
-        x, y, width, height = self.rect
-        radius = abs(min(height / 3, width / 3))
-        pi = math.pi
-
-        # Move to the start of the top-left curve
-        cr.move_to(x + radius, y)
-
-        # Top edge and top-right curve
-        cr.line_to(x + width - radius, y)
-        cr.arc(x + width - radius, y + radius, radius, -pi/2, 0)
-
-        # Right edge and bottom-right curve
-        cr.line_to(x + width, y + height - radius)
-        cr.arc(x + width - radius, y + height - radius, radius, 0, pi/2)
-
-        # Bottom edge and bottom-left curve
-        cr.line_to(x + radius, y + height)
-        cr.arc(x + radius, y + height - radius, radius, pi/2, pi)
-
-        # Left edge and top-left curve
-        cr.line_to(x, y + radius)
-        cr.arc(x + radius, y + radius, radius, pi, 3*pi/2)
-        # Close the path ... line_to before the first move_to handles this
-        #cr.close_path()
-
-
-    def draw(self, cr, self2):
-
-        """ Draws a rectangle with rounded corners using cairo."""
-
-        self.expand_size(self2)
-
-        if self.selected:
-            self.corners(self2, self.rect, self.rsize)
-
-        self2.crh.set_source_rgb(self.col2);
-        self._draw2(cr)
-        cr.stroke()
-
-        self2.crh.set_source_rgb(self.col1);
-        self._draw2(cr)
-        cr.fill()
-
-        if self.text:
-            self2.crh.set_source_rgb(self.col2);
-            self2.layout.set_text(self.text, len(self.text))
-            xx, yy = self2.layout.get_pixel_size()
-            xxx = self.rect.w / 2 - xx / 2
-            yyy = self.rect.h / 2 - yy / 2
-            cr.move_to(self.rect.x + xxx, self.rect.y + yyy)
-            PangoCairo.show_layout(cr, self2.layout)
-
-        cr.set_line_width(1);
 
 # eof

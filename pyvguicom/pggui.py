@@ -265,6 +265,34 @@ class CairoHelper():
         self.cr.line_to(rect[0] + rect[2], rect[1])
         self.cr.line_to(rect[0], rect[1])
 
+    def roundrect(self, cr, rect):
+
+        x, y, width, height = rect
+        radius = abs(min(height / 3, width / 3))
+        pi = math.pi
+
+        # Move to the start of the top-left curve
+        cr.move_to(x + radius, y)
+
+        # Top edge and top-right curve
+        cr.line_to(x + width - radius, y)
+        cr.arc(x + width - radius, y + radius, radius, -pi/2, 0)
+
+        # Right edge and bottom-right curve
+        cr.line_to(x + width, y + height - radius)
+        cr.arc(x + width - radius, y + height - radius, radius, 0, pi/2)
+
+        # Bottom edge and bottom-left curve
+        cr.line_to(x + radius, y + height)
+        cr.arc(x + radius, y + height - radius, radius, pi/2, pi)
+
+        # Left edge and top-left curve
+        cr.line_to(x, y + radius)
+        cr.arc(x + radius, y + radius, radius, pi, 3*pi/2)
+        # Close the path ... line_to before the first move_to handles this
+        #cr.close_path()
+
+
 class   TextTable(Gtk.Table):
 
     ''' YTable of text entries '''

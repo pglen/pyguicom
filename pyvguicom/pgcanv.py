@@ -563,9 +563,10 @@ class Canvas(Gtk.DrawingArea):
                     # "Export Image", "Dump Objects",
 
                     mmm = ("Main Menu", "Add Rectangle", "Add Text",
-                        "Add Rombus", "Add Circle", "Add Line",
-                        "Add Rounded Rect", "-", "Clear Canvas",
-                        "-", "Open", "Save", "Save As")
+                        "Add Rounded Rect", "Add Rombus", "Add Circle",
+                        "Add Line", "Add Image",
+                        "-", "Clear Canvas",
+                        "-", "Open", "Open (append)", "Save", "Save As")
                     warnings.simplefilter("ignore")
                     pggui.Menu(mmm, self.menu_action3, event)
                     warnings.simplefilter("default")
@@ -770,6 +771,11 @@ class Canvas(Gtk.DrawingArea):
             coord = pggui.Rectangle(self.mouse.x, self.mouse.y, 120, 120)
             self.add_rect(coord, rstr, "#0000000") # pggui.randcolstr())
 
+        elif "Image" in item:
+            rstr = pgtests.randstr(6)
+            coord = pggui.Rectangle(self.mouse.x, self.mouse.y, 120, 120)
+            self.add_image(coord, rstr, "#0000000") # pggui.randcolstr())
+
         elif "Romb" in item:
             rstr = pgtests.randstr(6)
             coord = pggui.Rectangle(self.mouse.x, self.mouse.y, 120, 120)
@@ -826,6 +832,11 @@ class Canvas(Gtk.DrawingArea):
             pixbuf = Gdk.pixbuf_get_from_surface(cr.get_target(), 0, 0, rect.width, rect.height)
             pixbuf.savev("buff.png", "png", [None], [])
 
+        elif "append" in item:
+            if self.config.verbose:
+                print("Open append")
+            self.open(True)
+
         elif "Open" in item:
             if self.config.verbose:
                 print("Open")
@@ -870,12 +881,9 @@ class Canvas(Gtk.DrawingArea):
         self.fname = fnamex
         self.writeout(self.fname)
 
-    def open(self):
+    def open(self, keep = False):
         if self.config.verbose:
             print("Open")
-        if not self.coll:
-            pgdlgs.message("Empty document.")
-            return
         filter =  [ ("*.ped", "PED files (*.ped)"),
                     ("*.*", "ALL files (*.*)"),
                   ]
@@ -885,8 +893,11 @@ class Canvas(Gtk.DrawingArea):
 
         if self.config.verbose:
             print("Open filename:", fff)
-        # Clear canvas and load
-        self.coll = []
+
+        # Clear canvas if requested
+        if not keep:
+            self.coll = []
+
         self.queue_draw()
         self.readfile(fff)
         self.fname = fff
@@ -924,6 +935,16 @@ class Canvas(Gtk.DrawingArea):
         self.coll.append(rob)
         self.queue_draw()
         self.show_status("Added rectangle '%s'" % rob.text)
+        self.changed = True
+        return rob
+
+    # Add rectangle to collection of objects
+    def add_image(self, coord, text, crf, crb = "#ffffff", border = 2, fill = False):
+        col1 = pggui.str2float(crb);    col2 = pggui.str2float(crf)
+        rob = canvobjs.ImgObj(coord, text, col1, col2, border, fill)
+        self.coll.append(rob)
+        self.queue_draw()
+        self.show_status("Added image '%s'" % rob.text)
         self.changed = True
         return rob
 
