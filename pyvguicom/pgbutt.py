@@ -16,8 +16,7 @@ from gi.repository import GObject
 gi.require_version('PangoCairo', '1.0')
 from gi.repository import PangoCairo
 
-import cairo
-from pgutils import *
+import pggui
 
 class smallbutt(Gtk.EventBox):
 
@@ -64,6 +63,7 @@ class smallbutt(Gtk.EventBox):
 
         if eventx:
             self.connect("pressed", eventx)
+            #self.connect("activate", eventx)
 
         self.set_can_focus(True)
         self.set_can_default(True)
@@ -265,27 +265,62 @@ class PopWin(Gtk.Window):
         self.vbox.pack_start(self.hbox, 0, 0, 8)
         self.frame.add(self.vbox)
         self.add(self.frame)
-        self.connect("map-event", self.mapped)
-        self.tout = GLib.timeout_add(tout, self.remove)
+        self.mappedflag = False
+        #self.connect("map-event", self.mapped)
+        self.moveit()
         self.show_all()
 
     def remove(self):
         self.base.poparr.remove(self)
+        self.base.curr -= 1
         self.destroy()
 
-    def mapped(self, arg1, arg2):
+    #def mapped(self, arg1, arg2):
+    #    self.mappedflag = True
+
+    def moveit(self):
+
+        # Wait for mapping to complete
+        #while True:
+        #    if self.mappedflag:
+        #        break
+        #    pggui.usleep(10)
+
         xx, yy = self.base.parent.get_position()
         ww, hh = self.base.parent.get_size()
-        www, hhh = self.get_size()
+
+        #www, hhh = self.get_preferred_height()
+        #print("size:", www, hhh)
+        hhh = 30
+
         # Push old windows UP
-        old = 0
         for aa in self.base.poparr:
             it = aa.get_position() ; ss = aa.get_size()
-            old +=  ss[1]
+            #print("Move:", len(self.base.poparr), it, ss)
             aa.move(it[0], it[1] - ss[1] - 4)
         # Present current
-        self.move(xx + 10, yy + hh - hhh)
+        self.move(xx + 14, yy + hh - hhh)
         self.base.curr += 1
-        self.set_keep_above(True)
+        #self.set_keep_above(True)
+        self.tout = GLib.timeout_add(self.tout, self.remove)
+
+class ExitStrip(Gtk.HBox):
+
+    def __init__(self, buttarr, callb):
+
+        super(ExitStrip, self).__init__()
+
+        self.pack_start(Gtk.Label.new(" "), 1, 1, 0)
+
+        cnt = 0
+        for aa in buttarr:
+            loadbutt = smallbutt(aa, callb)
+            loadbutt.cnt = cnt ; cnt += 1
+            self.pack_start(loadbutt, 0, 0, 0)
+            self.pack_start(Gtk.Label.new(" "), 0, 0, 0)
+
+    def connect(self, butt, callx):
+        butt.connect("activate", callx)
+        butt.connect("pressed", callx)
 
 # EOF

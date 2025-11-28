@@ -62,7 +62,7 @@ def textdlg(oldtext = "", parent = None):
 
 def canv_colsel(oldcol, title):
 
-    #print ("oldcol", oldcol)
+    print ("oldcol", oldcol)
     csd = Gtk.ColorSelectionDialog(title=title)
     col = csd.get_color_selection()
     warnings.simplefilter("ignore")
@@ -72,7 +72,9 @@ def canv_colsel(oldcol, title):
     color = oldcol
     csd.destroy()
     if response == Gtk.ResponseType.OK:
+        warnings.simplefilter("ignore")
         color = col.get_current_color()
+        warnings.simplefilter("default")
         col = pggui.col2float(color)
     else:
         col = oldcol
@@ -101,7 +103,7 @@ class   Tablex(Gtk.Table):
 
 def propdlg(objectx, parent = None):
 
-    print("propdlg()", objectx[0].dump())
+    #print("propdlg()", objectx[0].dump())
 
     dialog = Gtk.Dialog(title="Object Properties", modal = True)
     dialog.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT,
@@ -112,7 +114,9 @@ def propdlg(objectx, parent = None):
         dialog.set_transient_for(parent)
 
     # Spacers
-    label1 = Gtk.Label(label="   ");  label2 = Gtk.Label(label="   ")
+    label1 = Gtk.Label(label=objectx[0].type);
+    dialog.get_content_area().pack_start(label1, 0, 0, 4)
+
     row = 0
     dtab = Tablex();
     texts = []
@@ -123,24 +127,29 @@ def propdlg(objectx, parent = None):
         dtab.add(texts[row])
         dtab.newrow()
         row += 1
+
+    texts[0].set_text(objectx[0].text)
+    texts[1].set_text(objectx[0].tooltip)
+    texts[2].set_text("")
+
     def callb(arg1):
         if arg1.cnt == 1:
-            col1 = pggui.float2str(objectx[0].col1)
-            col1 = canv_colsel(0, "FG Color")
-            for aa in objectx:
-                if aa.selected:
-                    aa.col1 = col1
-
-        if arg1.cnt == 2:
-            col2 = pggui.float2str(objectx[0].col2)
-            col2 = canv_colsel(0, "BG Color")
+            col2 = canv_colsel(objectx[0].col2, "FG Color")
             for aa in objectx:
                 if aa.selected:
                     aa.col2 = col2
 
+        if arg1.cnt == 2:
+            col1 = canv_colsel(objectx[0].col1, "BG Color")
+            for aa in objectx:
+                if aa.selected:
+                    aa.col1 = col1
+
     hbox2 = Gtk.HBox()
-    sb1 = pgbutt.smallbutt("Foreground Color", callb) ; sb1.cnt = 1
-    sb2 = pgbutt.smallbutt("background Color", callb) ; sb2.cnt = 2
+    sb1 = pgbutt.smallbutt("Foreground Color", callb)
+    sb1.cnt = 1
+    sb2 = pgbutt.smallbutt("Background Color", callb)
+    sb2.cnt = 2
 
     hbox2.pack_start(sb1, 0, 0, 4)
     hbox2.pack_start(sb2, 0, 0, 4)
@@ -150,8 +159,13 @@ def propdlg(objectx, parent = None):
 
     dialog.show_all()
     response = dialog.run()
-    #gotxt = entry.get_text()
+    gotxt  = texts[0].get_text()
+    gotxt2 = texts[1].get_text()
+    gotxt3 = texts[2].get_text()
     dialog.destroy()
+    if response == Gtk.ResponseType.ACCEPT:
+        objectx[0].text = gotxt
+        objectx[0].tooltip = gotxt2
 
 # EOF
 

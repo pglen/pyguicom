@@ -13,24 +13,16 @@ from gi.repository import cairo
 gi.require_version('PangoCairo', '1.0')
 from gi.repository import PangoCairo
 
-#sys.path.append('..' + os.sep + "pyvguicom")
-#from pyvguicom.pggui import *
-
 import pggui
 import pgtests
 
-RECT = 1
-TEXT = 2
-CIRC = 3
-ROMB = 4
+#RECT = 1 #TEXT = 2 #CIRC = 3 #ROMB = 4 #FREE = 5
 
 globzorder = 0; globgroup = 0
 
 class DrawObj(object):
 
     def __init__(self,  rect, text, col1, col2, border, fill):
-
-        global globzorder
 
         self.rect = rect
         self.text = text
@@ -45,9 +37,10 @@ class DrawObj(object):
         self.orgdrag = ()
         self.others = []
         self.mouse = pggui.Rectangle()
+        self.tooltip = "Hello Tooltip"
+        global globzorder
         globzorder = globzorder + 1
         self.zorder = globzorder
-        #globzorder = globzorder + 1
         self.type = ""
 
     def dump(self):
@@ -132,6 +125,9 @@ class DrawObj(object):
         inte = rectx.intersect(self.rect)
         return inte[0]
 
+    def center(self):
+        return (self.rect.x + self.rect.w / 2, self.rect.y + self.rect.h / 2)
+
 # ------------------------------------------------------------------------
 # Rectangle object
 
@@ -174,9 +170,6 @@ class RectObj(DrawObj):
 
         cr.set_line_width(1);
 
-    def center(self):
-        return (self.rect.x + self.rect.w / 2, self.rect.y + self.rect.h / 2)
-
 # ------------------------------------------------------------------------
 # Line object
 
@@ -215,9 +208,6 @@ class LineObj(DrawObj):
             yyy = self.rect.h / 2 - yy / 2
             cr.move_to(self.rect.x + xxx, self.rect.y + yyy)
             PangoCairo.show_layout(cr, self2.layout)'''
-
-    def center(self):
-        return (self.rect.x + self.rect.w / 2, self.rect.y + self.rect.h / 2)
 
 class CurveObj(DrawObj):
 
@@ -275,9 +265,6 @@ class CurveObj(DrawObj):
 
         return ret
 
-    def center(self):
-        return (self.rect.x + self.rect.w / 2, self.rect.y + self.rect.h / 2)
-
 # ------------------------------------------------------------------------
 # Text object
 
@@ -324,9 +311,6 @@ class TextObj(DrawObj):
         inte = rectx.intersect(recttxt)
         return inte[0]
 
-    def center(self):
-        return (self.rect.x + self.txx / 2, self.rect.y + self.tyy / 2)
-
 class RombObj(DrawObj):
 
     def __init__(self, rect, text, col1, col2, border, fill):
@@ -361,10 +345,6 @@ class RombObj(DrawObj):
             yyy = self.rect.h / 2 - yy / 2
             cr.move_to(self.rect.x + xxx, self.rect.y + yyy)
             PangoCairo.show_layout(cr, self2.layout)
-
-    def center(self):
-        return (self.rect.x + self.rect.w / 2, self.rect.y + self.rect.h / 2)
-
 
 class CircObj(DrawObj):
 
@@ -408,9 +388,6 @@ class CircObj(DrawObj):
             xx, yy = self2.layout.get_pixel_size()
             cr.move_to(self.rect.x - xx / 2, self.rect.y - yy / 2 )
             PangoCairo.show_layout(cr, self2.layout)
-
-    def center(self):
-        return (self.rect.x, self.rect.y)
 
 # ---------------------------------------------------------------
 
@@ -486,7 +463,78 @@ class StrokeObj(DrawObj):
             cr.move_to(self.rect.x - xx / 2, self.rect.y - yy / 2 )
             PangoCairo.show_layout(cr, self2.layout)
 
-    def center(self):
-        return (self.rect.x, self.rect.y)
+class RoundRectObj(DrawObj):
+
+    def __init__(self, rect, text, col1, col2, border, fill):
+
+        rect2 = pggui.Rectangle(rect[0], rect[1], rect[2], rect[3])
+
+        super(RoundRectObj, self).__init__( rect2, text, col1, col2, \
+                                                        border, fill)
+
+        self.mx = [0, 0, 0, 0]      # side markers
+        self.rsize = 12             # Marker size
+        self.type = "RoundRect"
+        self.arr = []
+
+    def hittest(self, rectx):
+        inte = rectx.intersect(self.rect)
+        return inte[0]
+
+    def _draw2(self, cr):
+
+        x, y, width, height = self.rect
+        radius = abs(min(height / 3, width / 3))
+        pi = math.pi
+
+        # Move to the start of the top-left curve
+        cr.move_to(x + radius, y)
+
+        # Top edge and top-right curve
+        cr.line_to(x + width - radius, y)
+        cr.arc(x + width - radius, y + radius, radius, -pi/2, 0)
+
+        # Right edge and bottom-right curve
+        cr.line_to(x + width, y + height - radius)
+        cr.arc(x + width - radius, y + height - radius, radius, 0, pi/2)
+
+        # Bottom edge and bottom-left curve
+        cr.line_to(x + radius, y + height)
+        cr.arc(x + radius, y + height - radius, radius, pi/2, pi)
+
+        # Left edge and top-left curve
+        cr.line_to(x, y + radius)
+        cr.arc(x + radius, y + radius, radius, pi, 3*pi/2)
+        # Close the path ... line_to before the first move_to handles this
+        #cr.close_path()
+
+
+    def draw(self, cr, self2):
+
+        """ Draws a rectangle with rounded corners using cairo."""
+
+        self.expand_size(self2)
+
+        if self.selected:
+            self.corners(self2, self.rect, self.rsize)
+
+        self2.crh.set_source_rgb(self.col2);
+        self._draw2(cr)
+        cr.stroke()
+
+        self2.crh.set_source_rgb(self.col1);
+        self._draw2(cr)
+        cr.fill()
+
+        if self.text:
+            self2.crh.set_source_rgb(self.col2);
+            self2.layout.set_text(self.text, len(self.text))
+            xx, yy = self2.layout.get_pixel_size()
+            xxx = self.rect.w / 2 - xx / 2
+            yyy = self.rect.h / 2 - yy / 2
+            cr.move_to(self.rect.x + xxx, self.rect.y + yyy)
+            PangoCairo.show_layout(cr, self2.layout)
+
+        cr.set_line_width(1);
 
 # eof

@@ -125,7 +125,7 @@ class   SimpleTree(Gtk.TreeView):
         sel.select_iter(iterx)
         ppp = self.treestore.get_path(iterx)
         self.set_cursor(ppp, self.get_column(0), False)
-        pgutils.usleep(5)
+        pggui.usleep(5)
         self.scroll_to_cell(ppp, None, 0, 0, 0 )
 
     def sel_last(self):
@@ -143,7 +143,7 @@ class   SimpleTree(Gtk.TreeView):
         sel.select_iter(iterx)
         ppp = self.treestore.get_path(iterx)
         self.set_cursor(ppp, self.get_column(0), False)
-        pgutils.usleep(5)
+        pggui.usleep(5)
         self.scroll_to_cell(ppp, None, True, 0., 0. )
         #sel.select_path(self.treestore.get_path(iterx))
 

@@ -14,6 +14,7 @@ from gi.repository import PangoCairo
 
 import pggui
 import pgdlgs
+import pgutils
 import pgtests
 import pgbutt
 import canvdlg
@@ -22,7 +23,7 @@ import canvobjs
 piclename = "outline.pickle"
 untitled = "untitled.ped"
 signon = "PGCANV Version 1.0\n"
-gl_canv = None
+#gl_canv = None
 
 canv_testmode = 0
 
@@ -204,6 +205,8 @@ class Canvas(Gtk.DrawingArea):
 
         self.config = config
         self.parent = parent
+        self.statcall = None
+
         if self.config.verbose > 2:
             print(config)
         Gtk.DrawingArea.__init__(self)
@@ -241,8 +244,8 @@ class Canvas(Gtk.DrawingArea):
         warnings.simplefilter("default")
         self.fname = untitled
         self.popbase = pgbutt.PopBase(self.parent)
-        global gl_canv
-        gl_canv = self
+        #global gl_canv
+        #gl_canv = self
 
     def area_key(self, area, event):
         if self.config.debug > 6:
@@ -253,6 +256,7 @@ class Canvas(Gtk.DrawingArea):
                 if bb.selected:
                     #print("would delete", bb)
                     self.coll.remove(bb)
+                    self.show_status("Deleted Item '%s'" % bb.text)
             self.queue_draw()
 
         if event.keyval == Gdk.KEY_Up:
@@ -270,7 +274,7 @@ class Canvas(Gtk.DrawingArea):
     def show_status(self, strx):
         if self.statcall:
             self.statcall.set_status_text(strx)
-        self.popbase.submit(strx, 4000)
+        self.popbase.submit(strx, 1000 + len(strx) * 400)
 
     def area_motion(self, area, event):
         #print ("motion event", event.state, event.x, event.y)
@@ -383,7 +387,9 @@ class Canvas(Gtk.DrawingArea):
 
         if  event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS:
             cc = self.findsel()
-            print("DBL click", event.button, cc)
+            if not cc:
+                return
+            #print("DBL click", event.button, cc)
             response, txt = canvdlg.textdlg(cc.text, self.get_toplevel())
             if response == Gtk.ResponseType.ACCEPT:
                 #print("Got text", txt)
@@ -399,10 +405,14 @@ class Canvas(Gtk.DrawingArea):
             self.noop_down = False
             if self.drawline:
                 self.drawline = False
-                self.show_status("Added freehand line.")
-                rstr = "" #randstr(6)
-                coord = pggui.Rectangle(canvobjs.stroke_dims(self.stroke))
-                self.add_stroke(coord, rstr, pggui.randcolstr(), arr = self.stroke)
+                #print("stroke", self.stroke)
+                if len(self.stroke) > 4:
+                    self.show_status( \
+                        "Added freehand line: %d segments" % len(self.stroke))
+                    rstr = "" #randstr(6)
+                    coord = pggui.Rectangle(canvobjs.stroke_dims(self.stroke))
+                    self.add_stroke(coord, rstr, pggui.randcolstr(),
+                                        arr = self.stroke)
                 self.stroke = []
             self.get_root_window().set_cursor(self.arrow)
 
@@ -414,41 +424,40 @@ class Canvas(Gtk.DrawingArea):
                 #            not event.state & Gdk.ModifierType.CONTROL_MASK:
                 if not event.state & Gdk.ModifierType.CONTROL_MASK:
                     # Operate on pre selected
-                    if not self.drag:
-                        for bb in self.coll:
-                            if bb.selected:
-                                hitx = bb.hittest(hit)
-                                hity = bb.hitmarker(hit)
-                                #print("Operate on selected", bb.id)
-                                if hity == 5:
-                                    #print("Hit on curve marker")
-                                    self.resize = None
-                                    self.drag = None
-                                    self.curl = bb
-                                    self.dragcoord  = (event.x, event.y)
-                                elif hity:
-                                    #print("Hit on marker")
-                                    self.resize = bb
-                                    self.drag = None
-                                    self.dragcoord  = (event.x, event.y)
-                                    self.size2 = (self.resize.rect.w, self.resize.rect.h)
-                                    return
-                                elif hitx:
-                                    self.drag = bb
-                                    self.dragcoord  = (event.x, event.y)
-                                    for cc in self.coll:
-                                        if cc.selected:
-                                            cc.orgdrag = cc.rect.copy()
-                                            # Also move whole group
-                                            if cc.groupid:
-                                                for bb in self.coll:
-                                                    if cc.groupid == bb.groupid:
-                                                        bb.orgdrag = bb.rect.copy()
-                                else:
-                                    pass
-
                     if self.drag:
                         return
+                    for bb in self.coll:
+                        if not bb.selected:
+                            continue
+                        hitx = bb.hittest(hit)
+                        hity = bb.hitmarker(hit)
+                        #print("Operate on selected", bb.id)
+                        if hity == 5:
+                            #print("Hit on curve marker")
+                            self.resize = None
+                            self.drag = None
+                            self.curl = bb
+                            self.dragcoord  = (event.x, event.y)
+                        elif hity:
+                            #print("Hit on marker")
+                            self.resize = bb
+                            self.drag = None
+                            self.dragcoord  = (event.x, event.y)
+                            self.size2 = (self.resize.rect.w, self.resize.rect.h)
+                            return
+                        elif hitx:
+                            self.drag = bb
+                            self.dragcoord  = (event.x, event.y)
+                            for cc in self.coll:
+                                if cc.selected:
+                                    cc.orgdrag = cc.rect.copy()
+                                    # Also move whole group
+                                    if cc.groupid:
+                                        for bb in self.coll:
+                                            if cc.groupid == bb.groupid:
+                                                bb.orgdrag = bb.rect.copy()
+                        else:
+                            pass
 
                 direction = not event.state & Gdk.ModifierType.SHIFT_MASK
                 #print("direction", direction)
@@ -456,7 +465,6 @@ class Canvas(Gtk.DrawingArea):
                             key = lambda item: item.zorder)
 
                 # Execute new hit test on drag immidiate
-                #for aa in self.coll:
                 for aa in sortx:
                     if aa.hittest(hit): # and aa.selected:
                         hitx = aa
@@ -542,7 +550,8 @@ class Canvas(Gtk.DrawingArea):
                         warnings.simplefilter("default")
                     else:
                         mmm = (bb.text, "Object Properties", "Text",
-                                "FG Color", "BG Color", "Ungroup", "Delete", zord)
+                                "FG Color", "BG Color", "Ungroup",
+                                        "Delete", zord)
                         warnings.simplefilter("ignore")
                         pggui.Menu(mmm, self.menu_action2, event)
                         warnings.simplefilter("default")
@@ -555,7 +564,7 @@ class Canvas(Gtk.DrawingArea):
 
                     mmm = ("Main Menu", "Add Rectangle", "Add Text",
                         "Add Rombus", "Add Circle", "Add Line",
-                        "-", "Clear Canvas",
+                        "Add Rounded Rect", "-", "Clear Canvas",
                         "-", "Open", "Save", "Save As")
                     warnings.simplefilter("ignore")
                     pggui.Menu(mmm, self.menu_action3, event)
@@ -653,19 +662,16 @@ class Canvas(Gtk.DrawingArea):
                 canvdlg.propdlg(props, self.get_toplevel())
             else:
                 self.show_status("Property dialog: Nothing selected")
-
         # Group
         if num == 3:
-            global globgroup
-            globgroup += 1
-            print("Group", globgroup)
+            canvobjs.globgroup += 1
+            print("Group", canvobjs.globgroup)
             for aa in self.coll:
                 if aa.selected:
-                    aa.groupid = globgroup
-
+                    aa.groupid = canvobjs.globgroup
         # Ungroup
         if num == 4:
-            print("unGroup", globgroup)
+            print("unGroup", canvobjs.globgroup)
             for aa in self.coll:
                 if aa.selected:
                     for bb in self.coll:
@@ -746,6 +752,8 @@ class Canvas(Gtk.DrawingArea):
                 if bb.selected:
                     #print("would delete", bb)
                     self.coll.remove(bb)
+                    self.show_status("Deleted Item: '%s'" % bb.text)
+
             self.queue_draw()
 
     def menu_action3(self, item, num):
@@ -757,7 +765,7 @@ class Canvas(Gtk.DrawingArea):
             for aa in self.coll:
                 print(aa.dump())
 
-        elif "Rect" in item:
+        elif "Rectangle" in item:
             rstr = pgtests.randstr(6)
             coord = pggui.Rectangle(self.mouse.x, self.mouse.y, 120, 120)
             self.add_rect(coord, rstr, "#0000000") # pggui.randcolstr())
@@ -766,6 +774,11 @@ class Canvas(Gtk.DrawingArea):
             rstr = pgtests.randstr(6)
             coord = pggui.Rectangle(self.mouse.x, self.mouse.y, 120, 120)
             self.add_romb(coord, rstr, pggui.randcolstr())
+
+        elif "Rounded" in item:
+            rstr = pgtests.randstr(6)
+            coord = pggui.Rectangle(self.mouse.x, self.mouse.y, 120, 120)
+            self.add_rrect(coord, rstr, pggui.randcolstr())
 
         elif "Circ" in item:
             rstr = pgtests.randstr(6)
@@ -794,13 +807,12 @@ class Canvas(Gtk.DrawingArea):
             self.queue_draw()
 
         elif "Export" in item:
-            print("Export")
-
+            #print("Export")
             # Create PNG
             for aa in self.coll:
                 aa.selected = False
             self.queue_draw()
-            usleep(10)
+            pggui.usleep(10)
             rect = self.get_allocation()
 
             #pixbuf = Gdk.pixbuf_get_from_window(self.get_window(), 0, 0, rect.width, rect.height)
@@ -819,30 +831,51 @@ class Canvas(Gtk.DrawingArea):
                 print("Open")
             self.open()
 
+        elif "Save As" in item:
+            if self.config.verbose:
+                print("Save As")
+                #fff = pgdlgs.savedialog(self.fname)
+            self.saveas()
+
         elif "Save" in item:
             if self.config.verbose:
                 print("Save")
             self.save()
 
-        elif "Save As" in item:
-            if self.config.verbose:
-                print("Save As")
-                #fff = pgdlgs.savedialog(self.fname)
         else:
             print("Invalid menu item")
 
     def save(self):
+        if self.config.verbose:
+            print("Save")
+        if not self.coll:
+            pgdlgs.message("Empty document.")
+            return
         if self.fname == untitled:
             fnamex = pgdlgs.savedialog(self.fname)
             if not fnamex:
                 return
             self.fname = fnamex
+        self.writeout(self.fname)
 
+    def saveas(self):
+        if self.config.verbose:
+            print("Saveas")
+        if not self.coll:
+            pgdlgs.message("Empty document.")
+            return
+        fnamex = pgdlgs.savedialog(self.fname)
+        if not fnamex:
+            return
+        self.fname = fnamex
         self.writeout(self.fname)
 
     def open(self):
         if self.config.verbose:
             print("Open")
+        if not self.coll:
+            pgdlgs.message("Empty document.")
+            return
         filter =  [ ("*.ped", "PED files (*.ped)"),
                     ("*.*", "ALL files (*.*)"),
                   ]
@@ -890,7 +923,7 @@ class Canvas(Gtk.DrawingArea):
         rob = canvobjs.RectObj(coord, text, col1, col2, border, fill)
         self.coll.append(rob)
         self.queue_draw()
-        self.show_status("Added rectangle")
+        self.show_status("Added rectangle '%s'" % rob.text)
         self.changed = True
         return rob
 
@@ -937,6 +970,14 @@ class Canvas(Gtk.DrawingArea):
     def add_romb(self, coord, text, crf, crb = "#ffffff", border = 2, fill = False):
         col1 = pggui.str2float(crb);    col2 = pggui.str2float(crf)
         rob = canvobjs.RombObj(coord, text, col1, col2, border, fill)
+        self.coll.append(rob)
+        self.queue_draw()
+        self.changed = True
+        return rob
+
+    def add_rrect(self, coord, text, crf, crb = "#ffffff", border = 2, fill = False):
+        col1 = pggui.str2float(crb);    col2 = pggui.str2float(crf)
+        rob  = canvobjs.RoundRectObj(coord, text, col1, col2, border, fill)
         self.coll.append(rob)
         self.queue_draw()
         self.changed = True
@@ -1037,7 +1078,7 @@ class Canvas(Gtk.DrawingArea):
             try:
                 aa.draw(cr, self)
             except:
-                put_exception("Cannot draw " + str(type(aa)))
+                pgutils.put_exception("Cannot draw " + str(type(aa)))
                 #aa.dump()
 
         init = 0;
