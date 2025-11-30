@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
 
+#pylint: disable=C0103
+#pylint: disable=C0209
+#pylint: disable=C0321
+#pylint: disable=C0116
+#pylint: disable=W0301
+#pylint: disable=C0410
+#pylint: disable=C0413
+
 import os, time, sys, datetime, warnings, math, pickle
+import binascii
 
 import gi; gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk
@@ -20,10 +29,11 @@ import pgbutt
 import canvdlg
 import canvobjs
 
+''' Python Canvas '''
+
 piclename = "outline.pickle"
 untitled = "untitled.ped"
-signon = "PGCANV Version 1.0\n"
-#gl_canv = None
+signon = "PGCANV Version 1.0.0\n"
 
 canv_testmode = 0
 
@@ -31,173 +41,6 @@ def set_canv_testmode(flag):
     global canv_testmode
     canv_testmode = flag
 
-class StatusBar(Gtk.VBox):
-
-    def __init__(self, parent, initial = "Idle"):
-        self.tout = 0
-        self.parent = parent
-        super(StatusBar, self).__init__()
-        self.hbox = Gtk.HBox()
-        self.idle = initial
-        self.text = Gtk.Label(label=initial)
-        #self.text.set_justify(Gtk.Justification.LEFT)
-        self.text.set_xalign(0)
-
-        self.hbox.pack_start(Gtk.Label(label="  Status:  "), 0, 0, 0)
-        self.hbox.pack_start(self.text, 1, 1, 0)
-        self.hbox.pack_start(Gtk.Label(label="  "), 0, 0, 0)
-
-        self.add(self.hbox)
-
-    def set_status_text(self, text):
-        self.text.set_text(text)
-        if self.tout:
-            GLib.source_remove(self.tout)
-        self.tout = GLib.timeout_add(500 + len(text) * 200, self.idlecall)
-
-    def idlecall(self):
-        #print("Idle")
-        self.tout = 0
-        self.text.set_text(self.idle)
-
-class ToolBox(Gtk.VBox):
-
-    def __init__(self, callb, parent):
-        #Gtk.Window.__init__(self, Gtk.WindowType.POPUP)
-        #Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
-        #Gtk.Toolbar.__init__(self)
-        super(ToolBox, self).__init__()
-        self.statcall = None
-
-        #self.set_size_request(10, 10)
-        #self.set_default_size(10, 10)
-        #self.set_keep_above(True)
-        #self.set_decorated(False)
-
-        self.drag = False
-        self.dragpos = (0, 0)
-        self.callb = callb
-        self.opacity = 1
-
-        self.connect("button-press-event", self.area_button)
-        self.connect("button-release-event", self.area_button_rel)
-        self.connect("motion-notify-event", self.area_motion)
-
-        vbox = Gtk.VBox()
-
-        self.labelm = Gtk.Label(label=" - ")
-        self.labelx = Gtk.Label(label=" x ")
-        self.toolt = Gtk.Label(label="Main Toolbox")
-
-        self.hboxt = Gtk.HBox()
-        self.hboxt.pack_start(self.labelm, 0, 0, 0)
-        self.hboxt.pack_start(self.toolt, 1, 1, 0)
-        self.hboxt.pack_start(self.labelx, 0, 0, 0)
-
-        self.hbox = Gtk.HBox()
-        tarr = ((Gtk.STOCK_OPEN, "Open"), (Gtk.STOCK_SAVE, "Save"),
-                    (Gtk.STOCK_COPY, "Copy"), (Gtk.STOCK_PASTE, "Paste"),
-                    (Gtk.STOCK_NO, "None"), (Gtk.STOCK_CLEAR, "Clear"),
-                    (Gtk.STOCK_DELETE, "Delete"), (Gtk.STOCK_PROPERTIES , "Proerties"),
-                     )
-        cnt = 0
-        for aa in tarr:
-            warnings.simplefilter("ignore")
-            butt = Gtk.ToolButton().new_from_stock(aa[0])
-            warnings.simplefilter("default")
-            butt.text = aa[0]
-            butt.set_tooltip_text(aa[1])
-            butt.connect("clicked", self._callb, cnt)
-            cnt += 1
-            self.hbox.add(butt)
-
-        self.hbox2 = Gtk.HBox()
-        tarr2 = ( (Gtk.STOCK_UNDO, "Undo"), (Gtk.STOCK_REDO, "Redo"),
-                    (Gtk.STOCK_COLOR_PICKER, "Color"), (Gtk.STOCK_YES , "yes?"),
-                    (Gtk.STOCK_SELECT_ALL , "SelAll"), (Gtk.STOCK_SELECT_FONT , "Font"),
-                    (Gtk.STOCK_ZOOM_100 , "Zoom100"), (Gtk.STOCK_ZOOM_FIT , "ZoomFit"),
-                     )
-        for aa in tarr2:
-            warnings.simplefilter("ignore")
-            butt = Gtk.ToolButton().new_from_stock(aa[0])
-            warnings.simplefilter("default")
-            butt.text = aa[0]
-            butt.set_tooltip_text(aa[1])
-            butt.connect("clicked", self._callb, cnt)
-            cnt += 1
-            #self.hbox2.add(butt)
-            self.hbox.add(butt)
-
-        #vbox.add(self.hboxt)
-        vbox.add(self.hbox)
-        #vbox.add(self.hbox2)
-        self.add(vbox)
-
-    def callb2(self, arg1, arg2):
-
-        ''' Internal callback '''
-
-        print("callb2", arg1, arg2)
-
-    def _callb(self, arg1, arg2):
-        ret = False
-        if self.callb:
-            ret = self.callb(arg1, arg2)
-
-        # If no external, or external returned False
-        if not ret:
-            self.callb2(arg1, arg2)
-
-    def area_motion(self, area, event):
-        #print ("motion event", event.state, event.x, event.y)
-        if self.drag:
-            #print ("drag toolbox", event.state, event.x, event.y)
-            #print("delta:", event.x - self.dragpos[0],  event.y - self.dragpos[1])
-            pos = self.get_position()
-            self.move(pos[0] + event.x - self.dragpos[0],
-                pos[1] + event.y - self.dragpos[1])
-
-    def area_button_rel(self, area, event):
-        self.drag = False
-
-    def area_button(self, area, event):
-
-        #return
-        #print("moudown", event.x, event.y)
-        hit = pggui.Rectangle(event.x, event.y, 2, 2)
-
-        rr = self.labelm.get_allocation()
-        rrr = pggui.Rectangle(rr.x, rr.y, rr.width, rr.height)
-        if rrr.intersect(hit)[0]:
-            #print("objl", rr.x, rr.y)
-            if self.opacity == 1:
-                self.opacity = 0.5
-            else:
-                self.opacity = 1
-            self.set_opacity(self.opacity)
-
-        rr = self.toolt.get_allocation()
-        rrr = pggui.Rectangle(rr.x, rr.y, rr.width, rr.height)
-        if rrr.intersect(hit)[0]:
-            #print("objhead", rr.x, rr.y)
-            self.dragpos = event.x, event.y
-            self.drag = True
-
-        rr = self.labelx.get_allocation()
-        rrr = pggui.Rectangle(rr.x, rr.y, rr.width, rr.height)
-        if rrr.intersect(hit)[0]:
-            print("objx", rr.x, rr.y)
-            self.hide()
-
-        return True
-
-    def show_box(self, parent):
-        self.parent = parent
-        self.set_transient_for (self.parent)
-        #self.set_parent(parent)
-        sxx, syy = self.parent.get_position()
-        self.move(sxx + 30, syy + 180)
-        self.show_all()
 
 class Canvas(Gtk.DrawingArea):
 
@@ -244,8 +87,14 @@ class Canvas(Gtk.DrawingArea):
         warnings.simplefilter("default")
         self.fname = untitled
         self.popbase = pgbutt.PopBase(self.parent)
-        #global gl_canv
-        #gl_canv = self
+        dd = Gdk.Display.get_default()
+        self.clip = Gtk.Clipboard.get_default(dd)
+
+    def _selone(self, curr):
+        for bb in self.coll:
+            if bb.selected:
+                bb.selected = False
+        curr.selected = True
 
     def area_key(self, area, event):
         if self.config.debug > 6:
@@ -291,7 +140,7 @@ class Canvas(Gtk.DrawingArea):
                     aa.rect.x = aa.orgdrag.x  - xd
                     aa.rect.y = aa.orgdrag.y  - yd
                     # Also move whole group IN NOT SHIFT
-                    if aa.groupid and not (event.state & Gdk.ModifierType.SHIFT_MASK) :
+                    if aa.groupid and not event.state & Gdk.ModifierType.SHIFT_MASK :
                         for bb in self.coll:
                             if aa.groupid == bb.groupid:
                                 bb.rect.x = bb.orgdrag.x  - xd
@@ -304,6 +153,7 @@ class Canvas(Gtk.DrawingArea):
             xd = int(self.dragcoord[0] - event.x)
             yd = int(self.dragcoord[1] - event.y)
             #print ("curl rdelta", xd, yd)
+            self.changed = True
             self.queue_draw()
 
         elif self.resize:
@@ -323,7 +173,7 @@ class Canvas(Gtk.DrawingArea):
             #if self.resize.rect.h < 0:
             #    self.resize.rect.y -= 2 * abs(self.resize.rect.h)
             #    self.resize.rect.h = abs(self.resize.rect.h)
-
+            self.changed = True
             self.queue_draw()
         else:
             onmarker = 0 #False
@@ -374,26 +224,25 @@ class Canvas(Gtk.DrawingArea):
         self.grab_focus()
         self.mouse = pggui.Rectangle(event.x, event.y, 4, 4)
 
-        #print( "Button:", event.button, "state:", event.state,
-        #                        " x =", event.x, "y =", event.y)
-        #if event.state & Gdk.ModifierType.SHIFT_MASK:
-        #    print( "SHIFT ButPress x =", event.x, "y =", event.y)
-        #
-        #if event.state & Gdk.ModifierType.CONTROL_MASK:
-        #    print( "Ctrl ButPress x =", event.x, "y =", event.y)
-        # GTK Does not send mod clicks
-        #if event.state & Gdk.ModifierType.MOD1_MASK:
-        #    print( "ALT ButPress x =", event.x, "y =", event.y)
-
+        if self.config.debug > 3:
+            if event.state & Gdk.ModifierType.SHIFT_MASK:
+                print( "Shift ButPress x =", event.x, "y =", event.y)
+            elif event.state & Gdk.ModifierType.CONTROL_MASK:
+                print( "Ctrl ButPress x =", event.x, "y =", event.y)
+            else:
+                print( "Button:", event.button, "state:", event.state,
+                                     " x =", event.x, "y =", event.y)
         if  event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS:
             cc = self.findsel()
             if not cc:
                 return
-            #print("DBL click", event.button, cc)
+            if self.config.debug > 3:
+                print("DBL click", event.button, cc)
             response, txt = canvdlg.textdlg(cc.text, self.get_toplevel())
             if response == Gtk.ResponseType.ACCEPT:
                 #print("Got text", txt)
                 cc.text = txt
+                self.changed = True
                 self.queue_draw()
             self.drag = None
             return
@@ -519,7 +368,7 @@ class Canvas(Gtk.DrawingArea):
                         if aa.selected:
                             cnt += 1
                     if cnt == 0:
-                       bb.selected = True
+                        bb.selected = True
 
                     mms = ("Alignment",
                             "Align Left","Align Right",
@@ -551,21 +400,18 @@ class Canvas(Gtk.DrawingArea):
                     else:
                         mmm = (bb.text, "Object Properties", "Text",
                                 "FG Color", "BG Color", "Ungroup",
-                                        "Delete", zord)
+                                        "Delete", zord,
+                                        "-", "Copy", "Paste", )
                         warnings.simplefilter("ignore")
                         pggui.Menu(mmm, self.menu_action2, event)
                         warnings.simplefilter("default")
-
                     self.queue_draw()
                 else:
-
-                    #"-", "Load Objects", "Persist Objects",
-                    # "Export Image", "Dump Objects",
-
                     mmm = ("Main Menu", "Add Rectangle", "Add Text",
                         "Add Rounded Rect", "Add Rombus", "Add Circle",
                         "Add Line", "Add Image",
                         "-", "Clear Canvas",
+                        "-", "Copy", "Paste",
                         "-", "Open", "Open (append)", "Save", "Save As")
                     warnings.simplefilter("ignore")
                     pggui.Menu(mmm, self.menu_action3, event)
@@ -587,24 +433,28 @@ class Canvas(Gtk.DrawingArea):
         pickle.dump(signon, ff)
         pickle.dump(len(self.coll), ff)
         for aa in self.coll:
+            aa.selected = False
             try:
                 pickle.dump(aa, ff)
             except:
                 print(aa, sys.exc_info())
+                pgutils.put_exception("Cannot pickle " + str(type(aa)))
 
         ff.close()
         self.show_status("Written: %s" % os.path.basename(fnamex))
         self.changed = False
 
     def menu_connect(self, item, num):
-        print ("Connect", item, num)
+        #print ("Connect", item, num)
         if num >= 1 and num <= 3:
             print ("Conn obj", item, num)
             ccc = []
+
             for aa in self.coll:
                 if aa.selected:
                     ccc.append(aa)
             for aa in ccc[1:]:
+                self.show_status("Connecting: %s" % aa.text)
                 ccc[0].others.append((aa.id, num))
 
         if num == 4:
@@ -615,7 +465,9 @@ class Canvas(Gtk.DrawingArea):
 
             if len(ccc) == 2:
                 #print("Please select two objects to disconnect")
-                print("disconnecting", ccc[0].text, ccc[1].text)
+                self.show_status("Disconnecting: %s from %s" % \
+                                           (ccc[0].text, ccc[1].text))
+                #pass
                 try:
                     #ccc[0].others.remove(ccc[1].id)
                     ccc[0].others = []
@@ -623,18 +475,16 @@ class Canvas(Gtk.DrawingArea):
             else:
                 for dd in ccc:
                     dd.others = []
-
             self.queue_draw()
 
     def menu_zord(self, item, num):
 
         #print ("Z order", item, num)
-        #global globzorder
         if num == 1:
             for aa in self.coll:
                 if aa.selected:
-                    canvobjs.globzorder = canvobjs.globzorder + 1
-                    aa.zorder = canvobjs.globzorder
+                    canvobjs.DrawObj.globzorder = canvobjs.DrawObj.globzorder + 1
+                    aa.zorder = canvobjs.DrawObj.globzorder
                     break
 
         if num == 2:
@@ -648,7 +498,7 @@ class Canvas(Gtk.DrawingArea):
         self.queue_draw()
 
     def menu_align(self, item, num):
-            print ("Align", item, num)
+        print ("Align", item, num)
 
     def menu_action(self, item, num):
 
@@ -665,14 +515,14 @@ class Canvas(Gtk.DrawingArea):
                 self.show_status("Property dialog: Nothing selected")
         # Group
         if num == 3:
-            canvobjs.globgroup += 1
-            print("Group", canvobjs.globgroup)
+            canvobjs.DrawObj.globgroup += 1
+            print("Group", canvobjs.DrawObj.globgroup)
             for aa in self.coll:
                 if aa.selected:
-                    aa.groupid = canvobjs.globgroup
+                    aa.groupid = canvobjs.DrawObj.globgroup
         # Ungroup
         if num == 4:
-            print("unGroup", canvobjs.globgroup)
+            print("unGroup", canvobjs.DrawObj.globgroup)
             for aa in self.coll:
                 if aa.selected:
                     for bb in self.coll:
@@ -691,6 +541,9 @@ class Canvas(Gtk.DrawingArea):
 
     def menu_action2(self, item, num):
 
+        if self.config.verbose:
+            print("menu_action2", item, num)
+
         if num == 1:
             #print("Getting properties")
             props = []
@@ -699,6 +552,7 @@ class Canvas(Gtk.DrawingArea):
                     props.append(aa)
             if props:
                 canvdlg.propdlg(props, self.get_toplevel())
+                self.queue_draw()
             else:
                 self.show_status("Property dialog: Nothing selected")
 
@@ -706,8 +560,8 @@ class Canvas(Gtk.DrawingArea):
             #print("Getting text")
             bb = None
             for aa in self.coll:
-                    if aa.selected:
-                        bb = aa
+                if aa.selected:
+                    bb = aa
             if bb:
                 #print("Getting text", bb)
                 response, txt = canvdlg.textdlg(bb.text, self.get_toplevel())
@@ -754,8 +608,13 @@ class Canvas(Gtk.DrawingArea):
                     #print("would delete", bb)
                     self.coll.remove(bb)
                     self.show_status("Deleted Item: '%s'" % bb.text)
-
             self.queue_draw()
+
+        if num == 9:
+            self.copy()
+
+        if num == 10:
+            self.paste()
 
     def menu_action3(self, item, num):
 
@@ -807,6 +666,14 @@ class Canvas(Gtk.DrawingArea):
         elif "Persist" in item:
             self.writeout(piclename)
 
+        elif "Copy" in item:
+            #print("Copy")
+            self.copy()
+
+        elif "Paste" in item:
+            #print("Paste")
+            self.paste()
+
         elif "Clear" in item:
             # Clear canvas
             self.coll = []
@@ -856,6 +723,26 @@ class Canvas(Gtk.DrawingArea):
         else:
             print("Invalid menu item")
 
+    def copy(self):
+        carr = []
+        for aa in self.coll:
+            if aa.selected:
+                carr.append(aa)
+                clipobj = pickle.dumps(aa)
+                hex_data = binascii.hexlify(clipobj).decode()
+                self.clip.set_text(hex_data, -1)
+        if not carr:
+            return
+
+    def paste(self):
+        hex_data = self.clip.wait_for_text()
+        clipobj = binascii.unhexlify(hex_data.encode())
+        aa = pickle.loads(clipobj)
+        aa.rect.x = self.mouse.x ; self.rect.y = self.mouse.y
+        aa.id = pgtests.randlett(8)
+        self.coll.append(aa)
+        self.queue_draw()
+
     def save(self):
         if self.config.verbose:
             print("Save")
@@ -879,6 +766,7 @@ class Canvas(Gtk.DrawingArea):
         if not fnamex:
             return
         self.fname = fnamex
+        self.changed = True
         self.writeout(self.fname)
 
     def open(self, keep = False):
@@ -917,14 +805,25 @@ class Canvas(Gtk.DrawingArea):
             self.show_status("Not a valid pgcanv file: '%s'" % os.path.basename(fnamex))
             ff.close()
             return
+
+        if "1.0.0" not in sig:
+            print("warning: not a version 1.0.0 file")
+
         aa = pickle.load(ff)
         for aa in range(aa):
             try:
                 aa = pickle.load(ff)
+            except EOFError:
+                break
             except:
+                pgutils.put_exception("Cannot load " + str(type(aa)))
                 break
             self.coll.append(aa)
         ff.close()
+
+        if self.config.debug > 0:
+            self.show_objects()
+
         self.show_status("Loaded: '%s'" % os.path.basename(fnamex))
         self.queue_draw()
 
@@ -933,6 +832,7 @@ class Canvas(Gtk.DrawingArea):
         col1 = pggui.str2float(crb);    col2 = pggui.str2float(crf)
         rob = canvobjs.RectObj(coord, text, col1, col2, border, fill)
         self.coll.append(rob)
+        self._selone(rob)
         self.queue_draw()
         self.show_status("Added rectangle '%s'" % rob.text)
         self.changed = True
@@ -943,6 +843,7 @@ class Canvas(Gtk.DrawingArea):
         col1 = pggui.str2float(crb);    col2 = pggui.str2float(crf)
         rob = canvobjs.ImgObj(coord, text, col1, col2, border, fill)
         self.coll.append(rob)
+        self._selone(rob)
         self.queue_draw()
         self.show_status("Added image '%s'" % rob.text)
         self.changed = True
@@ -952,7 +853,9 @@ class Canvas(Gtk.DrawingArea):
         col1 = pggui.str2float(crb);    col2 = pggui.str2float(crf)
         rob = canvobjs.LineObj(coord, text, col1, col2, border, fill)
         self.coll.append(rob)
+        self._selone(rob)
         self.queue_draw()
+        self.show_status("Added line '%s'" % rob.text)
         self.changed = True
         return rob
 
@@ -960,7 +863,9 @@ class Canvas(Gtk.DrawingArea):
         col1 = pggui.str2float(crb);    col2 = pggui.str2float(crf)
         rob = canvobjs.CurveObj(coord, text, col1, col2, border, fill)
         self.coll.append(rob)
+        self._selone(rob)
         self.queue_draw()
+        self.show_status("Added curve '%s'" % rob.text)
         self.changed = True
         return rob
 
@@ -968,7 +873,9 @@ class Canvas(Gtk.DrawingArea):
         col1 = pggui.str2float(crb);  col2 = pggui.str2float(crf)
         rob = canvobjs.TextObj(coord, text, col1, col2, border, fill)
         self.coll.append(rob)
+        self._selone(rob)
         self.queue_draw()
+        self.show_status("Added text '%s'" % rob.text)
         self.changed = True
         return rob
 
@@ -976,6 +883,8 @@ class Canvas(Gtk.DrawingArea):
         col1 = pggui.str2float(crb);    col2 = pggui.str2float(crf)
         rob = canvobjs.CircObj(coord, text, col1, col2, border, fill)
         self.coll.append(rob)
+        self._selone(rob)
+        self.show_status("Added circle '%s'" % rob.text)
         self.queue_draw()
         self.changed = True
         return rob
@@ -984,6 +893,8 @@ class Canvas(Gtk.DrawingArea):
         col1 = pggui.str2float(crb);    col2 = pggui.str2float(crf)
         rob = canvobjs.StrokeObj(coord, text, col1, col2, border, fill, arr)
         self.coll.append(rob)
+        self._selone(rob)
+        self.show_status("Added stroke '%s'" % rob.text)
         self.queue_draw()
         self.changed = True
         return rob
@@ -992,6 +903,8 @@ class Canvas(Gtk.DrawingArea):
         col1 = pggui.str2float(crb);    col2 = pggui.str2float(crf)
         rob = canvobjs.RombObj(coord, text, col1, col2, border, fill)
         self.coll.append(rob)
+        self._selone(rob)
+        self.show_status("Added rombus '%s'" % rob.text)
         self.queue_draw()
         self.changed = True
         return rob
@@ -1000,6 +913,8 @@ class Canvas(Gtk.DrawingArea):
         col1 = pggui.str2float(crb);    col2 = pggui.str2float(crf)
         rob  = canvobjs.RoundRectObj(coord, text, col1, col2, border, fill)
         self.coll.append(rob)
+        self._selone(rob)
+        self.show_status("Added rounded rect '%s'" % rob.text)
         self.queue_draw()
         self.changed = True
         return rob
@@ -1043,7 +958,7 @@ class Canvas(Gtk.DrawingArea):
         # Paint white, ignore system BG
         border = 4
         cr.set_source_rgba(255/255, 255/255, 255/255)
-        cr.rectangle( border, border, self.rect.width - border * 2, self.rect.height - border * 2);
+        cr.rectangle( border, border, self.rect.width - border * 2, self.rect.height - border * 2)
         cr.fill()
 
         # Draw connections
@@ -1057,7 +972,7 @@ class Canvas(Gtk.DrawingArea):
                         cr.move_to(aac[0], aac[1])
                         bbc = bb.center()
                         cr.line_to(bbc[0], bbc[1])
-                        cent = (aac[0] + bbc[0]) / 2, (aac[1] + bbc[1]) / 2
+                        cent = [(aac[0] + bbc[0]) / 2, (aac[1] + bbc[1]) / 2]
                         if dd == 1:
                             pass
                         elif dd == 2:
@@ -1065,6 +980,9 @@ class Canvas(Gtk.DrawingArea):
                             deg = self._calc_angle(aac, bbc)
                             #print("deg: %0.2f" % deg )
                             #cr.set_source_rgba(0/255, 0/255, 0/255)
+                            # Offset by half arrow
+                            #cent[0] += 12 * (math.sin(rads))
+                            #cent[1] += 12 * (math.cos(rads))
                             cr.move_to(*cent)
                             rads = math.radians(deg - 70)
                             cr.line_to(cent[0] + 24 * (math.sin(rads)),
@@ -1078,8 +996,10 @@ class Canvas(Gtk.DrawingArea):
                             deg = self._calc_angle(aac, bbc)
                             #print("deg: %0.2f" % deg )
                             #cr.set_source_rgba(0/255, 0/255, 0/255)
-                            cr.move_to(*cent)
                             rads = math.radians(deg - 70)
+                            #cent[0] += 12 * (math.sin(rads))
+                            #cent[1] += 12 * (math.cos(rads))
+                            cr.move_to(*cent)
                             cr.line_to(cent[0] - 24 * (math.sin(rads)),
                                        cent[1] + 24 * (math.cos(rads)) )
                             cr.move_to(*cent)
@@ -1087,9 +1007,6 @@ class Canvas(Gtk.DrawingArea):
                             cr.line_to(cent[0] - 24 * (math.sin(rads)),
                                        cent[1] + 24 * (math.cos(rads)) )
                         cr.stroke()
-
-        #for aa in self.coll:
-        #    aa.dump()
 
         sortx = sorted(self.coll, reverse = False, key = lambda item: item.zorder)
 
@@ -1102,7 +1019,7 @@ class Canvas(Gtk.DrawingArea):
                 pgutils.put_exception("Cannot draw " + str(type(aa)))
                 #aa.dump()
 
-        init = 0;
+        init = 0
         for aa, bb in self.stroke:
             if init == 0:
                 self.cr.move_to(aa, bb)
@@ -1110,5 +1027,10 @@ class Canvas(Gtk.DrawingArea):
                 self.cr.line_to(aa, bb)
             init += 1
         self.cr.stroke()
+
+    def dumpobjs(self):
+        for aa in self.coll:
+            aa.dump()
+
 
 # EOF

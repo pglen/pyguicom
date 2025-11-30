@@ -27,7 +27,7 @@ class smallbutt(Gtk.EventBox):
     }
     warnings.simplefilter("default")
 
-    def __init__(self, labx, eventx = None, tooltip = None, *args, **kwds):
+    def __init__(self, labx, eventx=None, tooltip=None, font=None, *args, **kwds):
         super().__init__(*args, **kwds)
 
         self.state = 0; self.stat2 = 0
@@ -38,6 +38,9 @@ class smallbutt(Gtk.EventBox):
         self.lab = Gtk.Label.new_with_mnemonic(labx)
         self.add(self.lab)
         self.set_above_child(True)
+        self.font = "Sans 10"
+        if font:
+            self.font = font
 
         warnings.simplefilter("ignore")
         self.arrow  =  Gdk.Cursor(Gdk.CursorType.ARROW)
@@ -69,10 +72,8 @@ class smallbutt(Gtk.EventBox):
         self.set_can_default(True)
         self.set_sensitive(True)
 
-        font = "Sans 10"
-
         warnings.simplefilter("ignore")
-        self.override_font(Pango.FontDescription(font))
+        self.override_font(Pango.FontDescription(self.font))
         warnings.simplefilter("default")
 
         #self.set_alignment(0.5, 0.5)
@@ -82,7 +83,7 @@ class smallbutt(Gtk.EventBox):
         #self.set_margin_bottom(0)
 
         self.layoutx = self.create_pango_layout("a")
-        self.layoutx.set_font_description(Pango.FontDescription(font))
+        self.layoutx.set_font_description(Pango.FontDescription(self.font))
         self.layoutx.set_text(self.orgtext, self.mark)
 
         (self.charx, self.chary) =  self.layoutx.get_extents()
@@ -90,7 +91,7 @@ class smallbutt(Gtk.EventBox):
         self.chary.width /= Pango.SCALE;  self.chary.height /= Pango.SCALE;
 
         self.layout  = self.create_pango_layout("a")
-        self.layout.set_font_description(Pango.FontDescription(font))
+        self.layout.set_font_description(Pango.FontDescription(self.font))
         self.layout.set_text(self.orgtext, len(self.orgtext))
         (pr, lr) = self.layout.get_extents()
         self.ww = lr.width / Pango.SCALE; self.hh = lr.height / Pango.SCALE;
@@ -235,10 +236,11 @@ class PopBase(Gtk.Window):
         self.parent = parent
         self.curr = 0
         self.cnt = 0
+        self.maxlen = 64
         self.poparr = []
 
     def submit(self, strx, tout):
-        pw = PopWin(strx[:64], self)
+        pw = PopWin(strx[:self.maxlen], self)
         self.poparr.append(pw)
         self.cnt += 1
 
@@ -248,6 +250,8 @@ class PopWin(Gtk.Window):
 
         self.base = base
         self.tout = tout
+        self.xoffset = 14
+        self.yoffset = 14
 
         super(PopWin, self).__init__()
 
@@ -299,7 +303,7 @@ class PopWin(Gtk.Window):
             #print("Move:", len(self.base.poparr), it, ss)
             aa.move(it[0], it[1] - ss[1] - 4)
         # Present current
-        self.move(xx + 14, yy + hh - hhh)
+        self.move(xx + self.xoffset, yy + hh - self.yoffset - hhh)
         self.base.curr += 1
         #self.set_keep_above(True)
         self.tout = GLib.timeout_add(self.tout, self.remove)

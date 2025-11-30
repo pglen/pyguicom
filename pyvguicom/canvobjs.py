@@ -1,31 +1,38 @@
 #!/usr/bin/env python3
 
-import os, time, sys, datetime, warnings, math
+#pylint: disable=C0103
+#pylint: disable=C0209
+#pylint: disable=C0321
+#pylint: disable=C0116
+#pylint: disable=W0301
+#pylint: disable=C0410
+#pylint: disable=C0413
+
+#import os, time, sys, datetime, warnings, math
 #import signal, subprocess, platform, ctypes, sqlite3,
 
 import gi; gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk
-from gi.repository import GObject
 from gi.repository import GLib
 from gi.repository import Pango
 from gi.repository import GdkPixbuf
 from gi.repository import cairo
 
-from cairo import ImageSurface
-
-#from gi.repository import ImageSurface
-
 gi.require_version('PangoCairo', '1.0')
 from gi.repository import PangoCairo
+
+__doc__ = ''' Objects for canvas '''
 
 import pggui
 import pgtests
 
-#RECT = 1 #TEXT = 2 #CIRC = 3 #ROMB = 4 #FREE = 5
-
-globzorder = 0; globgroup = 0
+#RECT, TEXT, CIRC, ROMB, FREE = range(5)
 
 class DrawObj(object):
+
+    ''' Base class for all drawing objects '''
+
+    globzorder = 0 ; globgroup = 0
 
     def __init__(self,  rect, text, col1, col2, border, fill):
 
@@ -43,10 +50,11 @@ class DrawObj(object):
         self.others = []
         self.mouse = pggui.Rectangle()
         self.tooltip = "Hello Tooltip"
-        global globzorder
-        globzorder = globzorder + 1
-        self.zorder = globzorder
+        DrawObj.globzorder = DrawObj.globzorder + 1
+        self.zorder = DrawObj.globzorder
         self.type = ""
+        self.mx = [0, 0, 0, 0]      # side markers
+        self.rsize = 12             # Marker size
 
     def dump(self):
         col1 = pggui.float2str(self.col1)
@@ -83,23 +91,18 @@ class DrawObj(object):
 
     def corners(self, self2, rectz, rsize):
 
-        self2.crh.set_source_rgb(self.col2);
+        #self2.crh.set_source_rgb(self.col2);
+        black = pggui.str2float("#808080")
+        self2.crh.set_source_rgb(black)
 
         self.mx[0] = pggui.Rectangle(rectz.x - rsize/2,
                     rectz.y - rsize/2, rsize, rsize)
-
-        #rsize += 3
         self.mx[1] = pggui.Rectangle(rectz.x + rectz.w - rsize/2,
                     rectz.y - rsize/2, rsize, rsize)
-
-        #rsize += 3
         self.mx[2] = pggui.Rectangle(rectz.x - rsize/2,
                     rectz.y + rectz.h - rsize/2, rsize, rsize)
-
-        #rsize += 3
         self.mx[3] = pggui.Rectangle(rectz.x + rectz.w - rsize/2,
                     rectz.y + rectz.h - rsize/2, rsize, rsize)
-
         for aa in self.mx:
             if aa:
                 self2.crh.rectangle(aa)
@@ -113,7 +116,7 @@ class DrawObj(object):
 
     def hitmarker(self, rectx):
 
-        #print("hi marker", rectx)
+        #print("hit marker", rectx)
 
         ret = 0 #False
         for aa in range(len(self.mx)):
@@ -123,7 +126,6 @@ class DrawObj(object):
                     break
         #if ret:
         #    print ("drawobj  hitmarker", rectx)
-
         return ret
 
     def hittest(self, rectx):
@@ -133,16 +135,13 @@ class DrawObj(object):
     def center(self):
         return (self.rect.x + self.rect.w / 2, self.rect.y + self.rect.h / 2)
 
-# ------------------------------------------------------------------------
-# Rectangle object
-
 class RectObj(DrawObj):
 
-    def __init__(self, rect, text, col1, col2, border, fill):
-        super(RectObj, self).__init__( rect, text, col1, col2, border, fill)
+    ''' Rectangle object '''
 
-        self.mx = [0, 0, 0, 0]      # side markers
-        self.rsize = 12             # Marker size
+    def __init__(self, rect, text, col1, col2, border, fill):
+
+        super(RectObj, self).__init__( rect, text, col1, col2, border, fill)
         self.type = "Rect"
 
     def draw(self, cr, self2):
@@ -174,16 +173,18 @@ class RectObj(DrawObj):
 
         cr.set_line_width(1);
 
-# ------------------------------------------------------------------------
-# Image object
 
 class ImgObj(DrawObj):
+
+    ''' Image object '''
 
     def __init__(self, rect, text, col1, col2, border, fill):
         super(ImgObj, self).__init__( rect, text, col1, col2, border, fill)
 
-        self.mx = [0, 0, 0, 0]      # side markers
-        self.rsize = 12             # Marker size
+        #self.mx = [0, 0, 0, 0]      # side markers
+        #self.rsize = 12             # Marker size
+        self.widget = None
+        self.pixbuf = None
         self.type   = "Image"
         self.image  = "images/icon.png"
         self.loadimg()
@@ -244,15 +245,14 @@ class ImgObj(DrawObj):
 
 class RoundRectObj(DrawObj):
 
+    ''' RoundRectObj object '''
+
     def __init__(self, rect, text, col1, col2, border, fill):
 
         rect2 = pggui.Rectangle(rect[0], rect[1], rect[2], rect[3])
 
-        super(RoundRectObj, self).__init__( rect2, text, col1, col2, \
-                                                        border, fill)
-
-        self.mx = [0, 0, 0, 0]      # side markers
-        self.rsize = 12             # Marker size
+        super(RoundRectObj, self).__init__( rect2, text,
+                                    col1, col2, border, fill)
         self.type = "RoundRect"
         self.arr = []
 
@@ -292,16 +292,13 @@ class RoundRectObj(DrawObj):
 
         cr.set_line_width(1);
 
-# ------------------------------------------------------------------------
-# Line object
-
 class LineObj(DrawObj):
+
+    ''' Line object '''
 
     def __init__(self, rect, text, col1, col2, border, fill):
         super(LineObj, self).__init__( rect, text, col1, col2, border, fill)
 
-        self.mx = [0, 0, 0, 0]      # side markers
-        self.rsize = 12             # Marker size
         self.type = "Line"
 
     def draw(self, cr, self2):
@@ -333,11 +330,11 @@ class LineObj(DrawObj):
 
 class CurveObj(DrawObj):
 
+    ''' Curves '''
+
     def __init__(self, rect, text, col1, col2, border, fill):
         super(CurveObj, self).__init__( rect, text, col1, col2, border, fill)
 
-        self.mx = [0, 0, 0, 0]      # side markers
-        self.rsize = 12             # Marker size
         self.type = "Curve"
 
     def draw(self, cr, self2):
@@ -381,10 +378,8 @@ class CurveObj(DrawObj):
         if not ret:
             if rectx.intersect(self.crect)[0]:
                 ret = 5
-
         #if ret:
         #    print("hit curve",  ret)
-
         return ret
 
 # ------------------------------------------------------------------------
@@ -392,56 +387,62 @@ class CurveObj(DrawObj):
 
 class TextObj(DrawObj):
 
+    ''' Text '''
+
     def __init__(self, rect, text, col1, col2, border, fill):
         super(TextObj, self).__init__( rect, text, col1, col2, border, fill)
 
-        self.mx = [0, 0, 0, 0]      # side markers
-        self.rsize = 12             # Marker size
-        self.family =  ("Arial")
+        self.fontstr = "Arial Regular"
         self.fsize = 12
-        self.txx = 0
-        self.tyy = 0
+        self.txx = 0 ; self.tyy = 0
         self.type = "Text"
-        self.fd = Pango.FontDescription()
         self.pangolayout = None
+        self.skipsize = False
 
     def __getstate__(self):
         state = self.__dict__.copy()
         # Remove the unpicklable entries.
-        del state['fd']
         del state['pangolayout']
         return state
 
     def __setstate__(self, state):
         self.__dict__.update(state)
-        self.fd = Pango.FontDescription()
         self.pangolayout = None
+
+    def center(self):
+        return (self.rect.x + self.txx / 2,
+                         self.rect.y + self.tyy  / 2)
 
     def draw(self, cr, self2):
 
         if not self.pangolayout:
             self.pangolayout = self2.create_pango_layout("a")
 
-        self.expand_size(self2)
-
-        if self.selected:
-            rrr = pggui.Rectangle(self.rect.x, self.rect.y, self.txx, self.tyy)
-            self.corners(self2, rrr, self.rsize)
+        #self.expand_size(self2)
 
         if self.text:
-
             self2.crh.set_source_rgb(self.col2);
-            self.fd.set_family
-            self.fsize = max(self.rect.h, 6)
-            self.fd.set_size(self.fsize * Pango.SCALE)
-
-            self.pangolayout.set_font_description(self.fd)
+            fdesc = Pango.FontDescription.from_string(self.fontstr)
+            if not self.skipsize:
+                self.fsize = max(self.rect.h, 6)
+            fdesc.set_size(self.fsize * Pango.SCALE)
+            #print("fd", fdesc.to_string(), "sss:", self.fsize)
+            self.pangolayout.set_font_description(fdesc)
             self.pangolayout.set_text(self.text, len(self.text))
             self.txx, self.tyy = self.pangolayout.get_pixel_size()
+
+            if self.skipsize:
+                #self.rect.w = self.txx
+                self.rect.h = self.fsize
 
             self2.crh.set_source_rgb(self.col2);
             cr.move_to(self.rect.x, self.rect.y)
             PangoCairo.show_layout(cr, self.pangolayout)
+            self.skipsize = False
+
+        if self.selected:
+            rrr = pggui.Rectangle(self.rect.x, self.rect.y, self.txx, self.tyy)
+            self.corners(self2, rrr, self.rsize)
 
     def hittest(self, rectx):
         recttxt = pggui.Rectangle(self.rect.x, self.rect.y, self.txx, self.tyy)
@@ -450,11 +451,11 @@ class TextObj(DrawObj):
 
 class RombObj(DrawObj):
 
+    ''' Rombus '''
+
     def __init__(self, rect, text, col1, col2, border, fill):
         super(RombObj, self).__init__( rect, text, col1, col2, border, fill)
 
-        self.mx = [0, 0, 0, 0]      # side markers
-        self.rsize = 12             # Marker size
         self.type = "Romb"
 
     def hittest(self, rectx):
@@ -489,13 +490,13 @@ class RombObj(DrawObj):
 
 class CircObj(DrawObj):
 
+    ''' Circle '''
+
     def __init__(self, rect, text, col1, col2, border, fill):
 
         rect2 = pggui.Rectangle(rect[0], rect[1], rect[2], rect[3])
         super(CircObj, self).__init__( rect2, text, col1, col2, border, fill)
 
-        self.mx = [0, 0, 0, 0]      # side markers
-        self.rsize = 12             # Marker size
         self.type = "Circ"
 
     def hittest(self, rectx):
@@ -544,15 +545,12 @@ def stroke_dims(arrx):
 
     ul_x = 10000; ul_y = 10000; lr_x = 0; lr_y = 0
     for aa, bb in arrx:
-        if ul_x > aa:
-            ul_x = aa
-        if ul_y > bb:
-            ul_y = bb
 
-        if lr_x < aa:
-            lr_x = aa
-        if lr_y < bb:
-            lr_y = bb
+        ul_x = min(ul_x, aa)
+        ul_y = min(ul_y, bb)
+
+        lr_x = max(lr_x, aa)
+        lr_y = max(lr_y, bb)
 
     #print("Stroke dims", ul_x, ul_y, lr_x, lr_y)
     # Correct faulty one
@@ -560,8 +558,9 @@ def stroke_dims(arrx):
         ul_x = 10; ul_y = 10; lr_x = 20; lr_y = 20
     return  (ul_x, ul_y, lr_x - ul_x, lr_y - ul_y)
 
-
 class StrokeObj(DrawObj):
+
+    ''' Stroke '''
 
     def __init__(self, rect, text, col1, col2, border, fill, arr):
 
@@ -569,10 +568,8 @@ class StrokeObj(DrawObj):
 
         super(StrokeObj, self).__init__( rect2, text, col1, col2, border, fill)
 
-        self.mx = [0, 0, 0, 0]      # side markers
-        self.rsize = 12             # Marker size
         self.type = "Stroke"
-        self.arr = []
+        self.arr = self.arr2 = []
 
         # Convert to relative coords
         for aa, bb in arr:
@@ -594,7 +591,6 @@ class StrokeObj(DrawObj):
                 bbb = bb *  self.rect.h / org.h;
             except:
                 pass
-
             if init == 0:
                 cr.move_to(aaa + self.rect.x, bbb + self.rect.y)
             else:
@@ -608,8 +604,11 @@ class StrokeObj(DrawObj):
         if self.text:
             self2.crh.set_source_rgb(self.col2);
             self2.layout.set_text(self.text, len(self.text))
-            xx, yy = self2.layout.get_pixel_size()
-            cr.move_to(self.rect.x - xx / 2, self.rect.y - yy / 2 )
+            cr.move_to(*self.center())
             PangoCairo.show_layout(cr, self2.layout)
 
-# eof
+    def center(self):
+        dims = stroke_dims(self.arr)
+        return (self.rect.x + dims[2] / 2, self.rect.y + dims[3] / 2)
+
+# EOF

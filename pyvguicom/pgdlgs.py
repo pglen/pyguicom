@@ -119,21 +119,26 @@ def savedialog(resp, filter = []):
     fc.run()
     return fname[0]
 
-def fontdialog(parent=None, defaults=""):
+def fontdialog(parent=None, family="", fsize=0):
 
-    #strx
-    fontpar = []
+    #print("fontdialog", family, fsize)
+
+    fontpar = []                # so it is passed around as reference
     def done_fsel(win, resp, parx):
-        #if resp == Gtk.ButtonsType.OK:
-        parx.append(win.get_font_family().get_name())
-        parx.append(win.get_font_face().get_face_name())
-        parx.append(win.get_font_size())
+        #print("resp", resp)
+        if resp == -Gtk.ButtonsType.OK_CANCEL:
+            parx.append(win.get_font_family().get_name())
+            parx.append(win.get_font_face().get_face_name())
+            parx.append(win.get_font_size() // Pango.SCALE)
         win.destroy()
 
-    fc = Gtk.FontChooserDialog(title="Select font", transient_for=parent)
-    fc.set_default_response(Gtk.ButtonsType.OK)
-    fc.connect("response", done_fsel, fontpar)
-    fc.run()
+    fdlg = Gtk.FontChooserDialog(title="Select font", transient_for=parent)
+    fdlg.set_default_response(Gtk.ButtonsType.OK)
+    fdlg.connect("response", done_fsel, fontpar)
+    fd = Pango.FontDescription.from_string(family)
+    fd.set_size(fsize * Pango.SCALE)
+    fdlg.set_font_desc(fd)
+    fdlg.run()
     return fontpar
 
 def version():

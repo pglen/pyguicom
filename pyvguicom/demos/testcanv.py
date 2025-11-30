@@ -3,36 +3,39 @@
 # pylint: disable=C0103
 # pylint: disable=C0209
 # pylint: disable=C0321
+# pylint: disable=C0410
+# pylint: disable=C0413
 
-import string, random, datetime
-import os, sys, getopt, math
+import sys
+#import string, random, datetime
 
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
-from gi.repository import Gdk
-from gi.repository import GObject
-from gi.repository import GLib
-from gi.repository import Pango
 
 sys.path.append(".")
 
-import comline
 import pgcanv
 import pgdlgs
 import pgbutt
+import canvdlg
+import comparse
+
+canv = None
+
+__doc__ = ''' Test for canvas '''
 
 def tbc(arg1, arg2):
+    ''' Doc String '''
     print("Toolbox:", arg1.text, "cnt =", arg2)
-    pass
 
 def callb(arg1):
-
-    #print("ExitStrip:", arg1.cnt)
-    global canv
+    ''' Doc String '''
 
     if arg1.cnt == 0:
-        pass
+        #print("New")
+        canv.save()
+        canv.coll = []
     if arg1.cnt == 1:
         #print("Load")
         canv.open()
@@ -53,12 +56,14 @@ def callb(arg1):
         sys.exit(0)
 
 def mainfunc(conf):
+    ''' Doc String '''
 
     global canv
 
     w = Gtk.Window()
     w.set_size_request(800, 600)
     w.set_position(Gtk.WindowPosition.CENTER)
+    w.config = conf
     w.connect("destroy", Gtk.main_quit)
     try:
         w.set_icon_from_file("images/canv.png")
@@ -69,15 +74,16 @@ def mainfunc(conf):
     vbox = Gtk.VBox()
     hbox = Gtk.HBox()
 
-    hbox.pack_start(pgcanv.ToolBox(tbc, w), 0, 0, 0)
+    hbox.pack_start(canvdlg.ToolBox(tbc, w), 0, 0, 0)
     vbox.pack_start(hbox, 0, 0, 0)
 
     canv = pgcanv.Canvas(w, config=config)
     vbox.pack_start(canv, 1, 1, 0)
 
-    #statcall = pgcanv.StatusBar(w, "Idle.")
+    #statcall = canvdlg.StatusBar(w, "Idle.")
     #vbox.pack_start(statcall, 0, 0, 0)
     #canv.statcall = statcall
+
     buttarr = ["  _New  ", "  Op_en  ", "  _Save  ", "  E_xit  "]
     estrip = pgbutt.ExitStrip(buttarr, callb)
     vbox.pack_start(estrip, 0, 0, 0)
@@ -102,7 +108,6 @@ optx =  \
 
 if __name__ == '__main__':
 
-    import comparse
     config = comparse.parse(sys.argv, optx)
     if config.verbose > 2:
         print(config)
