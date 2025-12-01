@@ -449,14 +449,13 @@ class Canvas(Gtk.DrawingArea):
         if num >= 1 and num <= 3:
             print ("Conn obj", item, num)
             ccc = []
-
             for aa in self.coll:
                 if aa.selected:
                     ccc.append(aa)
             for aa in ccc[1:]:
                 self.show_status("Connecting: %s" % aa.text)
                 ccc[0].others.append((aa.id, num))
-
+                self.changed = True
         if num == 4:
             ccc = []
             for aa in self.coll:
@@ -464,17 +463,16 @@ class Canvas(Gtk.DrawingArea):
                     ccc.append(aa)
 
             if len(ccc) == 2:
-                #print("Please select two objects to disconnect")
                 self.show_status("Disconnecting: %s from %s" % \
                                            (ccc[0].text, ccc[1].text))
-                #pass
                 try:
-                    #ccc[0].others.remove(ccc[1].id)
                     ccc[0].others = []
+                    self.changed = True
                 except: pass
             else:
                 for dd in ccc:
                     dd.others = []
+                    self.changed = True
             self.queue_draw()
 
     def menu_zord(self, item, num):
@@ -485,6 +483,7 @@ class Canvas(Gtk.DrawingArea):
                 if aa.selected:
                     canvobjs.DrawObj.globzorder = canvobjs.DrawObj.globzorder + 1
                     aa.zorder = canvobjs.DrawObj.globzorder
+                    self.changed = True
                     break
 
         if num == 2:
@@ -493,16 +492,65 @@ class Canvas(Gtk.DrawingArea):
             for aa in self.coll:
                 if aa.selected:
                     aa.zorder = 0
+                    self.changed = True
                     break
 
         self.queue_draw()
 
     def menu_align(self, item, num):
-        print ("Align", item, num)
+
+        #print ("Align", item, num)
+
+        mark = -1
+        if "Left" in item:
+            for aa in self.coll:
+                if aa.selected:
+                    if mark == -1:
+                        mark = aa.rect.x
+                        continue
+                    aa.rect.x = mark
+                    self.changed = True
+
+        if "Top" in item:
+            for aa in self.coll:
+                if aa.selected:
+                    if mark == -1:
+                        mark = aa.rect.y
+                        continue
+                    aa.rect.y = mark
+                    self.changed = True
+
+        if "Right" in item:
+            for aa in self.coll:
+                if aa.selected:
+                    if mark == -1:
+                        mark = aa.rect.x + aa.rect.w
+                        continue
+                    aa.rect.x = mark - aa.rect.w
+                    self.changed = True
+
+        if "Mid X" in item:
+            for aa in self.coll:
+                if aa.selected:
+                    if mark == -1:
+                        mark = aa.center()[0]
+                        continue
+                    aa.rect.x = mark - aa.rect.w / 2
+                    self.changed = True
+
+        if "Mid Y" in item:
+            for aa in self.coll:
+                if aa.selected:
+                    if mark == -1:
+                        mark = aa.center()[1]
+                        continue
+                    aa.rect.y = mark - aa.rect.h / 2
+                    self.changed = True
 
     def menu_action(self, item, num):
 
-        #print(item, num)
+        #print("menu_action:", item, num)
+
         # Prop
         if num == 1:
             props = []
