@@ -6,8 +6,7 @@
 # pylint: disable=C0410
 # pylint: disable=C0413
 
-import sys
-#import string, random, datetime
+import os, sys
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -36,6 +35,8 @@ def callb(arg1):
         #print("New")
         canv.save()
         canv.coll = []
+        canv.show_status("New buffer created.")
+        canv.queue_draw()
     if arg1.cnt == 1:
         #print("Load")
         canv.open()
@@ -55,7 +56,13 @@ def callb(arg1):
                 return
         sys.exit(0)
 
+def Exit(self):
+    print("Exiting")
+    canv.save()
+    Gtk.main_quit()
+
 def mainfunc(conf):
+
     ''' Doc String '''
 
     global canv
@@ -64,11 +71,12 @@ def mainfunc(conf):
     w.set_size_request(800, 600)
     w.set_position(Gtk.WindowPosition.CENTER)
     w.config = conf
-    w.connect("destroy", Gtk.main_quit)
+    w.connect("destroy", Exit)
     try:
-        w.set_icon_from_file("images/canv.png")
+        iconame = os.path.dirname(pgcanv.__file__) + os.sep + "images/canv.png"
+        w.set_icon_from_file(iconame)
     except:
-        #print(sys.exc_info())
+        print(sys.exc_info())
         pass
 
     vbox = Gtk.VBox()

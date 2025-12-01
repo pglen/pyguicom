@@ -8,7 +8,8 @@
 #pylint: disable=C0410
 #pylint: disable=C0413
 
-#import os, time, sys, datetime, warnings, math
+import os
+#, time, sys, datetime, warnings, math
 #import signal, subprocess, platform, ctypes, sqlite3,
 
 import gi; gi.require_version("Gtk", "3.0")
@@ -186,7 +187,10 @@ class ImgObj(DrawObj):
         self.widget = None
         self.pixbuf = None
         self.type   = "Image"
-        self.image  = "images/icon.png"
+        self.defimage  = os.path.dirname(__file__) + \
+                            os.sep + "images/defpic.png"
+        #print("image", self.defimage)
+        self.image = self.defimage
         self.loadimg()
 
     def loadimg(self):
@@ -221,7 +225,7 @@ class ImgObj(DrawObj):
         if self.rect.x > 0 and self.rect.h > 0:
 
             if self.rect.w != ww or self.rect.h != hh:
-                print("Scale:",     ww, hh, self.rect.w, self.rect.h)
+                #print("Scale:",     ww, hh, self.rect.w, self.rect.h)
                 self.pixbuf2 = self.pixbuf.scale_simple(self.rect.w, self.rect.h,
                                         GdkPixbuf.InterpType.BILINEAR )
 
@@ -264,12 +268,12 @@ class RoundRectObj(DrawObj):
 
         """ Draws a rectangle with rounded corners using cairo. """
 
-        self.expand_size(self2)
+        #self.expand_size(self2)
 
         if self.selected:
             self.corners(self2, self.rect, self.rsize)
 
-        www = self.rect.w / 40
+        www = self.rect.w / 100
         if www < .1: www = .1
         cr.set_line_width(www);
 

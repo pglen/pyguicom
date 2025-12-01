@@ -13,6 +13,7 @@ import pggui
 import pgbutt
 import pgtests
 import pgdlgs
+import pgentry
 
 def textdlg(oldtext = "", parent = None):
 
@@ -21,6 +22,8 @@ def textdlg(oldtext = "", parent = None):
     dialog.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT,
                             Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT)
     dialog.set_default_response(Gtk.ResponseType.ACCEPT)
+
+    dialog.set_default_size(640, 480)
 
     if parent:
         dialog.set_transient_for(parent)
@@ -32,27 +35,28 @@ def textdlg(oldtext = "", parent = None):
     label7 = Gtk.Label(label="   ");  label8 = Gtk.Label(label="   ")
 
     #warnings.simplefilter("ignore")
-    entry = Gtk.Entry();
-    entry.set_text(oldtext)
+    #entry = Gtk.Entry();
+    headx, cont = pgentry.wrap(pgentry.TextViewx())
+    cont.set_text(oldtext)
     #warnings.simplefilter("default")
-    entry.set_activates_default(True)
-    entry.set_width_chars(24)
-    dialog.vbox.pack_start(label4, 0, 0, 0)
+    #entry.set_activates_default(True)
+    #entry.set_width_chars(24)
+    #dialog.vbox.pack_start(label4, 0, 0, 0)
 
     hbox2 = Gtk.HBox()
     hbox2.pack_start(label6, 0, 0, 0)
-    hbox2.pack_start(entry, 0, 0, 0)
+    hbox2.pack_start(headx, 1, 1, 0)
     hbox2.pack_start(label7, 0, 0, 0)
-    dialog.vbox.pack_start(hbox2, 0, 0, 0)
+    dialog.vbox.pack_start(hbox2, 1, 1, 0)
     dialog.vbox.pack_start(label5, 0, 0, 0)
 
-    hbox = Gtk.HBox()
-    dialog.vbox.pack_start(hbox, 0, 0, 0)
-    dialog.vbox.pack_start(label8, 0, 0, 0)
+    #hbox = Gtk.HBox()
+    #dialog.vbox.pack_start(hbox, 0, 0, 0)
+    #dialog.vbox.pack_start(label8, 0, 0, 0)
 
     dialog.show_all()
     response = dialog.run()
-    gotxt = entry.get_text()
+    gotxt = cont.get_text()
     dialog.destroy()
     #warnings.simplefilter("default")
 

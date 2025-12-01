@@ -118,6 +118,16 @@ class Canvas(Gtk.DrawingArea):
             #        print("DN key")
             pass
 
+        if event.keyval == Gdk.KEY_C or event.keyval == Gdk.KEY_c:
+            if event.state & Gdk.ModifierType.CONTROL_MASK:
+                #print("ctrl-c")
+                self.copy()
+
+        if event.keyval == Gdk.KEY_V or event.keyval == Gdk.KEY_v:
+            if event.state & Gdk.ModifierType.CONTROL_MASK:
+                #print("ctrl-v")
+                self.paste()
+
         return True
 
     def show_status(self, strx):
@@ -389,13 +399,15 @@ class Canvas(Gtk.DrawingArea):
                             "Connect Objects", "Connect Objects (arrow ->)",
                             "Connect Objects (arrow <-)", "Disconnect Objects",)
 
+                    warnings.simplefilter("ignore")
                     cmenu = pggui.Menu(ccs, self.menu_connect, event, True)
+                    warnings.simplefilter("default")
 
                     if cnt > 1:
                         mmm = ("Multiple Selection", "Properties", cmenu,
                          "Group Objects", "Ungroup Objects", align, zord)
                         warnings.simplefilter("ignore")
-                        pggui.Menu(mmm, self.menu_action, event)
+                        pggui.Menu(mmm, self.menu_multi, event)
                         warnings.simplefilter("default")
                     else:
                         mmm = (bb.text, "Object Properties", "Text",
@@ -403,21 +415,78 @@ class Canvas(Gtk.DrawingArea):
                                         "Delete", zord,
                                         "-", "Copy", "Paste", )
                         warnings.simplefilter("ignore")
-                        pggui.Menu(mmm, self.menu_action2, event)
+                        pggui.Menu(mmm, self.menu_action, event)
                         warnings.simplefilter("default")
                     self.queue_draw()
                 else:
+                    fops = ("File Operations",
+                        "Open", "Open (append)", "Save", "Save As",
+                        "Export")
+                    warnings.simplefilter("ignore")
+                    fops_menu = pggui.Menu(fops, self.callb_fops, event)
+                    warnings.simplefilter("default")
+
                     mmm = ("Main Menu", "Add Rectangle", "Add Text",
                         "Add Rounded Rect", "Add Rombus", "Add Circle",
                         "Add Line", "Add Image",
-                        "-", "Clear Canvas",
+                        "-",  fops_menu,
                         "-", "Copy", "Paste",
-                        "-", "Open", "Open (append)", "Save", "Save As")
+                        "-", "Clear Canvas")
+
                     warnings.simplefilter("ignore")
-                    pggui.Menu(mmm, self.menu_action3, event)
+                    pggui.Menu(mmm, self.menu_multi3, event)
                     warnings.simplefilter("default")
             else:
                 print("??? click", event.button)
+
+    def callb_fops(self, item, num):
+
+        #print("menu fops", item, num)
+
+        if "Export" in item:
+            #print("Export")
+            if not self.coll:
+                pgdlgs.message("Empty document.")
+                return
+            for aa in self.coll:
+                aa.selected = False
+            self.queue_draw()
+            pggui.usleep(10)
+            rect = self.get_allocation()
+
+            # Create PNG
+            warnings.simplefilter("ignore")
+            cr = Gdk.cairo_create(self.get_window())
+            warnings.simplefilter("default")
+            self.draw_event(self, cr)
+            pixbuf = Gdk.pixbuf_get_from_surface(cr.get_target(), 0, 0, rect.width, rect.height)
+
+            fname = os.path.basename(self.fname) + ".png"
+            self.show_status("Exporting: '%s'" % fname)
+            pixbuf.savev(fname, "png", [None], [])
+
+        elif "append" in item:
+            if self.config.verbose:
+                print("Open append")
+            self.open(True)
+
+        elif "Open" in item:
+            if self.config.verbose:
+                print("Open")
+            self.open()
+
+        elif "Save As" in item:
+            if self.config.verbose:
+                print("Save As")
+                #fff = pgdlgs.savedialog(self.fname)
+            self.saveas()
+
+        elif "Save" in item:
+            if self.config.verbose:
+                print("Save")
+            self.save()
+
+
 
     def writeout(self, fnamex):
 
@@ -547,9 +616,9 @@ class Canvas(Gtk.DrawingArea):
                     aa.rect.y = mark - aa.rect.h / 2
                     self.changed = True
 
-    def menu_action(self, item, num):
+    def menu_multi(self, item, num):
 
-        #print("menu_action:", item, num)
+        #print("menu_multi:", item, num)
 
         # Prop
         if num == 1:
@@ -587,10 +656,10 @@ class Canvas(Gtk.DrawingArea):
                     break
         self.queue_draw()
 
-    def menu_action2(self, item, num):
+    def menu_action(self, item, num):
 
         if self.config.verbose:
-            print("menu_action2", item, num)
+            print("menu_action", item, num)
 
         if num == 1:
             #print("Getting properties")
@@ -664,7 +733,7 @@ class Canvas(Gtk.DrawingArea):
         if num == 10:
             self.paste()
 
-    def menu_action3(self, item, num):
+    def menu_multi3(self, item, num):
 
         if self.config.verbose > 2:
             print("menu action3 ", item, num)
@@ -726,52 +795,14 @@ class Canvas(Gtk.DrawingArea):
             # Clear canvas
             self.coll = []
             self.queue_draw()
-
-        elif "Export" in item:
-            #print("Export")
-            # Create PNG
-            for aa in self.coll:
-                aa.selected = False
-            self.queue_draw()
-            pggui.usleep(10)
-            rect = self.get_allocation()
-
-            #pixbuf = Gdk.pixbuf_get_from_window(self.get_window(), 0, 0, rect.width, rect.height)
-            #self.surface = cairo.create_for_rectangle(0, 0, width, height)
-            #self.surface = cairo.create_similar_image(cairo.Format.ARGB32, rect.width, rect.height)
-            #cr =  self.get_window().cairo_create()
-            #cr =  cairo.Context(self.surface)
-
-            cr = Gdk.cairo_create(self.get_window())
-            self.draw_event(self, cr)
-            pixbuf = Gdk.pixbuf_get_from_surface(cr.get_target(), 0, 0, rect.width, rect.height)
-            pixbuf.savev("buff.png", "png", [None], [])
-
-        elif "append" in item:
-            if self.config.verbose:
-                print("Open append")
-            self.open(True)
-
-        elif "Open" in item:
-            if self.config.verbose:
-                print("Open")
-            self.open()
-
-        elif "Save As" in item:
-            if self.config.verbose:
-                print("Save As")
-                #fff = pgdlgs.savedialog(self.fname)
-            self.saveas()
-
-        elif "Save" in item:
-            if self.config.verbose:
-                print("Save")
-            self.save()
+            self.show_status("Cleared Canvas")
 
         else:
             print("Invalid menu item")
 
     def copy(self):
+        if self.config.verbose:
+            print("Copy")
         carr = []
         for aa in self.coll:
             if aa.selected:
@@ -779,29 +810,36 @@ class Canvas(Gtk.DrawingArea):
                 clipobj = pickle.dumps(aa)
                 hex_data = binascii.hexlify(clipobj).decode()
                 self.clip.set_text(hex_data, -1)
-        if not carr:
-            return
+                self.show_status("Copied to clipboard: '%s'" % aa.text)
 
     def paste(self):
+        if self.config.verbose:
+            print("Paste")
         hex_data = self.clip.wait_for_text()
         clipobj = binascii.unhexlify(hex_data.encode())
         aa = pickle.loads(clipobj)
-        aa.rect.x = self.mouse.x ; self.rect.y = self.mouse.y
+        aa.rect.x = self.mouse.x + 4 ; self.rect.y = self.mouse.y + 4
         aa.id = pgtests.randlett(8)
         self.coll.append(aa)
         self.queue_draw()
+        self.show_status("Pasted from clipboard: '%s'" % aa.text)
 
     def save(self):
         if self.config.verbose:
             print("Save")
         if not self.coll:
-            pgdlgs.message("Empty document.")
+            #pgdlgs.message("Empty document.")
+            self.show_status("Not saved -- empty docuent: '%s'" % os.path.basename(self.fname))
             return
         if self.fname == untitled:
             fnamex = pgdlgs.savedialog(self.fname)
             if not fnamex:
                 return
+            # Auto correct name
+            if not os.path.splitext(fnamex)[1]:
+                fnamex += ".ped"
             self.fname = fnamex
+            self.parent.set_title(os.path.basename(self.fname))
         self.writeout(self.fname)
 
     def saveas(self):
@@ -826,14 +864,11 @@ class Canvas(Gtk.DrawingArea):
         fff = pgdlgs.opendialog(filter=filter)
         if not fff:
             return
-
         if self.config.verbose:
             print("Open filename:", fff)
-
         # Clear canvas if requested
         if not keep:
             self.coll = []
-
         self.queue_draw()
         self.readfile(fff)
         self.fname = fff
