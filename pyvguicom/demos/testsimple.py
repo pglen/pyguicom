@@ -10,11 +10,10 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
 
-sys.path.append(".")
+from pyvguicom import pgutils
 
 import pgsimp
 import pggui
-import pgutils
 import pgtests
 
 warnings.simplefilter("default")

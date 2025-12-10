@@ -4,8 +4,7 @@ from __future__ import print_function
 
 import os, sys
 
-sys.path.append(".")
-
+from pyvguicom import pgutils
 import comline
 
 version = "0.00"

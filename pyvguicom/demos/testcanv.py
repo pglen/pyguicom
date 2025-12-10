@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 # pylint: disable=C0103
 # pylint: disable=C0209
@@ -11,9 +11,14 @@ import os, sys
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
+from gi.repository import GObject
+from gi.repository import GLib
+from gi.repository import Pango
+from gi.repository import Gtk
 
-sys.path.append(".")
+from pyvguicom import pgutils
 
+import pggui
 import pgcanv
 import pgdlgs
 import pgbutt
@@ -86,7 +91,10 @@ def mainfunc(conf):
     vbox.pack_start(hbox, 0, 0, 0)
 
     canv = pgcanv.Canvas(w, config=config)
-    vbox.pack_start(canv, 1, 1, 0)
+    scroll = Gtk.ScrolledWindow()
+    scroll.add(canv)
+    #vbox.pack_start(canv, 1, 1, 0)
+    vbox.pack_start(scroll, 1, 1, 0)
 
     #statcall = canvdlg.StatusBar(w, "Idle.")
     #vbox.pack_start(statcall, 0, 0, 0)

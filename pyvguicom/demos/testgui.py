@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-import sys, warnings
-
+import os, sys, warnings
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -11,9 +10,9 @@ from gi.repository import GObject
 from gi.repository import GLib
 from gi.repository import Pango
 
-sys.path.append(".")
-
+from pyvguicom import pgutils
 import pggui
+
 warnings.simplefilter("default")
 
 def timer(ledx):

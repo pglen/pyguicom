@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import math, warnings
+import os, sys, math, warnings
 
 import gi; gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk
@@ -8,6 +8,10 @@ from gi.repository import GObject
 from gi.repository import GLib
 from gi.repository import Pango
 from gi.repository import cairo
+
+basedir = os.path.dirname(__file__)
+if basedir not in sys.path:
+    sys.path.append(basedir)
 
 import pggui
 import pgbutt

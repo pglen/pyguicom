@@ -9,6 +9,12 @@
 
 import os, sys, time, traceback, stat
 
+# Append module location to sys.path
+basedir = os.path.dirname(__file__)
+#print("basedir:", basedir)
+if basedir not in sys.path:
+    sys.path.append(basedir)
+
 #import getopt, string,  math
 #import random, traceback, stat, platform
 

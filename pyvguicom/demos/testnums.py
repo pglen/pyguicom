@@ -9,10 +9,10 @@ from gi.repository import Gdk
 from gi.repository import GObject
 from gi.repository import GLib
 
-sys.path.append(".")
+from pyvguicom import pgutils
 
 from pgsel import *
-from pggui import *
+import pggui
 
 warnings.simplefilter("default")
 
@@ -49,22 +49,22 @@ class pgtestwin(testwin):
 
         vbox.pack_start(hbox2, 0, 0, 2)
 
-        hbox3.pack_start(Label("       Hour:  "), 0, 0, 2)
+        hbox3.pack_start(Gtk.Label(label="       Hour:  "), 0, 0, 2)
 
-        self.hs2 = Spinner(0, 23, 0, self.change_hs2);
+        self.hs2 = pggui.Spinner(0, 23, 0, self.change_hs2);
         hbox3.pack_start(self.hs2, 0, 0, 2)
 
-        hbox3.pack_start(Label("       Min:  "), 0, 0, 2)
-        self.ms2 = Spinner(0, 59, 0, self.change_ms2);
+        hbox3.pack_start(Gtk.Label(label="       Min:  "), 0, 0, 2)
+        self.ms2 = pggui.Spinner(0, 59, 0, self.change_ms2);
         hbox3.pack_start(self.ms2, 0, 0, 2)
 
-        hbox3.pack_start(Label(" "), 0, 0, 2)
+        hbox3.pack_start(Gtk.Label(label=" "), 0, 0, 2)
 
-        hbox4.pack_start(Label(" "), 0, 0, 2)
+        hbox4.pack_start(Gtk.Label(label=" "), 0, 0, 2)
         self.ts4 = HourSel(self.change_ts4);
         hbox4.pack_start(self.ts4, 0, 0, 2)
 
-        hbox4.pack_start(Label(" "), 0, 0, 2)
+        hbox4.pack_start(Gtk.Label(label=" "), 0, 0, 2)
         self.ts4a = MinSel(self.change_ts4a);
         hbox4.pack_start(self.ts4a, 0, 0, 2)
 

@@ -8,6 +8,10 @@
 
 import os, sys, math, warnings, random, platform
 
+basedir = os.path.dirname(__file__)
+if basedir not in sys.path:
+    sys.path.append(basedir)
+
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
@@ -19,12 +23,12 @@ from gi.repository import GdkPixbuf
 gi.require_version('PangoCairo', '1.0')
 from gi.repository import PangoCairo
 
-realinc = os.path.realpath(os.path.dirname(__file__) + os.sep + "../pycommon")
-sys.path.append(realinc)
+#realinc = os.path.realpath(os.path.dirname(__file__) + os.sep + "../pycommon")
+#sys.path.append(realinc)
 
 IDXERR = "Index is larger than the available number of controls."
 
-VERSION = "1.4.0"
+VERSION = "1.4.1"
 
 gui_testmode = 0
 
@@ -1694,9 +1698,3 @@ if __name__ == '__main__':
     print("This file was not meant to run as the main module")
 
 # EOF
-
-
-
-
-
-

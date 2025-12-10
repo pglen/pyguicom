@@ -12,10 +12,11 @@ from gi.repository import Pango
 
 sys.path.append(".")
 
+from pyvguicom import pgutils
+
 import pgsimp
 import pggui
 import pgdlgs
-import pgutils
 
 warnings.simplefilter("default")
 

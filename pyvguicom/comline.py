@@ -3,6 +3,10 @@
 import os, sys, string, time,  traceback, getopt
 import random, glob, warnings
 
+basedir = os.path.dirname(__file__)
+if basedir not in sys.path:
+    sys.path.append(basedir)
+
 VERSION = 1.0
 
 #warnings.simplefilter("ignore")

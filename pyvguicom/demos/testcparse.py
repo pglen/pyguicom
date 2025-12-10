@@ -4,6 +4,7 @@ import os, sys
 
 sys.path.append(".")
 
+from pyvguicom import pgutils
 import comparse
 
 version = "0.00"

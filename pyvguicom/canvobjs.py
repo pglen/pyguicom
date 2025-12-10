@@ -154,6 +154,7 @@ class RectObj(DrawObj):
         cr.set_line_width(www);
 
         self.expand_size(self2)
+
         self2.crh.set_source_rgb(self.col1); self2.crh.rectangle(self.rect)
         cr.fill()
 

@@ -9,10 +9,9 @@ from gi.repository import Gdk
 from gi.repository import GObject
 from gi.repository import GLib
 
-sys.path.append(".")
+from pyvguicom import pgutils
 
 import pgentry
-import pgutils
 import pggui
 
 warnings.simplefilter("default")

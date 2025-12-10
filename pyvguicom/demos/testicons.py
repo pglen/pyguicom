@@ -1,16 +1,9 @@
 #!/usr/bin/env python3
 
 import os, sys, warnings
-#, getopt, signal, random, time, warnings
 
-realinc = os.path.realpath(os.path.dirname(__file__) + os.sep + "../pycommon")
-sys.path.append(realinc)
-
-sys.path.append(".")
-
-from pgutils import  *
-from pggui import  *
-from pgsimp import  *
+from pyvguicom import pgutils
+import pggui
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -346,7 +339,7 @@ if __name__ == '__main__':
     #ic = Gtk.Image(); ic.set_from_stock(Gtk.STOCK_DIALOG, Gtk.ICON_SIZE_BUTTON)
     #window.set_icon(ic.get_pixbuf())
 
-    xx, yy, www, hhh = screen_dims_under_cursor()
+    xx, yy, www, hhh = pggui.screen_dims_under_cursor()
     win.set_default_size(6*www/8, 6*hhh/8)
     win.connect("delete-event", Gtk.main_quit)
     win.show_all()

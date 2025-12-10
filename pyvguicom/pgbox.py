@@ -12,7 +12,7 @@ from gi.repository import GObject
 from gi.repository import Pango
 from gi.repository import PangoCairo
 
-import pgutils
+from pyvguicom import pgutils
 
 '''  PgGui documentaation '''
 

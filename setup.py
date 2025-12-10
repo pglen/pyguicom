@@ -7,14 +7,29 @@ descx = '''
     classes.
     '''
 
-doclist = []; droot = "pyvguicom/docs/"
-doclistx = os.listdir(droot)
-for aa in doclistx:
-    doclist.append("docs/" + aa)
-#print("doclist", doclist)
-#sys.exit()
+def makelist(droot, exten):
+    xlistx = os.listdir(droot)
+    xlist = [];
+    for aa in xlistx:
+        if len(exten):
+            if aa[-len(exten):] == exten:
+                xlist.append(droot + aa)
+        else:
+            xlist.append(droot + aa)
+    return xlist
 
-includex = ["*", "pyvguicom"]
+
+doclist = makelist("pyvguicom/docs/", "html")
+#print("doclist:", doclist) # ; sys.exit(1)
+
+imglist = makelist("pyvguicom/images/", "png")
+#print("imglist:", imglist) # ; sys.exit(1)
+
+#sys.exit(1)
+
+deplist = ["pygobject==3.50.1"] ,
+
+includex = ["*", "pyvguicom", "pyvguicom/demos"]
 
 classx = [
           'Development Status :: 6 - Mature',
@@ -50,18 +65,24 @@ setuptools.setup(
     version=loc_vers,
     author="Peter Glen",
     author_email="peterglen99@gmail.com",
-    description="High power secure server GUI utility helpers.",
+    description="High power secure 'V' server GUI utility helpers.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/pglen/pyguicom.git",
     classifiers= classx,
-    include_package_data=True,
-    package_data = {    "pyvguicom" :  doclist, },
     packages=setuptools.find_packages(include=includex),
     package_dir = {
-                    'pyvguicom':           'pyvguicom',
+                    'pyvguicom' :   'pyvguicom',
+                    #'pyvguicom/docs' :   'pyvguicom/docs',
+                    'pyvguicom/demos' :   'pyvguicom/demos',
+                    #'pyvguicom/images': 'pyvguicom/images',
+                   },
+    include_package_data=True,
+    package_data = {    "pyvguicom" :  doclist,
+                        "pyvguicom" :  imglist,
                    },
     python_requires='>=3',
+    install_requires=deplist,
     entry_points={
     },
 )

@@ -13,7 +13,7 @@ from gi.repository import Pango
 gi.require_version('PangoCairo', '1.0')
 from gi.repository import PangoCairo
 
-sys.path.append(".")
+from pyvguicom import pgutils
 import custwidg
 
 warnings.simplefilter("default")
@@ -48,4 +48,4 @@ if __name__ == "__main__":
     #signal.signal(signal.SIGINT, signal.SIG_DFL)
     Gtk.main()
 
-
+# EOF

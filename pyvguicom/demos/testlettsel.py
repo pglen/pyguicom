@@ -2,10 +2,19 @@
 
 import os, sys, warnings
 
-sys.path.append(".")
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
+from gi.repository import GObject
+from gi.repository import GLib
+from gi.repository import Pango
+from gi.repository import Gtk
 
-from pgsel import *
-from pgutils import *
+from pyvguicom import pgutils
+import pgsel
+
+#from pgsel import *
+#from pgutils import *
 
 warnings.simplefilter("default")
 
@@ -39,7 +48,7 @@ class pgtestwin(testwin):
 
         vbox  = Gtk.VBox()
 
-        self.selector = LetterNumberSel(self.letterfilter, "Mono 16", " ")
+        self.selector = pgsel.LetterNumberSel(self.letterfilter, "Mono 16", " ")
         self.selector.set_tooltip_text("Arrow key to navigate, enter / space key to filter")
 
         hbox2 = Gtk.HBox();
@@ -49,7 +58,7 @@ class pgtestwin(testwin):
         vbox.pack_start(hbox2, 0, 0, 2)
 
         hbox3 = Gtk.HBox();
-        self.num = NumberSel("1 2 3 4 5 6 7 8 9", self.letterfilter, "Mono 16")
+        self.num = pgsel.NumberSel("1 2 3 4 5 6 7 8 9", self.letterfilter, "Mono 16")
         self.num.set_tooltip_text("Arrow key to navigate, enter / space key to filter")
         hbox3.pack_start(Gtk.Label.new("  "), 1, 1, 2)
         hbox3.pack_start(self.num, 0, 0, 2)
@@ -57,7 +66,7 @@ class pgtestwin(testwin):
         vbox.pack_start(hbox3, 0, 0, 2)
 
         hbox4 = Gtk.HBox();
-        self.num = HourSel(self.letterfilter)
+        self.num = pgsel.HourSel(self.letterfilter)
         self.num.set_tooltip_text("Arrow key to navigate, enter / space key to filter")
         hbox4.pack_start(Gtk.Label.new("  "), 1, 1, 2)
         hbox4.pack_start(self.num, 0, 0, 2)
@@ -65,7 +74,7 @@ class pgtestwin(testwin):
         vbox.pack_start(hbox4, 0, 0, 2)
 
         hbox4a = Gtk.HBox();
-        self.minx = MinSel(self.letterfilter)
+        self.minx = pgsel.MinSel(self.letterfilter)
         self.minx.set_tooltip_text("Arrow key to navigate, enter / space key to filter")
         hbox4a.pack_start(Gtk.Label.new("  "), 1, 1, 2)
         hbox4a.pack_start(self.minx, 0, 0, 2)

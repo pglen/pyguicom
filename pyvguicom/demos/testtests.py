@@ -14,8 +14,7 @@ from gi.repository import Pango
 gi.require_version('PangoCairo', '1.0')
 from gi.repository import PangoCairo
 
-sys.path.append(".")
-
+from pyvguicom import pgutils
 import pgtests
 
 def test_randstr(arg2, arg3):

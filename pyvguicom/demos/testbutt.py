@@ -17,6 +17,8 @@ from gi.repository import WebKit2
 
 warnings.simplefilter("default")
 
+from pyvguicom import pgutils
+
 import pgbutt
 import pggui
 

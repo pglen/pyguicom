@@ -21,6 +21,10 @@ from gi.repository import cairo
 gi.require_version('PangoCairo', '1.0')
 from gi.repository import PangoCairo
 
+#basedir = os.path.dirname(__file__)
+#if basedir not in sys.path:
+#    sys.path.append(basedir)
+
 import pggui
 import pgdlgs
 import pgutils
