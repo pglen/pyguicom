@@ -42,6 +42,7 @@ clean:
 	rm -rf pyvguicom/__pycache__
 	rm -rf build/*
 	rm -rf dist/*
+	rm -rf pyvguicom.egg-info
 
 git:
 	git add .

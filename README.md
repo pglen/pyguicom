@@ -71,8 +71,9 @@ starting with the text* prefix.
 
  ## History:
 
-    Sat 08.Nov.2025     -- Simplified pyutils
-    Tue 11.Nov.2025     -- No default frame for radio buttons
+    Wed 10.Dec.2025     --  Added docs, demos, more pip features
+    Sat 08.Nov.2025     --  Simplified pyutils
+    Tue 11.Nov.2025     --  No default frame for radio buttons
 
 Peter Glen
 

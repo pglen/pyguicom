@@ -4,32 +4,31 @@ import setuptools
 descx = '''
     These classes are for python PyGobject (Gtk) development. They are used in
     several projects. They act as a simplification front end for the PyGtk / PyGobject
-    classes.
+    classes.  See demo subdir for demo and test cases.
     '''
 
-def makelist(droot, exten):
-    xlistx = os.listdir(droot)
-    xlist = [];
+def makelist(droot, dirx, exten):
+    ''' Create a list from directories '''
+    xlistx = os.listdir(droot); xlist = [];
     for aa in xlistx:
+        flag = 0
         if len(exten):
             if aa[-len(exten):] == exten:
-                xlist.append(droot + aa)
+                flag = True
         else:
-            xlist.append(droot + aa)
+            flag = True
+        if flag:
+            xlist.append(dirx + aa)
     return xlist
 
-
-doclist = makelist("pyvguicom/docs/", "html")
-#print("doclist:", doclist) # ; sys.exit(1)
-
-imglist = makelist("pyvguicom/images/", "png")
-#print("imglist:", imglist) # ; sys.exit(1)
-
+doclist = makelist("pyvguicom/docs/", "docs/", "html")
+#print("doclist:", doclist)
+imglist = makelist("pyvguicom/images/", "images/", "png")
+#print("lists:", doclist + imglist)
 #sys.exit(1)
 
 deplist = ["pygobject==3.50.1"] ,
-
-includex = ["*", "pyvguicom", "pyvguicom/demos"]
+includex = ["*"]
 
 classx = [
           'Development Status :: 6 - Mature',
@@ -72,14 +71,13 @@ setuptools.setup(
     classifiers= classx,
     packages=setuptools.find_packages(include=includex),
     package_dir = {
-                    'pyvguicom' :   'pyvguicom',
-                    #'pyvguicom/docs' :   'pyvguicom/docs',
-                    'pyvguicom/demos' :   'pyvguicom/demos',
-                    #'pyvguicom/images': 'pyvguicom/images',
+                    #'pyvguicom'       :   'pyvguicom',
+                    #'pyvguicom/demos' :   'pyvguicom/demos',
                    },
     include_package_data=True,
-    package_data = {    "pyvguicom" :  doclist,
-                        "pyvguicom" :  imglist,
+    package_data = {
+                    # Note: setup processes only once per dir
+                    "pyvguicom"   :    imglist + doclist,
                    },
     python_requires='>=3',
     install_requires=deplist,

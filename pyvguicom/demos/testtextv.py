@@ -61,8 +61,10 @@ class MainWin(Gtk.Window):
         #self.connect("button-press-event", self.button_press_event)
 
         try:
-            self.set_icon_from_file("icon.png")
+            iconame = os.path.dirname(pgtextview.__file__) + os.sep + "images/canv.png"
+            self.set_icon_from_file(iconame)
         except:
+            print(sys.exc_info())
             pass
 
         self.fd = Pango.FontDescription()
